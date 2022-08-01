@@ -16,3 +16,40 @@ def identify(user : str, password : str):
      本函数不应该报错
     '''
     return True
+
+def getmodel(user : str, password : str, modelname : str):
+    '''
+    TODO
+    找到模型对应的存储地址
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     modelname - 模型名称，先假设非重复，之后再去重
+     
+    Returns:
+     一个字符串表示模型的名称，如'test.pmml'
+     
+    Raises:
+     本函数不应该报错
+    '''
+    return 'randomForest.pmml'
+
+def savemodel(user : str, password : str, modelname : str):
+    '''
+    TODO
+    存储模型对应的存储地址
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     modelname - 模型名称
+     
+    Returns:
+     'success' : 成功
+     'duplication' : 重名，不合法
+     
+    Raises:
+     本函数不应该报错
+    '''
+    return 'success'
