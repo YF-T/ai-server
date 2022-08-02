@@ -16,6 +16,6 @@ y = pd.Series(np.array(iris.target_names)[iris.target])
 y.name = "Class"
 Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.33, random_state=123)
 
-clf = PMMLForestClassifier(pmml="model/randomForest.pmml")
+clf = PMMLForestClassifier(pmml="../model/randomForest.pmml")
 clf.predict(Xte)
 print(clf.score(Xte, yte))

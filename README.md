@@ -72,6 +72,9 @@
 ├── frontend
 ├── backend
 │   ├── model : 存放模型的文件夹，最好有一个不会重复的命名方式命名文件
+│   ├── for_test : 存放调试相关脚本的文件夹，项目完工之后删
+│   │   ├── test.py : 调试接口
+│   │   └── testmodel.py : 调试模型
 │   ├── app.py : 接口
 │   └── database.py : 数据库交互相关函数
 └── README.md
