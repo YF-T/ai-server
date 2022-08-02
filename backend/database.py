@@ -1,3 +1,8 @@
+import sqlite3
+import os
+
+conn = None
+cur = None
 
 def identify(user : str, password : str):
     '''
@@ -53,3 +58,44 @@ def savemodel(user : str, password : str, modelname : str):
      本函数不应该报错
     '''
     return 'success'
+
+def init():
+    '''
+    初始化数据库
+    创建六个管理员用户，并且
+    
+    Parameters:
+     None
+     
+    Returns:
+     None
+     
+    Raises:
+     本函数不应该报错
+    '''
+    global cur
+    global conn
+    if not os.path.exists('information.db'):
+        conn = sqlite3.connect('information.db')
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE users 
+                        (user TEXT, password TEXT, roll TEXT);''')
+        cur.executemany('INSERT INTO users VALUES (?,?,?)', 
+                        [('tyf', '123456', 'administrator'),
+                         ('crk', '123456', 'administrator'),
+                         ('zyt', '123456', 'administrator'),
+                         ('wzn', '123456', 'administrator'),
+                         ('llz', '123456', 'administrator'),
+                         ('lxt', '123456', 'administrator')])
+        cur.execute('''CREATE TABLE models 
+                        (user TEXT, modelid NUMBER, modelname TEXT, modelroute TEXT);''')
+        cur.executemany('INSERT INTO users VALUES (?,?,?)', 
+                        [('tyf', '123456', 'administrator'),
+                         ('crk', '123456', 'administrator'),
+                         ('zyt', '123456', 'administrator'),
+                         ('wzn', '123456', 'administrator'),
+                         ('llz', '123456', 'administrator'),
+                         ('lxt', '123456', 'administrator')])
+        cur.execute('''CREATE TABLE tasks 
+                        (user TEXT, modelid NUMBER, log TEXT);''')
+    

@@ -31,3 +31,6 @@ def login():
     status = database.identify(user, password)
         
     return jsonify({'status':status})
+
+if __name__ == '__main__':
+    app.run(debug=True)
