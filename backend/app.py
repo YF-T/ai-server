@@ -20,7 +20,9 @@ def login():
      password : str - 密码
      
     Returns:
-     status : bool - 一个布尔值表示是否登陆成功
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'password error' : 密码错误
      
     Raises:
      本函数不应该报错
@@ -33,4 +35,5 @@ def login():
     return jsonify({'status':status})
 
 if __name__ == '__main__':
+    database.init()
     app.run(debug=True)

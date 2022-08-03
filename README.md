@@ -98,7 +98,9 @@
 >
 > 返回：
 >
-> status : bool - 一个布尔值表示是否登陆成功
+> status : str - 'success' : 成功
+>                     'user not found' : 用户不存在
+>                     'password error' : 密码错误
 
 ### 报错信息
 
