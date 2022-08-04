@@ -5,7 +5,6 @@ database = 'information.db'
 
 def identify(user : str, password : str):
     '''
-    TODO
     身份识别函数，识别用户是否存在/用户名与密码是否匹配
      
     Parameters:
@@ -35,9 +34,8 @@ def identify(user : str, password : str):
     conn.close()
     return status
 
-def getmodel(user : str, password : str, modelname : str):
+def getmodelroute(user : str, password : str, modelname : str):
     '''
-    TODO
     找到模型对应的存储地址
      
     Parameters:
@@ -46,30 +44,188 @@ def getmodel(user : str, password : str, modelname : str):
      modelname - 模型名称，先假设非重复，之后再去重
      
     Returns:
-     一个字符串表示模型的名称，如'test.pmml'
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为路径名，一个字符串表示模型的路径，如'test.pmml'
+     失败则为错误信息，'model not found' : 找不到该名称模型
+                       'user not found' : 用户不存在
+                       'password error' : 密码错误 
      
     Raises:
      本函数不应该报错
     '''
-    return 'randomForest.pmml'
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(modelname, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT modelroute FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    row = c.fetchone()
+    if row is None:
+        answer = 'model not found'
+    else:
+        answer = row[0]
+    conn.close()
+    return bool(row), answer
 
-def savemodel(user : str, password : str, modelname : str):
+def getmodelinfo(user : str, password : str, modelname : str):
     '''
-    TODO
-    存储模型对应的存储地址
+    找到模型对应的描述信息
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     modelname - 模型名称，先假设非重复，之后再去重
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为模型描述，一个字符串表示模型的描述，如'测试模型'
+     失败则为错误信息，'model not found' : 找不到该名称模型
+                       'user not found' : 用户不存在
+                       'password error' : 密码错误 
+     
+    Raises:
+     本函数不应该报错
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(modelname, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    row = c.fetchone()
+    if row is None:
+        answer = 'model not found'
+    else:
+        answer = row[0]
+    conn.close()
+    return bool(row), answer
+
+def getmodelvariables(user : str, password : str, modelname : str):
+    '''
+    找到模型对应的输入变量和输出变量的信息
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     modelname - 模型名称，先假设非重复，之后再去重
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     若成功：
+     第二个变量为一个list，里面装着所有的输入变量信息
+        每个输入变量信息用一个元组(tuple)表示，元组里有四个str类型的元素，
+        分别为字段名，类型，取值范围（若没有则为None），维数（没有则为None）
+        如('input', 'int', '0,1,2,3', '1*8')
+        如('input', 'int', None, None)
+     第三个变量为一个list，里面装着所有的输出变量信息，格式同上
+     若失败：
+     第二个变量返回报错信息，第三个变量返回None
+        'model not found' : 找不到该名称模型
+        'user not found' : 用户不存在
+        'password error' : 密码错误 
+     
+    Raises:
+     本函数不应该报错
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password), None
+    assert isinstance(modelname, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    if c.fetchone() is None:
+        conn.close()
+        return False, 'model not found', None
+    c.execute('''SELECT name, type, value, dim FROM variables 
+                    WHERE user = ? AND modelname = ? AND inout = ?''', 
+                    (user, modelname, 'input'))
+    input = c.fetchall()
+    c.execute('''SELECT name, type, value, dim FROM variables 
+                    WHERE user = ? AND modelname = ? AND inout = ?''', 
+                    (user, modelname, 'output'))
+    output = c.fetchall()
+    conn.close()
+    return True, input, output
+
+def savemodel(user : str, password : str, modelname : str, modeltype : str, 
+                time : str, modelroute : str, description : str, 
+                input : list, output : list):
+    '''
+    存储模型信息
      
     Parameters:
      uese - 用户名
      password - 密码
      modelname - 模型名称
+     modeltype - 模型类别
+     time - 创建时间
+     modelroute - 模型文件存储路径
+     description - 模型描述
+     input - 输入变量信息的列表
+        每个输入变量信息用一个元组(tuple)表示，元组里有四个str类型的元素，
+        分别为字段名，类型，取值范围（若没有则为None），维数（没有则为None）
+        如('input', 'int', '0,1,2,3', '1*8')
+        如('input', 'int', None, None)
+     output - 输出变量信息的列表，每个变量的信息格式如上
      
     Returns:
      'success' : 成功
      'duplication' : 重名，不合法
+     'user not found' : 用户不存在
+     'password error' : 密码错误
      
     Raises:
-     本函数不应该报错
+     参数类型错误
     '''
+    # 验证用户名和密码
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    # 检验参数类型
+    assert isinstance(modelname, str)
+    assert isinstance(modeltype, str)
+    assert isinstance(time, str)
+    assert isinstance(modelroute, str)
+    assert isinstance(description, str)
+    assert isinstance(input, list)
+    assert isinstance(output, list)
+    for variable in input:
+        assert isinstance(variable, tuple)
+        for text in variable:
+            assert isinstance(text, str) or text is None
+    for variable in output:
+        assert isinstance(variable, tuple)
+        for text in variable:
+            assert isinstance(text, str) or text is None
+    # 链接数据库，检查是否有重名
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    if not c.fetchone() is None:
+        conn.close()
+        return 'duplication'
+    modelid = 0
+    c.execute('INSERT INTO models VALUES (?,?,?,?,?,?,?)', 
+                    (user, modelid, modelname, modeltype, 
+                    time, modelroute, description))
+    for variable in input:
+        c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?)', 
+                    (user, modelid, modelname, 'input', 
+                    variable[0], variable[1], variable[2], variable[3]))
+    for variable in output:
+        c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?)', 
+                    (user, modelid, modelname, 'output', 
+                    variable[0], variable[1], variable[2], variable[3]))
+    conn.commit()
+    conn.close()
     return 'success'
 
 def init():
@@ -89,12 +245,12 @@ def init():
     if not os.path.exists(database):
         # 创建数据库
         conn = sqlite3.connect(database)
-        cur = conn.cursor()
+        c = conn.cursor()
         # 创建用户表
-        cur.execute('''CREATE TABLE users 
+        c.execute('''CREATE TABLE users 
                         (user TEXT, password TEXT, roll TEXT, 
                         modelid NUMBER, immediatetaskid NUMBER, waittaskid NUMBER);''')
-        cur.executemany('INSERT INTO users VALUES (?,?,?,?,?,?)', 
+        c.executemany('INSERT INTO users VALUES (?,?,?,?,?,?)', 
                         [('tyf', '123456', 'administrator', 1, 1, 1),
                          ('crk', '123456', 'administrator', 1, 1, 1),
                          ('zyt', '123456', 'administrator', 1, 1, 1),
@@ -102,24 +258,37 @@ def init():
                          ('llz', '123456', 'administrator', 1, 1, 1),
                          ('lxt', '123456', 'administrator', 1, 1, 1)])
         # 创建模型表
-        cur.execute('''CREATE TABLE models 
+        c.execute('''CREATE TABLE models 
                         (user TEXT, modelid NUMBER, 
-                        modelname TEXT, modelroute TEXT);''')
-        cur.executemany('INSERT INTO models VALUES (?,?,?,?)', 
-                        [('tyf', '123456', 'test', 'randomForest.pmml'),
-                         ('crk', '123456', 'test', 'randomForest.pmml'),
-                         ('zyt', '123456', 'test', 'randomForest.pmml'),
-                         ('wzn', '123456', 'test', 'randomForest.pmml'),
-                         ('llz', '123456', 'test', 'randomForest.pmml'),
-                         ('lxt', '123456', 'test', 'randomForest.pmml')])
+                        modelname TEXT, modeltype TEXT, 
+                        time TEXT, modelroute TEXT,
+                        description TEXT);''')
+        c.executemany('INSERT INTO models VALUES (?,?,?,?,?,?,?)', 
+                        [('tyf', -1, 'test', 'pmml', 
+                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         ('crk', -1, 'test', 'pmml', 
+                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         ('zyt', -1, 'test', 'pmml', 
+                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         ('wzn', -1, 'test', 'pmml', 
+                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         ('llz', -1, 'test', 'pmml', 
+                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         ('lxt', -1, 'test', 'pmml', 
+                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型')])
         # 创建立即任务表
-        cur.execute('''CREATE TABLE immediatetasks
+        c.execute('''CREATE TABLE immediatetasks
                         (user TEXT, id NUMBER, 
                         inputroute TEXT, outputroute TEXT);''')
         # 创建等待任务表
-        cur.execute('''CREATE TABLE waittasks 
+        c.execute('''CREATE TABLE waittasks 
                         (user TEXT, id NUMBER, 
                         inputroute TEXT, outputroute TEXT);''')
+        # 创建模型变量表
+        c.execute('''CREATE TABLE variables 
+                        (user TEXT, id NUMBER, modelname TEXT, 
+                        inout TEXT, name TEXT, 
+                        type TEXT, value TEXT, dim TEXT);''')
         # 提交，关闭数据库
         conn.commit()
         conn.close()
