@@ -22,7 +22,7 @@ def login():
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
-                    'password error' : 密码错误
+                    'invalid password' : 密码错误
      
     Raises:
      本函数不应该报错

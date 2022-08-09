@@ -14,7 +14,7 @@ def identify(user : str, password : str):
     Returns:
      'success' : 成功
      'user not found' : 用户不存在
-     'password error' : 密码错误
+     'invalid password' : 密码错误
      
     Raises:
      若用户名或密码不是字符串则报错
@@ -30,9 +30,38 @@ def identify(user : str, password : str):
     elif row[0] == password:
         status = 'success'
     else:
-        status = 'password error'
+        status = 'invalid password'
     conn.close()
     return status
+
+def getusermodel(user : str, password : str):
+    '''
+    返回用户的所有模型
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量：
+     成功则为一个列表，这个列表包含该用户的每一个模型，每个模型的信息是一个四元组：(模型id，模型名称，类型，时间)
+                                     如(1, 'test', 'pmml', '2022-08-04 19:00:00')
+     失败则为一个字符串代表错误信息，'user not found' : 用户不存在
+                                     'invalid password' : 密码错误 
+     
+    Raises:
+     本函数不应该报错
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT modelid, modelname, modeltype, time FROM models WHERE user = ?', (user,))
+    answer = c.fetchall()
+    conn.close()
+    return True, answer
 
 def getmodelroute(user : str, password : str, modelname : str):
     '''
@@ -50,7 +79,7 @@ def getmodelroute(user : str, password : str, modelname : str):
      成功则为路径名，一个字符串表示模型的路径，如'test.pmml'
      失败则为错误信息，'model not found' : 找不到该名称模型
                        'user not found' : 用户不存在
-                       'password error' : 密码错误 
+                       'invalid password' : 密码错误 
      
     Raises:
      本函数不应该报错
@@ -86,7 +115,7 @@ def getmodelinfo(user : str, password : str, modelname : str):
      成功则为模型描述，一个字符串表示模型的描述，如'测试模型'
      失败则为错误信息，'model not found' : 找不到该名称模型
                        'user not found' : 用户不存在
-                       'password error' : 密码错误 
+                       'invalid password' : 密码错误 
      
     Raises:
      本函数不应该报错
@@ -129,7 +158,7 @@ def getmodelvariables(user : str, password : str, modelname : str):
      第二个变量返回报错信息，第三个变量返回None
         'model not found' : 找不到该名称模型
         'user not found' : 用户不存在
-        'password error' : 密码错误 
+        'invalid password' : 密码错误 
      
     Raises:
      本函数不应该报错
@@ -180,7 +209,7 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
      'success' : 成功
      'duplication' : 重名，不合法
      'user not found' : 用户不存在
-     'password error' : 密码错误
+     'invalid password' : 密码错误
      
     Raises:
      参数类型错误
