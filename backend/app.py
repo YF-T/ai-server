@@ -74,11 +74,11 @@ def fake_getmodelinfo():
                                {'name' : 'input2', 
                                 'type' : 'int', 
                                 'range' : None,
-                                'dimension' : None}],
+                                'dimension' : None},],
                     'output' : [{'name' : 'output1', 
                                  'type' : 'int', 
                                  'range' : None,
-                                 'dimension' : None} })
+                                 'dimension' : None},],})
 
 if __name__ == '__main__':
     database.init()
