@@ -55,6 +55,31 @@ def upload():
 
     return 'success'
 
+@app.route('/fake_getmodelinfo',methods=["GET"])
+def fake_getmodelinfo():
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    return jsonify({'status' : 'success', 
+                    'modelname' : 'test', 
+                    'time' : '2022-08-10 16:00:00', 
+                    'modeltype' : 'pmml', 
+                    'algorithm' : 'randomforest', 
+                    'description' : '测试用模型', 
+                    'engine' : 'pypmml', 
+                    'input' : [{'name' : 'input1', 
+                                'type' : 'int', 
+                                'range' : '0,1,2,3',
+                                'dimension' : '5*5'},
+                               {'name' : 'input2', 
+                                'type' : 'int', 
+                                'range' : None,
+                                'dimension' : None}],
+                    'output' : [{'name' : 'output1', 
+                                 'type' : 'int', 
+                                 'range' : None,
+                                 'dimension' : None} })
+
 if __name__ == '__main__':
     database.init()
     app.run(debug=True)
