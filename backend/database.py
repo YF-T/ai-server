@@ -3,6 +3,37 @@ import os
 
 database = 'information.db'
 
+def register(user : str, password : str):
+    '''
+    注册用户函数
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     
+    Returns:
+     'success' : 成功
+     'duplication' : 用户重名
+     
+    Raises:
+     若用户名或密码不是字符串则报错
+    '''
+    assert isinstance(user, str)
+    assert isinstance(password, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT password FROM users WHERE user = ?', (user,))
+    row = c.fetchone()
+    if not row is None:
+        status = 'duplication'
+    else:
+        c.execute('INSERT INTO users VALUES (?,?,?,?,?,?)', 
+                        (user, password, 'user', 1, 1, 1))
+        conn.commit()
+        status = 'success'
+    conn.close()
+    return status
+
 def identify(user : str, password : str):
     '''
     身份识别函数，识别用户是否存在/用户名与密码是否匹配
@@ -99,42 +130,6 @@ def getmodelroute(user : str, password : str, modelname : str):
     conn.close()
     return bool(row), answer
 
-def getmodelinfo(user : str, password : str, modelname : str):
-    '''
-    找到模型对应的描述信息
-     
-    Parameters:
-     uese - 用户名
-     password - 密码
-     modelname - 模型名称，先假设非重复，之后再去重
-     
-    Returns:
-     多值返回
-     第一个变量为一个布尔变量，False为访问失败，True为访问成功
-     第二个变量为一个字符串
-     成功则为模型描述，一个字符串表示模型的描述，如'测试模型'
-     失败则为错误信息，'model not found' : 找不到该名称模型
-                       'user not found' : 用户不存在
-                       'invalid password' : 密码错误 
-     
-    Raises:
-     本函数不应该报错
-    '''
-    if identify(user, password) != 'success':
-        return False, identify(user, password)
-    assert isinstance(modelname, str)
-    conn = sqlite3.connect(database)
-    c = conn.cursor()
-    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
-                    (user, modelname))
-    row = c.fetchone()
-    if row is None:
-        answer = 'model not found'
-    else:
-        answer = row[0]
-    conn.close()
-    return bool(row), answer
-
 def getmodelvariables(user : str, password : str, modelname : str):
     '''
     找到模型对应的输入变量和输出变量的信息
@@ -184,8 +179,48 @@ def getmodelvariables(user : str, password : str, modelname : str):
     conn.close()
     return True, input, output
 
+def getmodelinfo(user : str, password : str, modelname : str):
+    '''
+    找到模型对应的信息
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     modelname - 模型名称，先假设非重复，之后再去重
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为模型信息，一个元组(modelname, modeltype, time, modelroute, 
+                                algorithm, engine, description)
+     失败则为错误信息，'model not found' : 找不到该名称模型
+                       'user not found' : 用户不存在
+                       'invalid password' : 密码错误 
+     
+    Raises:
+     本函数不应该报错
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(modelname, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('''SELECT modelname, modeltype, time,  
+                        algorithm, engine, description 
+                        FROM models WHERE user = ? AND modelname = ?''', 
+                            (user, modelname))
+    row = c.fetchone()
+    if row is None:
+        answer = 'model not found'
+    else:
+        answer = row
+    conn.close()
+    return bool(row), answer
+
 def savemodel(user : str, password : str, modelname : str, modeltype : str, 
                 time : str, modelroute : str, description : str, 
+                engine : str, algorithm : str, 
                 input : list, output : list):
     '''
     存储模型信息
@@ -198,6 +233,8 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
      time - 创建时间
      modelroute - 模型文件存储路径
      description - 模型描述
+     engine - 引擎描述
+     algorithm - 算法描述
      input - 输入变量信息的列表
         每个输入变量信息用一个元组(tuple)表示，元组里有四个str类型的元素，
         分别为字段名，类型，取值范围（若没有则为None），维数（没有则为None）
@@ -223,6 +260,8 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
     assert isinstance(time, str)
     assert isinstance(modelroute, str)
     assert isinstance(description, str)
+    assert isinstance(engine, str)
+    assert isinstance(algorithm, str)
     assert isinstance(input, list)
     assert isinstance(output, list)
     for variable in input:
@@ -242,9 +281,9 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
         conn.close()
         return 'duplication'
     modelid = 0
-    c.execute('INSERT INTO models VALUES (?,?,?,?,?,?,?)', 
+    c.execute('INSERT INTO models VALUES (?,?,?,?,?,?,?,?,?)', 
                     (user, modelid, modelname, modeltype, 
-                    time, modelroute, description))
+                    time, modelroute, algorithm, engine, description))
     for variable in input:
         c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?)', 
                     (user, modelid, modelname, 'input', 
@@ -290,21 +329,28 @@ def init():
         c.execute('''CREATE TABLE models 
                         (user TEXT, modelid NUMBER, 
                         modelname TEXT, modeltype TEXT, 
-                        time TEXT, modelroute TEXT,
+                        time TEXT, modelroute TEXT, 
+                        algorithm TEXT, engine TEXT, 
                         description TEXT);''')
-        c.executemany('INSERT INTO models VALUES (?,?,?,?,?,?,?)', 
+        c.executemany('INSERT INTO models VALUES (?,?,?,?,?,?,?,?,?)', 
                         [('tyf', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         '2020-08-03 16:00:00', 'randomForest.pmml', 
+                         'randomforest', 'pypmml', '测试模型'),
                          ('crk', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         '2020-08-03 16:00:00', 'randomForest.pmml', 
+                         'randomforest', 'pypmml', '测试模型'),
                          ('zyt', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         '2020-08-03 16:00:00', 'randomForest.pmml', 
+                         'randomforest', 'pypmml', '测试模型'),
                          ('wzn', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         '2020-08-03 16:00:00', 'randomForest.pmml', 
+                         'randomforest', 'pypmml', '测试模型'),
                          ('llz', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型'),
+                         '2020-08-03 16:00:00', 'randomForest.pmml', 
+                         'randomforest', 'pypmml', '测试模型'),
                          ('lxt', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', '测试模型')])
+                         '2020-08-03 16:00:00', 'randomForest.pmml', 
+                         'randomforest', 'pypmml', '测试模型')])
         # 创建立即任务表
         c.execute('''CREATE TABLE immediatetasks
                         (user TEXT, id NUMBER, 

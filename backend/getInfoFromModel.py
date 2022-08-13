@@ -1,5 +1,5 @@
 
-def getmodelinfo(user : str, password : str, modelname : str):
+def getmodelinfo(modelpath : str):
     '''
     功能：从输入的pmml和onnx文件中读取模型信息，如输入输出变量
     输入的模型名称为已经储存在/backend/model里的文件，需要带.pmml或.onnx后缀
@@ -23,13 +23,13 @@ def getmodelinfo(user : str, password : str, modelname : str):
     input_variate_list=[]
     predict_variate_list=[]
     #判断是哪个模型
-    model=re.search(r'....$',modelname)
-    file_path = "./model/" + modelname
+    model=re.search(r'....$',modelpath)
+    file_path = "./model/" + modelpath
     #对pmml
     if model.group()=="pmml":
         model_type="PMML"
         engine="PyPMML"
-        # modelname 需要带.pmll或.onnx后缀
+        # modelname 需要带.pmml或.onnx后缀
         with open(file_path, encoding='utf-8') as file_obj:
             contents = file_obj.read()
         #匹配使用的模型算法
