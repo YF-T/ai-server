@@ -1,15 +1,23 @@
 <template>
   <div>
     <div class="details">
-        <div>端点:<el-tag>POST</el-tag></div>
-        <div>部署令牌</div>
+      <div>
+        <span class="caption">端点:</span><el-tag>POST</el-tag
+        ><span class="endpoint">{{ endpoint }}</span>
+      </div>
+      <div>
+        <span class="caption">部署令牌: </span
+        ><el-icon color="#e32461" @click="copyToken" class="copy_token"><CopyDocument /></el-icon>
+      </div>
     </div>
-    
-    <el-card style="card" shadow="never">
+    <div class="cards">
+      <el-card style="card" class="card" shadow="never">
       <template #header>
         <div class="card_header">
           <span>请求</span>
-          <el-link type="primary" @click="() => dialogVisible = true">生成代码</el-link>
+          <el-link type="primary" @click="() => (dialogVisible = true)"
+            >生成代码</el-link
+          >
         </div>
       </template>
       <el-form :model="form" label-position="top" :rules="rules" ref="formRef">
@@ -28,20 +36,20 @@
       </el-form>
     </el-card>
 
-    <el-card style="card" shadow="never">
+    <el-card style="card" class="card" shadow="never">
       <template #header>
         <div class="card_header">
           <span>响应</span>
-          
         </div>
       </template>
       <code>{{ response }}</code>
     </el-card>
+    </div>
 
     <el-dialog :model="dialogVisible">
-    <p>生成代码</p>
-    <div>some code</div>
-    <!-- todo:introduce code editor -->
+      <p>生成代码</p>
+      <div>some code</div>
+      <!-- todo:introduce code editor -->
     </el-dialog>
   </div>
 </template>
@@ -56,12 +64,12 @@ import {
   ElButtonGroup,
   ElDialog,
   ElTag,
+  ElIcon,
 } from 'element-plus'
+import { CopyDocument } from '@element-plus/icons-vue'
 import { reactive, ref } from 'vue'
 import type { FormRules, FormInstance } from 'element-plus'
-const handleClick = () => {
-
-}
+const handleClick = () => {}
 const form = reactive({
   functionName: '',
   request: '',
@@ -74,15 +82,15 @@ const rules = reactive<FormRules>({
 })
 
 const submit = () => {
-    if (!formRef.value) return
+  if (!formRef.value) return
 
-    formRef.value.validate((valid, fields) => {
-        if (valid) {
-            console.log('valid!')
-        } else {
-            console.log('error', fields)
-        }
-    })
+  formRef.value.validate((valid, fields) => {
+    if (valid) {
+      console.log('valid!')
+    } else {
+      console.log('error', fields)
+    }
+  })
 }
 
 const clear = () => {
@@ -93,11 +101,41 @@ const clear = () => {
 const response = ref('')
 
 const dialogVisible = ref(false)
+
+const endpoint = ref('https://ddddd')
+
+const copyToken = () => {
+  alert('copied')
+}
 </script>
 <style scoped>
 .card_header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.endpoint {
+  margin-left: 0.5em;
+}
+
+.caption {
+  margin-right: 0.5em;
+}
+
+.copy_token {
+  cursor:pointer;
+}
+
+.cards {
+  display: flex;
+}
+
+.details {
+  text-align: left;
+}
+.card {
+  width: 50%;
+  margin: 0.5em;
 }
 </style>
