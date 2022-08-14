@@ -7,43 +7,66 @@
       </div>
       <div>
         <span class="caption">部署令牌: </span
-        ><el-icon color="#e32461" @click="copyToken" class="copy_token"><CopyDocument /></el-icon>
+        ><el-icon color="#e32461" @click="copyToken" class="copy_token"
+          ><CopyDocument
+        /></el-icon>
       </div>
     </div>
     <div class="cards">
       <el-card style="card" class="card" shadow="never">
-      <template #header>
-        <div class="card_header">
-          <span>请求</span>
-          <el-link type="primary" @click="() => (dialogVisible = true)"
-            >生成代码</el-link
-          >
-        </div>
-      </template>
-      <el-form :model="form" label-position="top" :rules="rules" ref="formRef">
-        <el-form-item label="函数名" prop="functionName">
-          <el-input v-model="form.functionName"></el-input>
-        </el-form-item>
-        <el-form-item label="请求" prop="request">
-          <el-input v-model="form.request"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button-group>
-            <el-button @click="clear">清除</el-button>
-            <el-button @click="submit" type="primary">提交</el-button>
-          </el-button-group>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        <template #header>
+          <div class="card_header">
+            <span>请求</span>
+            <el-link
+              type="primary"
+              @click="
+                () => {
+                  dialogVisible = true
+                }
+              "
+              >生成代码</el-link
+            >
+          </div>
+        </template>
+        <el-form
+          :model="form"
+          label-position="top"
+          :rules="rules"
+          ref="formRef"
+        >
+          <el-form-item label="函数名" prop="functionName">
+            <el-input v-model="form.functionName"></el-input>
+          </el-form-item>
+          <el-form-item label="请求" prop="request">
+            <MonacoEditor
+              language="javascript"
+              :width="800"
+              :height="400"
+              v-model="form.request"
+              :options="{
+                minimap: {
+                  enabled: false,
+                },
+              }"
+            ></MonacoEditor>
+          </el-form-item>
+          <el-form-item>
+            <el-button-group>
+              <el-button @click="clear">清除</el-button>
+              <el-button @click="submit" type="primary">提交</el-button>
+            </el-button-group>
+          </el-form-item>
+        </el-form>
+      </el-card>
 
-    <el-card style="card" class="card" shadow="never">
-      <template #header>
-        <div class="card_header">
-          <span>响应</span>
-        </div>
-      </template>
-      <code>{{ response }}</code>
-    </el-card>
+      <el-card style="card" class="card" shadow="never">
+        <template #header>
+          <div class="card_header">
+            <span>响应</span>
+          </div>
+        </template>
+        <CodeViewer :code="response" :language="'javascript'"/>
+      </el-card>
     </div>
 
     <el-dialog :model="dialogVisible">
@@ -67,8 +90,10 @@ import {
   ElIcon,
 } from 'element-plus'
 import { CopyDocument } from '@element-plus/icons-vue'
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted, nextTick } from 'vue'
 import type { FormRules, FormInstance } from 'element-plus'
+import MonacoEditor from 'monaco-editor-vue3'
+import CodeViewer from '../components/CodeViewer.vue'
 const handleClick = () => {}
 const form = reactive({
   functionName: '',
@@ -98,15 +123,32 @@ const clear = () => {
   form.request = ''
 }
 
-const response = ref('')
+const response = ref('{"a": 1}')
 
 const dialogVisible = ref(false)
 
 const endpoint = ref('https://ddddd')
 
+const token = 'token'
 const copyToken = () => {
+  navigator.clipboard.writeText(token)
   alert('copied')
 }
+
+const responseEditorRef = ref()
+onMounted(() => {
+  console.log(responseEditorRef)
+  if (responseEditorRef.value) {
+    const responseEditor = responseEditorRef.value.editor
+    console.log(responseEditor)
+    const messageContribution = responseEditor.getContribution(
+      'editor.contrib.messageController'
+    )
+    responseEditor.onDidAttemptReadOnlyEdit(() => {
+      messageContribution.closeMessage()
+    })
+  }
+})
 </script>
 <style scoped>
 .card_header {
@@ -124,7 +166,7 @@ const copyToken = () => {
 }
 
 .copy_token {
-  cursor:pointer;
+  cursor: pointer;
 }
 
 .cards {
@@ -138,4 +180,5 @@ const copyToken = () => {
   width: 50%;
   margin: 0.5em;
 }
+
 </style>

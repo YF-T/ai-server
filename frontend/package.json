@@ -7,12 +7,17 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "babel-plugin-prismjs": "^2.1.0",
     "core-js": "^3.8.3",
     "element-plus": "^2.2.12",
+    "monaco-editor-vue3": "^0.1.6",
+    "monaco-editor-webpack-plugin": "^7.0.1",
+    "prismjs": "^1.28.0",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3"
   },
   "devDependencies": {
+    "@types/prismjs": "^1.26.0",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-plugin-typescript": "~5.0.0",
