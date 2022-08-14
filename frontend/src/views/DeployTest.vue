@@ -2,7 +2,7 @@
   <div>
     <div class="details">
       <div>
-        <span class="caption">端点:</span><el-tag>POST</el-tag
+        <span class="caption">端点:</span><el-tag>{{ endpointType }}</el-tag
         ><span class="endpoint">{{ endpoint }}</span>
       </div>
       <div>
@@ -17,15 +17,7 @@
         <template #header>
           <div class="card_header">
             <span>请求</span>
-            <el-link
-              type="primary"
-              @click="
-                () => {
-                  dialogVisible = true
-                }
-              "
-              >生成代码</el-link
-            >
+            <el-link type="primary" @click="openDialog">生成代码</el-link>
           </div>
         </template>
         <el-form
@@ -38,17 +30,18 @@
             <el-input v-model="form.functionName"></el-input>
           </el-form-item>
           <el-form-item label="请求" prop="request">
-            <MonacoEditor
+            <CodeEditor
               language="javascript"
               :width="800"
               :height="400"
-              v-model="form.request"
+              :value="form.request"
+              @update:value="handleUpdate"
               :options="{
                 minimap: {
                   enabled: false,
                 },
               }"
-            ></MonacoEditor>
+            ></CodeEditor>
           </el-form-item>
           <el-form-item>
             <el-button-group>
@@ -65,13 +58,12 @@
             <span>响应</span>
           </div>
         </template>
-        <CodeViewer :code="response" :language="'javascript'"/>
+        <CodeViewer :code="response" :language="'javascript'" />
       </el-card>
     </div>
 
-    <el-dialog :model="dialogVisible">
-      <p>生成代码</p>
-      <div>some code</div>
+    <el-dialog v-model="dialogVisible" title="生成代码">
+      <CodeViewer :code="getCode()" language="shell"></CodeViewer>
       <!-- todo:introduce code editor -->
     </el-dialog>
   </div>
@@ -92,8 +84,9 @@ import {
 import { CopyDocument } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted, nextTick } from 'vue'
 import type { FormRules, FormInstance } from 'element-plus'
-import MonacoEditor from 'monaco-editor-vue3'
 import CodeViewer from '../components/CodeViewer.vue'
+import CodeEditor from '../components/CodeEditor.vue'
+
 const handleClick = () => {}
 const form = reactive({
   functionName: '',
@@ -130,8 +123,12 @@ const dialogVisible = ref(false)
 const endpoint = ref('https://ddddd')
 
 const token = 'token'
-const copyToken = () => {
+
+const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(token)
+}
+const copyToken = () => {
+  copyToClipboard(token)
   alert('copied')
 }
 
@@ -149,6 +146,21 @@ onMounted(() => {
     })
   }
 })
+
+const openDialog = () => {
+  dialogVisible.value = true
+  console.log(dialogVisible.value)
+}
+
+const getCode = () => {
+  return 'curl -X post'
+}
+
+const handleUpdate = (value: string) => {
+  form.request = value
+}
+
+const endpointType = ref('POST')
 </script>
 <style scoped>
 .card_header {
@@ -180,5 +192,4 @@ onMounted(() => {
   width: 50%;
   margin: 0.5em;
 }
-
 </style>

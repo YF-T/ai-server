@@ -1,5 +1,5 @@
 <template>
-  <pre :class="className">
+  <pre :class="[languageClass, 'line-numbers']">
     <code v-html="highlighted" ></code>
   </pre>
 </template>
@@ -11,8 +11,11 @@ const { code, language } = defineProps<{
     language: string,
 }>()
 const prismLanguage = languages[language]
-const className =`language-${language}`
+const languageClass =`language-${language}`
 const highlighted = highlight(code, prismLanguage, language)
 </script>
-<style scoped>
+<style>
+.token.operator {
+    background: none !important;
+}
 </style>

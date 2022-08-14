@@ -4,9 +4,9 @@ module.exports = {
     ],
     plugins: [
         ["prismjs", {
-            "languages": ["javascript", "css", "markup"],
+            "languages": ["javascript", "css", "markup", "shell"],
             "plugins": ["line-numbers"],
-            "theme": "default",
+            "theme": "coy",
             "css": true
         }]
     ]
