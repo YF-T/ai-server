@@ -91,7 +91,7 @@
 > 登录接口
 >
 > Parameters:
-> uese - 用户名
+> uesr - 用户名
 >  password - 密码
 >
 > Returns:
@@ -106,7 +106,7 @@
 > 注册接口
 >
 > Parameters:
->  uese - 用户名
+>  uesr - 用户名
 >  password - 密码
 >
 > Returns:
