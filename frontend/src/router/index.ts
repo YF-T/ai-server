@@ -1,19 +1,19 @@
+import { compile } from 'vue'
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import DeployTest from '../views/DeployTest.vue'
+import model_info_manage from '../views/model_info_manage.vue'
+import login from '../views/login.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'deploydetail',
-    component: DeployTest
+    name: 'login',
+    component: login
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/model_info_manage',// 如果要添加新的path，请将该行注释掉,并将下面一行解开注释
+    // path: '/infomanage' 
+    name: 'infoView',
+    component: model_info_manage
   }
 ]
 

@@ -86,21 +86,67 @@
 >
 > 注意用formdata传递参数
 
-#### /login
+#### /login (post)
 
 > 登录接口
 >
-> 接收：
+> Parameters:
+> uesr - 用户名
+>  password - 密码
 >
-> user : str - 用户名
+> Returns:
+> 'success' : 成功
+>  'duplication' : 用户重名
 >
-> password : str - 密码
+> Raises:
+>     若用户名或密码不是字符串则报错
+
+#### /register (post)
+
+> 注册接口
 >
-> 返回：
+> Parameters:
+>  uesr - 用户名
+>  password - 密码
 >
-> status : str - 'success' : 成功
->                     'user not found' : 用户不存在
->                     'invalid password' : 密码错误
+> Returns:
+>  'success' : 成功
+>  'user not found' : 用户不存在
+>  'invalid password' : 密码错误
+>
+> Raises:
+>  若用户名或密码不是字符串则报错
+
+#### /getmodelinfo (get)
+
+>
+> 获取用户模型信息
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  modelname : str - 模型名称
+>
+> Returns:
+>  status : str - 'success' : 成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>  **若成功才有以下属性：**
+>  modelname : str - 模型名称
+>  time : str - 模型创建时间
+>  modeltype : str - 模型类型
+>  algorithm : str - 模型算法
+>  description : str - 模型描述
+>  engine : str - 模型引擎
+>  input : list - 输入变量，list里面的元素为一个字典，
+>                 'name' : str - 变量名
+>                 'type' : str - 变量类型
+>                 'range' : str - 变量取值范围
+>                 'dimension' : str - 变量维数
+>  output : list - 输出变量，格式同上
+>
+> Raises:
+>  输入变量类型错误则报错
 
 ### 报错信息
 
