@@ -63,7 +63,19 @@
     </div>
 
     <el-dialog v-model="dialogVisible" title="生成代码">
-      <CodeViewer :code="getCode()" language="shell"></CodeViewer>
+      <small>代码已复制到剪贴板</small>
+      <CodeViewer :code="curlCode" language="shell"></CodeViewer>
+
+      <el-button
+        type="primary"
+        @click="
+          () => {
+            dialogVisible = false
+          }
+        "
+      >
+        关闭
+      </el-button>
       <!-- todo:introduce code editor -->
     </el-dialog>
   </div>
@@ -149,18 +161,22 @@ onMounted(() => {
 
 const openDialog = () => {
   dialogVisible.value = true
+  copyToClipboard(curlCode)
   console.log(dialogVisible.value)
 }
 
-const getCode = () => {
-  return 'curl -X post'
-}
+const endpointType = ref('POST')
+
+const curlCode = `curl -k -X '${endpointType.value}' \
+${endpoint.value} \
+-H 'Authorization: Bearer ${token}' \
+-H 'Cache-Control: no-cache' \
+-H 'Content-Type: application/json' \
+-d ${form.request}`
 
 const handleUpdate = (value: string) => {
   form.request = value
 }
-
-const endpointType = ref('POST')
 </script>
 <style scoped>
 .card_header {
