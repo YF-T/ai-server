@@ -215,7 +215,8 @@
 >                 'type' : str - 变量类型
 >                 'range' : str - 变量取值范围
 >                 'dimension' : str - 变量维数
->  output : list - 输出变量，格式同上
+>                 'optype' : str - 持续
+>  output : list - 输出变量，格式同input
 >
 > Raises:
 >  输入变量类型错误则报错

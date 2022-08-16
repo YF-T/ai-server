@@ -92,15 +92,18 @@ def fake_getmodelinfo():
                     'input' : [{'name' : 'input1',
                                 'type' : 'int',
                                 'range' : '0,1,2,3',
-                                'dimension' : '5*5'},
+                                'dimension' : '5*5', 
+                                'optype' : None},
                                {'name' : 'input2',
                                 'type' : 'int',
                                 'range' : None,
-                                'dimension' : None},],
+                                'dimension' : None, 
+                                'optype' : 'don\'t know'},],
                     'output' : [{'name' : 'output1',
                                  'type' : 'int',
                                  'range' : None,
-                                 'dimension' : None},],})
+                                 'dimension' : None, 
+                                 'optype' : None},],})
 
 @app.route('/getmodelinfo',methods=["GET"])
 def getmodelinfo():
@@ -128,7 +131,8 @@ def getmodelinfo():
                     'type' : str - 变量类型
                     'range' : str - 变量取值范围
                     'dimension' : str - 变量维数
-     output : list - 输出变量，格式同上
+                    'optype' : str - 测量
+     output : list - 输出变量，格式同input
 
     Raises:
      本函数不应该报错
@@ -143,8 +147,8 @@ def getmodelinfo():
     # 若报错则返回错误信息
     if not status1 or not status2:
         return jsonify({'status' : info if not status2 else input})
-    # 转换input, output变量的存储格式
-    variabletitle = ['name', 'type', 'range', 'dimension']
+    # 转换input,output变量的存储格式
+    variabletitle = ['name', 'type', 'range', 'dimension', 'optype']
     input = list(map(lambda x : dict(zip(variabletitle, x)), input))
     output = list(map(lambda x : dict(zip(variabletitle, x)), output))
     # 返回值
