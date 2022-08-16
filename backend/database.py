@@ -145,10 +145,15 @@ def getmodelvariables(user : str, password : str, modelname : str):
      若成功：
      第二个变量为一个list，里面装着所有的输入变量信息
         每个输入变量信息用一个元组(tuple)表示，元组里有四个str类型的元素，
-        分别为字段名，类型，取值范围（若没有则为None），维数（没有则为None）
-        如('input', 'int', '0,1,2,3', '1*8')
-        如('input', 'int', None, None)
-     第三个变量为一个list，里面装着所有的输出变量信息，格式同上
+        分别为
+            字段名，
+            类型，
+            取值范围（若没有则为None），
+            维数（没有则为None），
+            测量（没有则为None）
+        如('input', 'int', '0,1,2,3', '1*8', None)
+        如('input', 'int', None, None, 'continuous')
+     第三个变量为一个list，里面装着所有的输出变量信息，格式同input
      若失败：
      第二个变量返回报错信息，第三个变量返回None
         'model not found' : 找不到该名称模型
@@ -168,11 +173,11 @@ def getmodelvariables(user : str, password : str, modelname : str):
     if c.fetchone() is None:
         conn.close()
         return False, 'model not found', None
-    c.execute('''SELECT name, type, value, dim FROM variables 
+    c.execute('''SELECT name, type, value, dim, optype FROM variables 
                     WHERE user = ? AND modelname = ? AND inout = ?''', 
                     (user, modelname, 'input'))
     input = c.fetchall()
-    c.execute('''SELECT name, type, value, dim FROM variables 
+    c.execute('''SELECT name, type, value, dim, optype FROM variables 
                     WHERE user = ? AND modelname = ? AND inout = ?''', 
                     (user, modelname, 'output'))
     output = c.fetchall()
@@ -238,9 +243,9 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
      input - 输入变量信息的列表
         每个输入变量信息用一个元组(tuple)表示，元组里有四个str类型的元素，
         分别为字段名，类型，取值范围（若没有则为None），维数（没有则为None）
-        如('input', 'int', '0,1,2,3', '1*8')
-        如('input', 'int', None, None)
-     output - 输出变量信息的列表，每个变量的信息格式如上
+        如('input', 'int', '0,1,2,3', '1*8', None)
+        如('input', 'int', None, None, 'continuous')
+     output - 输出变量信息的列表，每个变量的信息格式同input
      
     Returns:
      'success' : 成功
@@ -285,13 +290,13 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
                     (user, modelid, modelname, modeltype, 
                     time, modelroute, algorithm, engine, description))
     for variable in input:
-        c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?)', 
+        c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?,?)', 
                     (user, modelid, modelname, 'input', 
-                    variable[0], variable[1], variable[2], variable[3]))
+                    variable[0], variable[1], variable[2], variable[3], variable[4]))
     for variable in output:
-        c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?)', 
+        c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?,?)', 
                     (user, modelid, modelname, 'output', 
-                    variable[0], variable[1], variable[2], variable[3]))
+                    variable[0], variable[1], variable[2], variable[3], variable[4]))
     conn.commit()
     conn.close()
     return 'success'
@@ -363,7 +368,7 @@ def init():
         c.execute('''CREATE TABLE variables 
                         (user TEXT, id NUMBER, modelname TEXT, 
                         inout TEXT, name TEXT, 
-                        type TEXT, value TEXT, dim TEXT);''')
+                        type TEXT, value TEXT, dim TEXT, optype TEXT);''')
         # 提交，关闭数据库
         conn.commit()
         conn.close()
