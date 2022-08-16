@@ -155,6 +155,25 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
+@app.route('/testmodel',methods=["GET"])
+def testmodel():
+    '''
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     modelname : str - 模型名称
+     input : dict - 输入变量
+                    {'input1' : '1', 'input2' : '100.5'}
+
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+     若成功才有以下属性：
+     output : dict - 输出变量，格式同上
+     '''
+    pass
+
 if __name__ == '__main__':
     database.init()
     app.run(debug=True)
