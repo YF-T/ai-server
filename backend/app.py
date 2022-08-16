@@ -143,7 +143,7 @@ def getmodelinfo():
     # 若报错则返回错误信息
     if not status1 or not status2:
         return jsonify({'status' : info if not status2 else input})
-    # 转换input,output变量的存储格式
+    # 转换input, output变量的存储格式
     variabletitle = ['name', 'type', 'range', 'dimension']
     input = list(map(lambda x : dict(zip(variabletitle, x)), input))
     output = list(map(lambda x : dict(zip(variabletitle, x)), output))
@@ -158,20 +158,36 @@ def getmodelinfo():
 @app.route('/testmodel',methods=["GET"])
 def testmodel():
     '''
+    功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
     Parameters:
      user : str - 用户名
      password : str - 密码
      modelname : str - 模型名称
-     input : dict - 输入变量
-                    {'input1' : '1', 'input2' : '100.5'}
+     input : dict - 模型需要的变量
 
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
-     若成功才有以下属性：
-     output : dict - 输出变量，格式同上
+     
+     若成功，返回：
+     output : dict - 输出结果，格式服从前端要求
      '''
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
+    status1, input, output = database.getmodelvariables(user, password, modelname)
+    status2, info = database.getmodelinfo(user, password, modelname)
+    if not status1 or not status2:
+        return jsonify({'status': info if not status2 else input})
+    
+    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
+    status3, address = database.getmodelroute(user, password, modelname)
+    if not status3:
+        return jsonify({'status': address})
+    address = './model/' + address
+
     pass
 
 if __name__ == '__main__':
