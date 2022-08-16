@@ -191,7 +191,22 @@ def testmodel():
     if not status3:
         return jsonify({'status': address})
     address = './model/' + address
+    suffix = address[-4:]
 
+    # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
+    if suffix == 'pmml':  # 模型为pmml格式
+        from pypmml import Model
+        model = Model.fromFile(address)
+        output = model.predict(input)
+        # 输出格式虽然为dict，但并不是前端的标准格式，应调整
+        return output
+    elif suffix == 'onnx':  # 模型为onnx格式
+        import onnxruntime as ort
+        sess = ort.InferenceSession(address)  # 加载模型
+        output_list = sess.run(None, input)  # 默认输出格式为list，待调整
+        pass
+    else:
+        pass
     pass
 
 if __name__ == '__main__':
