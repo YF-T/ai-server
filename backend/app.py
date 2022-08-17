@@ -258,6 +258,7 @@ def getmodelinfo():
 @app.route('/testmodel_quickresponse',methods=["GET"])
 def testmodel_quickresponse():
     '''
+    名称：快速返回预测结果
     功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
     Parameters:
      user : str - 用户名
@@ -306,6 +307,26 @@ def testmodel_quickresponse():
 
 @app.route('/testmodel_delayresponse',methods=["GET"])
 def testmodel_delayresponse():
+    '''
+    名称：等待返回预测结果
+    功能、说明基本同testmodel_quickresponse
+    '''
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    # 判断输入参数是否合法
+    status1, input, output = database.getmodelvariables(user, password, modelname)
+    status2, info = database.getmodelinfo(user, password, modelname)
+    if not status1 or not status2:
+        return jsonify({'status': info if not status2 else input})
+    
+    # 提取待测试模型地址
+    status3, address = database.getmodelroute(user, password, modelname)
+    if not status3:
+        return jsonify({'status': address})
+    address = './model/' + address
+    suffix = address[-4:]
+    # 接下来的部分需要参考database和hw4
     pass
 
 if __name__ == '__main__':
