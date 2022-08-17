@@ -8,6 +8,11 @@ app.config.from_object(__name__)
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
+@app.route("/restart", methods=['POST'])
+def restart():
+    database.restart()
+    return {}
+
 @app.route("/register", methods=['POST'])
 def register():
     '''
