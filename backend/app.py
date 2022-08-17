@@ -255,8 +255,8 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
-@app.route('/testmodel',methods=["GET"])
-def testmodel():
+@app.route('/testmodel_quickresponse',methods=["GET"])
+def testmodel_quickresponse():
     '''
     功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
     Parameters:
@@ -299,10 +299,13 @@ def testmodel():
     elif suffix == 'onnx':  # 模型为onnx格式
         import onnxruntime as ort
         sess = ort.InferenceSession(address)  # 加载模型
-        output_list = sess.run(None, input)  # 默认输出格式为list，待调整
-        pass
+        output = sess.run(None, input)  # 默认输出格式为list，待调整
+        return output
     else:
         pass
+
+@app.route('/testmodel_delayresponse',methods=["GET"])
+def testmodel_delayresponse():
     pass
 
 if __name__ == '__main__':
