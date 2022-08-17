@@ -1,5 +1,5 @@
 <template>
-  <div class="loginblock">
+<div class="loginblock">
     <div class="uppart">
       <span></span>
       <span></span>
@@ -14,54 +14,48 @@
         <input type='text' name = 'user' placeholder="请输入您的用户名" required v-model="username"/><br/><br/>
         <label>密  码: </label>
         <input type='password' name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/><br/>
-        <input type="submit" value="登录" @click="updataall"/>
+        <input type="submit" value = "注册" @click="reg"/>
       </form>
-      <router-link to="/register">注册</router-link>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { useStore } from 'vuex'
 import axios from "axios";
 
 export default defineComponent({
-  name: 'login',
+  name: "register",
   components: {
   },
   data () {
     return {
       username:'',
-      password:'',
-      store: useStore(),
+      password:''
     }
   },
-  methods: {
-    updataall(){
+  methods:{
+    reg(){
       if(this.username!=''&& this.password!=''){
         let param = new FormData();
         param.append('user',this.username);
         param.append('password',this.password);
-        var path = 'http://127.0.0.1:5000/login';
+        var path = 'http://127.0.0.1:5000/register';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-          .then(response=>{
-          console.log(response);
-          if (response.data.status === 'success'){
-            this.store.commit('saveusername',this.username);
-            this.store.commit('savepassword',this.password);
-            this.$router.push('/model_info_manage')
-          }
-          else if(response.data.status === 'user not found'){
-            alert("用户不存在！请先注册！")
-          }
-          else if(response.data.status === 'invalid password'){
-            alert("密码错误！")
-          }
-        });
+          .then(response=> {
+            console.log(response);
+            if (response.data.status === 'success') {
+              this.$router.push('/')
+            } else if (response.data.status === 'duplication') {
+              alert("用户已经存在！请换一个名字！");
+            }
+          });
       }
-    },
-  },
+      else{
+        alert("请不要输入空的用户名！")
+      }
+    }
+  }
 });
 </script>
 
@@ -79,5 +73,3 @@ export default defineComponent({
   align-content:center;
 }
 </style>
-
-
