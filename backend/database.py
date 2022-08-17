@@ -77,10 +77,10 @@ def getusermodel(user : str, password : str):
      多值返回
      第一个变量为一个布尔变量，False为访问失败，True为访问成功
      第二个变量：
-     成功则为一个列表，这个列表包含该用户的每一个模型，每个模型的信息是一个四元组：(模型id，模型名称，类型，时间)
-                                     如(1, 'test', 'pmml', '2022-08-04 19:00:00')
+     成功则为一个列表，这个列表包含该用户的每一个模型，每个模型的信息是一个三元组：(模型id，模型名称，类型，时间)
+                                     如('test', 'pmml', '2022-08-04 19:00:00')
      失败则为一个字符串代表错误信息，'user not found' : 用户不存在
-                                     'invalid password' : 密码错误 
+                                     'invalid password' : 密码错误
      
     Raises:
      本函数不应该报错
@@ -89,7 +89,7 @@ def getusermodel(user : str, password : str):
         return False, identify(user, password)
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('SELECT modelid, modelname, modeltype, time FROM models WHERE user = ?', (user,))
+    c.execute('SELECT modelname, modeltype, time FROM models WHERE user = ?', (user,))
     answer = c.fetchall()
     conn.close()
     return True, answer
@@ -297,6 +297,43 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
         c.execute('INSERT INTO variables VALUES (?,?,?,?,?,?,?,?,?)', 
                     (user, modelid, modelname, 'output', 
                     variable[0], variable[1], variable[2], variable[3], variable[4]))
+    conn.commit()
+    conn.close()
+    return 'success'
+
+def deletemodel(user : str, password : str, modelname : str):
+    '''
+    删除模型
+     
+    Parameters:
+     uese - 用户名
+     password - 密码
+     modelname - 模型名称
+     
+    Returns:
+     'success' : 成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'model not found' : 找不到该名称模型
+     
+    Raises:
+     参数类型错误
+    '''
+    # 验证用户名和密码
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    # 检验参数类型
+    assert isinstance(modelname, str)
+    # 检查模型是否存在
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    if c.fetchone() is None:
+        conn.close()
+        return 'model not found'
+    c.execute('DELETE FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
     conn.commit()
     conn.close()
     return 'success'

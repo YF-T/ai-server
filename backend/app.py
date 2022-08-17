@@ -77,6 +77,71 @@ def upload():
 
     return 'success'
 
+@app.route('/getusermodel',methods=["GET"])
+def getusermodel():
+    '''
+    获取用户模型信息
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+     若成功才有以下属性：
+     model : list - 一个包括所有该用户model的简略信息
+                    每个元素为一个字典，属性包括
+                    'modelname' : str - 模型名
+                    'modeltype' : str - 模型类型
+                    'time' : str - 模型日期
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    # 调用数据库访问函数获取信息
+    status, answer = database.getusermodel(user, password)
+    # 若报错则返回错误信息
+    if not status:
+        return jsonify({'status' : answer})
+    # 转换answer变量的存储格式
+    modeltitle = ['modelname', 'modeltype', 'time']
+    answer = list(map(lambda x : dict(zip(modeltitle, x)), answer))
+    # 返回值
+    return jsonify({'status' : 'success', 
+                    'model' : answer})
+
+@app.route('/deletemodel',methods=["DELETE"])
+def deletemodel():
+    '''
+    删除模型
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'model not found' : 找不到该名称模型
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    # 执行删除
+    status = database.deletemodel(user, password, modelname)
+    # 返回状态
+    return jsonify({'status' : status})
+
 @app.route('/fake_getmodelinfo',methods=["GET"])
 def fake_getmodelinfo():
     user = request.form['user']
