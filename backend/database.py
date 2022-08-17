@@ -581,5 +581,6 @@ def restart():
     init()
     savemodel('tyf','123456','test2','pmml',
               '2022','test2.pmml','测试模型','pypmml','randomforest',
-              [('input1', 'int', '0,1,2,3', '1*8'),('input2', 'int', None, None)],
-              [('output', 'int', None, None)])
+              [('input1', 'int', '0,1,2,3', '1*8',None),
+               ('input2', 'int', None, None,'continuous')],
+              [('output', 'int', None, None,'continuous')])
