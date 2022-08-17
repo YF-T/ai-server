@@ -8,37 +8,36 @@
               <tr>
                 <th width="30%">字段</th>
                 <th width="15%">类型</th>
-                <th width="20%">测量</th>
+                <th width="20%">维数</th>
                 <th width="35%">取值</th>
               </tr>
               <!-- {% for %} -->
-              <tr>
-                <td>字段</td>
-                <td>类型</td>
-                <td>测量</td>
-                <td>取值</td>
+              <tr v-for="inputone in inputlist" :key="inputone">
+                <td>{{inputone.name}}</td>
+                <td>{{inputone.type}}</td>
+                <td>{{inputone.dimension}}</td>
+                <td>{{inputone.range}}</td>
+                <!-- None没有显示 -->
               </tr>
               <!-- {% endfor %} -->
             </table>
           </div>
           <div class="outputblock">
-            <label>输出变量</label>
+            <label>目标变量</label>
             <span style="white-space:pre">   </span><span class="line"></span>
             <table>
               <tr>
                 <th>字段</th>
                 <th>类型</th>
-                <th>测量</th>
+                <th>维数</th>
                 <th>取值</th>
               </tr>
-              <!-- {% for %} -->
-              <tr>
-                <td>字段</td>
-                <td>类型</td>
-                <td>测量</td>
-                <td>取值</td>
+              <tr v-for="outputone in outputlist" :key="outputone">
+                <td>{{outputone.name}}</td>
+                <td>{{outputone.type}}</td>
+                <td>{{outputone.dimension}}</td>
+                <td>{{outputone.range}}</td>
               </tr>
-              <!-- {% endfor %} -->
             </table>
           </div>
         </div>
@@ -56,11 +55,40 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useStore } from 'vuex';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'model_info_overview',
   props: {
     msg: String,
+  },
+  created:function(){
+    this.overviewshow();
+  },
+  data(){
+    return {
+      inputlist:[],
+      outputlist:[],
+      store: useStore(),
+    }
+  },
+  methods:{
+    overviewshow(){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      var path = 'http://127.0.0.1:5000/getmodelinfo';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          if(res.data.status==='success'){
+            this.inputlist = res.data.input;
+            this.outputlist = res.data.output;
+          }
+        });
+    }
   },
 });
 </script>

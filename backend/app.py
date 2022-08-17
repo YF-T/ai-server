@@ -77,7 +77,7 @@ def upload():
 
     return 'success'
 
-@app.route('/fake_getmodelinfo',methods=["GET"])
+@app.route('/fake_getmodelinfo',methods=['POST',"GET"])
 def fake_getmodelinfo():
     user = request.form['user']
     password = request.form['password']
@@ -105,7 +105,7 @@ def fake_getmodelinfo():
                                  'dimension' : None, 
                                  'optype' : None},],})
 
-@app.route('/getmodelinfo',methods=["GET"])
+@app.route('/getmodelinfo',methods=["POST","GET"])
 def getmodelinfo():
     '''
     获取用户模型信息

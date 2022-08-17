@@ -11,8 +11,7 @@ const routes: Array<RouteRecordRaw> = [
     component: login
   },
   {
-    path: '/model_info_manage',// 如果要添加新的path，请将该行注释掉,并将下面一行解开注释
-    // path: '/infomanage' 
+    path: '/model_info_manage',
     name: 'infoView',
     component: model_info_manage
   },
