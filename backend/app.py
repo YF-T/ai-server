@@ -56,26 +56,57 @@ def login():
 
     return jsonify({'status':status})
 
-@app.route('/upload',methods=["POST"])
+@app.route('/upload',methods=["GET","POST"])
 def upload():
+    '''
+    功能：接收上传的模型，验证有效性，若有效，读取模型信息并存储模型，若无效，返回错误信息
+
+    需要前端传入的参数：
+    user：str 用户名
+    password：str 密码
+    modeltype：str 模型类别 pmml或onnx 全大写或全小写
+    file：模型文件 pmml或onnx
+    time：str 创建时间
+    description： str 模型描述
+
+    Returns:
+        'status':bool 表示上传模型成功或失败
+        'error':str 若status为False，返回错误信息，若status为True为空字符串
+    '''
     import os
-    #待debug。。route也未和前端统一
+    import getInfoFromModel
+    #route未和前端统一
     file = request.files.get('file')
     if file is None:  #接受失败
         return {
-            'message': "文件上传失败"
+            'status': False,
+            'error':"文件上传失败"
         }
     file_name = file.filename.replace(" ", "")
     #print("获取上传文件的名称为[%s]\n" % file_name)
     #保存文件
+    file_path=os.path.dirname(__file__) + '/model/' + file_name
     file.save(os.path.dirname(__file__) + '/model/' + file_name)
-    #记录模型对应用户
+    # 获取前端传入信息
     user = request.form['user']
     password = request.form['password']
+    modeltype = request.form['modeltype']
+    time = request.form['time']
+    description = request.form['description']
+    #检测模型有效性
+    valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
+    if valid:#模型有效
+        #从模型中读取信息
+        dict=getInfoFromModel.getmodelinfo(file_name)
+        #储存模型
+        database.savemodel(user, password, file_name,modeltype,time,file_path,description,
+                           dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
+    else:
+        pass
 
-    database.savemodel(user, password, file_name)
+    return jsonify({'status':valid,
+                    'error':err_info})
 
-    return 'success'
 
 @app.route('/getusermodel',methods=["GET"])
 def getusermodel():
@@ -227,20 +258,51 @@ def getmodelinfo():
 @app.route('/testmodel',methods=["GET"])
 def testmodel():
     '''
+    功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
     Parameters:
      user : str - 用户名
      password : str - 密码
      modelname : str - 模型名称
-     input : dict - 输入变量
-                    {'input1' : '1', 'input2' : '100.5'}
+     input : dict - 模型需要的变量
 
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
-     若成功才有以下属性：
-     output : dict - 输出变量，格式同input
+     
+     若成功，返回：
+     output : dict - 输出结果，格式服从前端要求
      '''
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
+    status1, input, output = database.getmodelvariables(user, password, modelname)
+    status2, info = database.getmodelinfo(user, password, modelname)
+    if not status1 or not status2:
+        return jsonify({'status': info if not status2 else input})
+    
+    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
+    status3, address = database.getmodelroute(user, password, modelname)
+    if not status3:
+        return jsonify({'status': address})
+    address = './model/' + address
+    suffix = address[-4:]
+
+    # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
+    if suffix == 'pmml':  # 模型为pmml格式
+        from pypmml import Model
+        model = Model.fromFile(address)
+        output = model.predict(input)
+        # 输出格式虽然为dict，但并不是前端的标准格式，应调整
+        return output
+    elif suffix == 'onnx':  # 模型为onnx格式
+        import onnxruntime as ort
+        sess = ort.InferenceSession(address)  # 加载模型
+        output_list = sess.run(None, input)  # 默认输出格式为list，待调整
+        pass
+    else:
+        pass
     pass
 
 if __name__ == '__main__':
