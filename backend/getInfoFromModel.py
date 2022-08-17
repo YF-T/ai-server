@@ -7,12 +7,13 @@ def getmodelinfo(modelpath : str):
             model_type:string PMML或ONNX  模型
             algorithm:string  算法 pmml有，onnx不要求，为空字符串
             engine:string  pmml文件为pypmml，onnx文件为onnx Runtime
-            input_variate：list 输入变量 为一列表，list中每一元素为一字典，每一字典表示一变量，字典结构为
-                {name:string 变量名称
+            input_variate：list 输入变量 为一列表，list中每一元素为一元组，每一元组表示一变量，结构为
+                （name:string 变量名称
                 data_type:string 变量类型
-                optype:string pmml有，onnx没有，为空字符串
-                shape:list onnx有，pmml没有，为空列表
-                value:list}
+                value:str 如‘1，2，3’没有为None
+                shape:str onnx有，pmml没有，None
+                optype:string pmml有，onnx没有，为None
+                ）
             predict_variate:list 预测变量 结构同输入变量
     '''
     import re
@@ -34,16 +35,19 @@ def getmodelinfo(modelpath : str):
             contents = file_obj.read()
         #匹配使用的模型算法
         model_contents = re.search(r'<.*?modelName.*?>', contents)
-        model_contents=model_contents.group()
-        model_type_contents=re.search(r'<(.*?) ', model_contents)
-        model_type_contents=model_type_contents.group(1)
-        model_function=re.search(r'functionName="(.*?)"', model_contents)
-        if model_function!=None:
-            model_function=model_function.group(1)
-            algorithm=model_type_contents+"("+model_function+")"
-        else:
-            model_function=""
-            algorithm=model_type_contents
+        try:
+            model_contents = model_contents.group()
+            model_type_contents = re.search(r'<(.*?) ', model_contents)
+            model_type_contents = model_type_contents.group(1)
+            model_function = re.search(r'functionName="(.*?)"', model_contents)
+            if model_function != None:
+                model_function = model_function.group(1)
+                algorithm = model_type_contents + "(" + model_function + ")"
+            else:
+                model_function = ""
+                algorithm = model_type_contents
+        except:
+            algorithm = ""
         #print(algorithm)
         # 匹配输入和预测变量
         input_variate_name = set()
@@ -90,24 +94,31 @@ def getmodelinfo(modelpath : str):
             if dataType != None:
                 dataType = dataType.group(1)
             else:
-                dataType = ''
+                dataType = None
             tmp["data_type"] = dataType
             # 测量
             optype = re.search(r'\boptype="(.*?)"', name_info)
             if optype != None:
                 optype = optype.group(1)
             else:
-                optype = ''
+                optype = None
             tmp["optype"] = optype
             # 取值
             value = re.findall(r'\bvalue="(.*?)"', name_info)
-            tmp["value"] = value
-            tmp["shape"]=[]
-            #print(tmp)
+            if value!=[]:
+                value1=list(map(lambda x: str(x), value))
+                value=','.join(value1)
+                tmp["value"] = value
+            else:
+                tmp["value"] = None
+            tmp["shape"]=None
+            #和savemodel对接
+            tmp_tup=(tmp['name'],tmp['data_type'],tmp['value'],tmp['shape'],tmp['optype'])
+            #print(tmp_tup)
             if name in input_variate_name:
-                input_variate_list.append(tmp)
+                input_variate_list.append(tmp_tup)
             if name in predict_variate_name:
-                predict_variate_list.append(tmp)
+                predict_variate_list.append(tmp_tup)
 
     if model.group() == "onnx":
         import onnx
@@ -121,19 +132,35 @@ def getmodelinfo(modelpath : str):
             tmp={}
             tmp["name"]=node.name
             tmp["data_type"]=node.type
-            tmp["shape"]=node.shape
-            tmp["optype"]=''
-            tmp["value"]=[]
-            input_variate_list.append(tmp)
+            nshape = node.shape
+            nshape=list(map(lambda x: str(x), nshape))
+            nshape = ','.join(nshape)
+            nshape=nshape.replace(',', '*')
+            tmp['shape']=nshape
+            tmp["optype"]=None
+            tmp["value"]=None
+            # 和savemodel对接
+            tmp_tup = (tmp['name'], tmp['data_type'], tmp['value'], tmp['shape'], tmp['optype'])
+            input_variate_list.append(tmp_tup)
         for node in onnx_session.get_outputs():
             tmp={}
             tmp["name"]=node.name
             tmp["data_type"]=node.type
-            tmp["shape"]=node.shape
-            tmp["optype"] = ''
-            tmp["value"] = []
-            predict_variate_list.append(tmp)
-
+            nshape = node.shape
+            nshape = list(map(lambda x: str(x), nshape))
+            nshape = ','.join(nshape)
+            nshape = nshape.replace(',', '*')
+            tmp["shape"]=nshape
+            tmp["optype"] = None
+            tmp["value"] = None
+            # 和savemodel对接
+            tmp_tup = (tmp['name'], tmp['data_type'], tmp['value'], tmp['shape'], tmp['optype'])
+            predict_variate_list.append(tmp_tup)
+    '''print(model_type)
+    print(algorithm)
+    print(engine)
+    print(input_variate_list)
+    print(predict_variate_list)'''
     return {"model_type":model_type,
             "algorithm":algorithm,
             "engine":engine,
@@ -317,7 +344,6 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
     return valid,error_info
 
 '''if __name__ == '__main__':
-    a,b=checkmodel("haha","haha","onnx","t.pmml")
-    print(a)
-    print(b)'''
+    getmodelinfo("randomForest.pmml")'''
+
 

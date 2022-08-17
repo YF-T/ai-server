@@ -56,26 +56,122 @@ def login():
 
     return jsonify({'status':status})
 
-@app.route('/upload',methods=["POST"])
+@app.route('/upload',methods=["GET","POST"])
 def upload():
+    '''
+    功能：接收上传的模型，验证有效性，若有效，读取模型信息并存储模型，若无效，返回错误信息
+
+    需要前端传入的参数：
+    user：str 用户名
+    password：str 密码
+    modeltype：str 模型类别 pmml或onnx 全大写或全小写
+    file：模型文件 pmml或onnx
+    time：str 创建时间
+    description： str 模型描述
+
+    Returns:
+        'status':bool 表示上传模型成功或失败
+        'error':str 若status为False，返回错误信息，若status为True为空字符串
+    '''
     import os
-    #待debug。。route也未和前端统一
+    import getInfoFromModel
+    #route未和前端统一
     file = request.files.get('file')
     if file is None:  #接受失败
         return {
-            'message': "文件上传失败"
+            'status': False,
+            'error':"文件上传失败"
         }
     file_name = file.filename.replace(" ", "")
     #print("获取上传文件的名称为[%s]\n" % file_name)
     #保存文件
+    file_path=os.path.dirname(__file__) + '/model/' + file_name
     file.save(os.path.dirname(__file__) + '/model/' + file_name)
-    #记录模型对应用户
+    # 获取前端传入信息
     user = request.form['user']
     password = request.form['password']
+    modeltype = request.form['modeltype']
+    time = request.form['time']
+    description = request.form['description']
+    #检测模型有效性
+    valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
+    if valid:#模型有效
+        #从模型中读取信息
+        dict=getInfoFromModel.getmodelinfo(file_name)
+        #储存模型
+        database.savemodel(user, password, file_name,modeltype,time,file_path,description,
+                           dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
+    else:
+        pass
 
-    database.savemodel(user, password, file_name)
+    return jsonify({'status':valid,
+                    'error':err_info})
 
-    return 'success'
+
+@app.route('/getusermodel',methods=["GET"])
+def getusermodel():
+    '''
+    获取用户模型信息
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+     若成功才有以下属性：
+     model : list - 一个包括所有该用户model的简略信息
+                    每个元素为一个字典，属性包括
+                    'modelname' : str - 模型名
+                    'modeltype' : str - 模型类型
+                    'time' : str - 模型日期
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    # 调用数据库访问函数获取信息
+    status, answer = database.getusermodel(user, password)
+    # 若报错则返回错误信息
+    if not status:
+        return jsonify({'status' : answer})
+    # 转换answer变量的存储格式
+    modeltitle = ['modelname', 'modeltype', 'time']
+    answer = list(map(lambda x : dict(zip(modeltitle, x)), answer))
+    # 返回值
+    return jsonify({'status' : 'success', 
+                    'model' : answer})
+
+@app.route('/deletemodel',methods=["DELETE"])
+def deletemodel():
+    '''
+    删除模型
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'model not found' : 找不到该名称模型
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    # 执行删除
+    status = database.deletemodel(user, password, modelname)
+    # 返回状态
+    return jsonify({'status' : status})
 
 @app.route('/fake_getmodelinfo',methods=['POST',"GET"])
 def fake_getmodelinfo():
@@ -159,9 +255,10 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
-@app.route('/testmodel',methods=["GET"])
-def testmodel():
+@app.route('/testmodel_quickresponse',methods=["GET"])
+def testmodel_quickresponse():
     '''
+    名称：快速返回预测结果
     功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
     Parameters:
      user : str - 用户名
@@ -194,19 +291,49 @@ def testmodel():
     suffix = address[-4:]
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
+    #多线程
+    from myThread import MyThread
     if suffix == 'pmml':  # 模型为pmml格式
         from pypmml import Model
         model = Model.fromFile(address)
-        output = model.predict(input)
+        task=MyThread(model.predict,(input,))
+        task.join()
+        output = task.get_result()
         # 输出格式虽然为dict，但并不是前端的标准格式，应调整
         return output
     elif suffix == 'onnx':  # 模型为onnx格式
         import onnxruntime as ort
         sess = ort.InferenceSession(address)  # 加载模型
-        output_list = sess.run(None, input)  # 默认输出格式为list，待调整
-        pass
+        task = MyThread(sess.run.predict, (None, input))
+        task.join()
+        output = task.get_result()
+        # 默认输出格式为list，待调整
+        return output
     else:
         pass
+
+@app.route('/testmodel_delayresponse',methods=["GET"])
+def testmodel_delayresponse():
+    '''
+    名称：等待返回预测结果
+    功能、说明基本同testmodel_quickresponse
+    '''
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    # 判断输入参数是否合法
+    status1, input, output = database.getmodelvariables(user, password, modelname)
+    status2, info = database.getmodelinfo(user, password, modelname)
+    if not status1 or not status2:
+        return jsonify({'status': info if not status2 else input})
+    
+    # 提取待测试模型地址
+    status3, address = database.getmodelroute(user, password, modelname)
+    if not status3:
+        return jsonify({'status': address})
+    address = './model/' + address
+    suffix = address[-4:]
+    # 接下来的部分需要参考database和hw4
     pass
 
 if __name__ == '__main__':

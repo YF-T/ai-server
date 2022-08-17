@@ -77,10 +77,10 @@ def getusermodel(user : str, password : str):
      多值返回
      第一个变量为一个布尔变量，False为访问失败，True为访问成功
      第二个变量：
-     成功则为一个列表，这个列表包含该用户的每一个模型，每个模型的信息是一个四元组：(模型id，模型名称，类型，时间)
-                                     如(1, 'test', 'pmml', '2022-08-04 19:00:00')
+     成功则为一个列表，这个列表包含该用户的每一个模型，每个模型的信息是一个三元组：(模型id，模型名称，类型，时间)
+                                     如('test', 'pmml', '2022-08-04 19:00:00')
      失败则为一个字符串代表错误信息，'user not found' : 用户不存在
-                                     'invalid password' : 密码错误 
+                                     'invalid password' : 密码错误
      
     Raises:
      本函数不应该报错
@@ -89,7 +89,7 @@ def getusermodel(user : str, password : str):
         return False, identify(user, password)
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('SELECT modelid, modelname, modeltype, time FROM models WHERE user = ?', (user,))
+    c.execute('SELECT modelname, modeltype, time FROM models WHERE user = ?', (user,))
     answer = c.fetchall()
     conn.close()
     return True, answer
@@ -301,6 +301,195 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
     conn.close()
     return 'success'
 
+def deletemodel(user : str, password : str, modelname : str):
+    '''
+    删除模型
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     modelname - 模型名称
+     
+    Returns:
+     'success' : 成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'model not found' : 找不到该名称模型
+     
+    Raises:
+     参数类型错误
+    '''
+    # 验证用户名和密码
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    # 检验参数类型
+    assert isinstance(modelname, str)
+    # 检查模型是否存在
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    if c.fetchone() is None:
+        conn.close()
+        return 'model not found'
+    c.execute('DELETE FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    conn.commit()
+    conn.close()
+    return 'success'
+    
+def createtask(user : str, password : str, modelname : str):
+    '''
+    创建一个新的任务词条，返回任务id
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     modelname - 模型名称
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为模型id，例如'tyf_task_1'
+     失败则为错误信息，'user not found' : 用户不存在
+                       'invalid password' : 密码错误
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(modelname, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT immediatetaskid FROM users WHERE user = ?', 
+                    (user,))
+    immediatetaskid = c.fetchone()[0]
+    c.execute('UPDATE users SET immediatetaskid = ? WHERE user = ?', 
+                    (immediatetaskid + 1, user))
+    taskid = user + '_task_' + str(immediatetaskid)
+    c.execute('INSERT INTO immediatetasks VALUES (?,?,?,?)', 
+                    (user, taskid, modelname, 'running'))
+    conn.commit()
+    conn.close()
+    return True, taskid
+
+def gettaskstatus(user : str, password : str, taskid : str):
+    '''
+    查看任务状态，启动/暂停
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     taskid - 任务id
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为模型状态，'running' : 正在运行
+                       'pause' : 暂停
+     失败则为错误信息，'user not found' : 用户不存在
+                       'invalid password' : 密码错误
+                       'task not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(taskid, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT status FROM immediatetasks WHERE user = ? AND id = ?', 
+                    (user, taskid))
+    row = c.fetchone()
+    if row is None:
+        answer = 'model not found'
+    else:
+        answer = row[0]
+    conn.close()
+    return bool(row), answer
+
+def settaskstatus(user : str, password : str, taskid : str, status : str):
+    '''
+    设置任务状态为启动/暂停
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     taskid - 任务id
+     status - 待设置的任务状态，取值为'running', 'pause'
+     
+    Returns:
+     'success' : 设置成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'task not found' : 任务id不存在
+     'invalid status' : 状态不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    assert isinstance(taskid, str)
+    assert isinstance(status, str)
+    if status not in ('running', 'pause'):
+        return 'invalid status'
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('UPDATE immediatetasks SET status = ? WHERE user = ? AND id = ?', 
+                    (status, user, taskid))
+    c.execute('SELECT status FROM immediatetasks WHERE user = ? AND id = ?', 
+                    (user, taskid))
+    row = c.fetchone()
+    if row is None:
+        answer = 'task not found'
+    else:
+        answer = 'success'
+    conn.commit()
+    conn.close()
+    return answer
+
+def deletetask(user : str, password : str, taskid : str):
+    '''
+    删除任务
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     taskid - 任务id
+     
+    Returns:
+     'success' : 设置成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'task not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    assert isinstance(taskid, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT status FROM immediatetasks WHERE user = ? AND id = ?', 
+                    (user, taskid))
+    row = c.fetchone()
+    if row is None:
+        answer = 'task not found'
+    else:
+        answer = 'success'
+    c.execute('DELETE FROM immediatetasks WHERE user = ? AND id = ?', 
+                    (user, taskid))
+    conn.commit()
+    conn.close()
+    return answer
+    
+
 def init():
     '''
     初始化数据库
@@ -358,8 +547,8 @@ def init():
                          'randomforest', 'pypmml', '测试模型')])
         # 创建立即任务表
         c.execute('''CREATE TABLE immediatetasks
-                        (user TEXT, id NUMBER, 
-                        inputroute TEXT, outputroute TEXT);''')
+                        (user TEXT, id TEXT, 
+                        modelname TEXT, status TEXT);''')
         # 创建等待任务表
         c.execute('''CREATE TABLE waittasks 
                         (user TEXT, id NUMBER, 
@@ -390,3 +579,8 @@ def restart():
     if os.path.exists(database):
         os.remove(database)
     init()
+    savemodel('tyf','123456','test2','pmml',
+              '2022','test2.pmml','测试模型','pypmml','randomforest',
+              [('input1', 'int', '0,1,2,3', '1*8',None),
+               ('input2', 'int', None, None,'continuous')],
+              [('output', 'int', None, None,'continuous')])
