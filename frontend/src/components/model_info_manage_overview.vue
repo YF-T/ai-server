@@ -41,15 +41,6 @@
             </table>
           </div>
         </div>
-        
-        <div class="evalute">
-          <label>评估结果</label>
-          <span style="white-space:pre">   </span><span class="line"></span>
-
-          <div>
-
-          </div>
-        </div>
     </div>
 </template>
 
@@ -115,7 +106,7 @@ label {
   flex-grow:1;
   display:block;
   margin: 20px;
-  height: 200px;
+  height: 400px;
   overflow: auto;
   background: white;
   text-align:left;
@@ -131,16 +122,6 @@ table{
 table th{
   background: #FAFAFA;
 }
-.evalute{
-  display: block;
-  margin: 20px;
-  height: 200px;
-  background: white;
-  text-align:left;
-  border: 4px solid rgb(179, 191, 231);
-  border-radius:10px;
-}
-
 .line {
   display: inline-block;
   padding-top : 3px;

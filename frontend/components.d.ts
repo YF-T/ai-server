@@ -11,8 +11,6 @@ declare module '@vue/runtime-core' {
     CodeViewer: typeof import('./src/components/CodeViewer.vue')['default']
     Model_info_manage_addserver: typeof import('./src/components/model_info_manage_addserver.vue')['default']
     Model_info_manage_deploy: typeof import('./src/components/model_info_manage_deploy.vue')['default']
-    Model_info_manage_morepredic: typeof import('./src/components/model_info_manage_morepredic.vue')['default']
-    Model_info_manage_nowpredic: typeof import('./src/components/model_info_manage_nowpredic.vue')['default']
     Model_info_manage_overview: typeof import('./src/components/model_info_manage_overview.vue')['default']
     Model_info_manage_test: typeof import('./src/components/model_info_manage_test.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

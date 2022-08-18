@@ -4,18 +4,23 @@
           <div class="inputtest">
             <div class="infoline">
               <label>输入</label>
-              <a href="">JSON</a>
+              <button class='inputtype' @click="input(1)"><span>表单输入</span></button>
+              <button class='inputtype' @click="input(0)"><span>JSON输入</span></button>
             </div>
             <span style="white-space:pre"></span><span class="line"></span>
-            <form name="argsform">
+            <form name="argsform" v-if="inputtypeindex===1">
               <!-- 需要知道变量名和变量类型，变量数量-->
               <!-- {% for %} -->
               <div v-for="(inputone,i) in inputlist" :key="inputone">
-                <label class="argsname">{{inputone.name}}</label><br/>
-                <div class="parent">
+                <label class="argsname">{{inputone.name}}:</label>
+                <label class="radiolabel">输入方式选择：</label>
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' @click="inputtypeshow(i,1)"/>文本框输入</label>
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" checked :name=inputone.name value='0' @click="inputtypeshow(i,0)"/>文件输入</label><br/>
+                <div class="parent" v-if="nofileshow[i]==='1'">
                   <div class="dummy" name='point'></div>
                   <textarea class="textarea" v-on:input="test(i)" v-model="valuelist[i]"></textarea>
                 </div>
+                <input type="file" v-else/>
               </div>
               <!-- {% endfor %} -->
               <!-- <input type="button" value="清空" onclick="argsform.reset()"/> -->
@@ -38,7 +43,7 @@
               <!-- <input type="reset" value="清空"/> -->
               <!-- <input type="submit" @click="pagechange(2)"/> -->
               <div class="truckbuttonflex">
-                <button type="submit" class="truck-button" @click="pagechange(2)">
+                <button type="submit" class="truck-button" @click="pagechange(2,1)">
                     <span class="default">Complete Order</span>
                     <span class="success">
                         Order Placed
@@ -54,6 +59,13 @@
                     </div>
                 </button>
               </div>
+            </form>
+            <form v-else>
+              <div id="parent">
+                <div id="dummy"></div>
+                <textarea id="textarea" oninput="document.getElementById('dummy').textContent = this.value"></textarea>
+              </div>
+              <button type="submit" class='jsonsubmit' @click="pagechange(2,0)"><span>提交</span></button>
             </form>
           </div>
           <div class="outputtest">
@@ -94,15 +106,24 @@ export default defineComponent({
       outputlist:[],
       store: useStore(),
       valuelist:[],
+      nofileshow:[],
+      inputtypeindex:1,
     }
   },
   methods:{
+    inputtypeshow(i:number,index:number){
+      // this.nofileshow[i] = index; 
+    },
+    input(index:number){
+      this.inputtypeindex = index;
+    },
     test(i:number){
       let s1=document.getElementsByName("point")[i];
       s1.textContent = this.valuelist[i];
     },
-    pagechange(index:number){
+    pagechange(index:number,inputtypeindex:number){
       this.$emit('pagechange',index);
+      this.inputtypeindex = inputtypeindex;
     },
     overviewshow(){
       let param=new FormData();
@@ -292,15 +313,14 @@ label {
   flex:5;
 }
 /* 修改为相对位置 */
-a{
-  flex:1;
-  text-decoration: none;
-  line-height: 45px;
-}
 
 label[class='argsname']{
   font-size: 20px;
   font-weight: lighter;
+}
+
+label[class="radiolabel"]{
+  font-size: 15px;
 }
 
 form{
@@ -315,8 +335,7 @@ div[class="trashbutton"],div[class="truckbuttonflex"]{
 
 input {
   font-size: 20px;
-  width: 100%;
-  margin-top: 10px;
+  margin: 10px 0px 0px 30px;
 }
 
 div[class='codeline']{
@@ -367,5 +386,86 @@ span[class='codeshow']{
   overflow-y:auto;
 }
 
+.inputtype{
+  flex:2;
+  position: relative;
+  top:8px;
+  border: none;
+  display: inline-block;
+  padding: 10px 30px;
+  margin: 0px 20px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color:#5a94a2;
+  border-radius: 40px;
+  box-shadow: -2px -2px 8px rgba(255, 255, 255, 1),-2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),2px 2px 8px rgba(0, 0, 0, 0.15);
+}
 
+.inputtype:hover{
+  box-shadow: inset -2px -2px 8px rgba(255, 255, 255, 1),inset -2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),inset 2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.inputtype:hover:span{
+  display: inline-block;
+  transform: scale(0.98);
+}
+
+.jsonsubmit{
+  position: relative;
+  top:8px;
+  border: none;
+  display: flex;
+  justify-content: center;
+  padding: 10px 30px;
+  margin: 20px auto;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color:#5a94a2;
+  border-radius: 40px;
+  box-shadow: -2px -2px 8px rgba(255, 255, 255, 1),-2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.jsonsubmit:hover{
+  box-shadow: inset -2px -2px 8px rgba(255, 255, 255, 1),inset -2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),inset 2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.jsonsubmit:hover:span{
+  display: inline-block;
+  transform: scale(0.98);
+}
+
+#parent {
+  width: 600px;
+  min-height: 120px;
+  max-height: 180px;
+  font: 20px monospace;
+  word-break:break-all;
+  position: relative;
+}
+#dummy {
+  padding: 2px;
+  border: 1px solid;
+  visibility: hidden;
+  white-space: pre-wrap;
+}
+#dummy::after {
+  content: " ";
+}
+#textarea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  resize: none;
+  width: 100%;
+  font: inherit;
+  overflow-y:auto;
+}
 </style>

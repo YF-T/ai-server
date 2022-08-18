@@ -4,7 +4,6 @@
           <div class="infoline">
             <label>部署</label>
             <button @click="pagechange(4)"><span>添加服务</span></button>
-            <button><span>添加任务</span></button>
           </div>
           <span style="white-space:pre"></span><span class="line"></span>
           <table>
