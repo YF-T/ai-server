@@ -17,7 +17,7 @@ class MyThread(threading.Thread):
             return "threading error"
 
 
-# 获取多线程return返回值的测试方法
+'''# 获取多线程return返回值的测试方法
 def admin(number):
     uiu = number
     for i in range(10):
@@ -38,3 +38,4 @@ if __name__ == "__main__":
     print(a)
     more_th2.join()
     print(more_th2.get_result())
+'''

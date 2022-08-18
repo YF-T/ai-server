@@ -334,6 +334,10 @@ def deletemodel(user : str, password : str, modelname : str):
         return 'model not found'
     c.execute('DELETE FROM models WHERE user = ? AND modelname = ?', 
                     (user, modelname))
+    c.execute('DELETE FROM variables WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    c.execute('DELETE FROM immediatetasks WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
     conn.commit()
     conn.close()
     return 'success'
@@ -358,19 +362,22 @@ def createtask(user : str, password : str, modelname : str):
     Raises:
      参数类型错误
     '''
+    # 检验操作合法性
     if identify(user, password) != 'success':
         return False, identify(user, password)
     assert isinstance(modelname, str)
+    # 连接数据库
     conn = sqlite3.connect(database)
     c = conn.cursor()
+    # 得到数据库的
     c.execute('SELECT immediatetaskid FROM users WHERE user = ?', 
                     (user,))
     immediatetaskid = c.fetchone()[0]
     c.execute('UPDATE users SET immediatetaskid = ? WHERE user = ?', 
                     (immediatetaskid + 1, user))
     taskid = user + '_task_' + str(immediatetaskid)
-    c.execute('INSERT INTO immediatetasks VALUES (?,?,?,?)', 
-                    (user, taskid, modelname, 'running'))
+    c.execute('INSERT INTO immediatetasks VALUES (?,?,?,?,?)', 
+                    (user, taskid, modelname, 'running', 'None'))
     conn.commit()
     conn.close()
     return True, taskid
@@ -488,7 +495,80 @@ def deletetask(user : str, password : str, taskid : str):
     conn.commit()
     conn.close()
     return answer
-    
+
+def gettaskfile(user : str, password : str, taskid : str):
+    '''
+    查看任务返回值储存路径
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     taskid - 任务id
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为路径名称
+     失败则为错误信息，'user not found' : 用户不存在
+                       'invalid password' : 密码错误
+                       'task not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(taskid, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT file FROM immediatetasks WHERE user = ? AND id = ?', 
+                    (user, taskid))
+    row = c.fetchone()
+    if row is None:
+        answer = 'model not found'
+    else:
+        answer = row[0]
+    conn.close()
+    return bool(row), answer
+
+def settaskfile(user : str, password : str, taskid : str, file : str):
+    '''
+    设置任务存储路径
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     taskid - 任务id
+     file - 待设置的文件路径
+     
+    Returns:
+     'success' : 设置成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'task not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    assert isinstance(taskid, str)
+    assert isinstance(file, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('UPDATE immediatetasks SET file = ? WHERE user = ? AND id = ?', 
+                    (file, user, taskid))
+    c.execute('SELECT file FROM immediatetasks WHERE user = ? AND id = ?', 
+                    (user, taskid))
+    row = c.fetchone()
+    if row is None:
+        answer = 'task not found'
+    else:
+        answer = 'success'
+    conn.commit()
+    conn.close()
+    return answer
 
 def init():
     '''
@@ -548,7 +628,7 @@ def init():
         # 创建立即任务表
         c.execute('''CREATE TABLE immediatetasks
                         (user TEXT, id TEXT, 
-                        modelname TEXT, status TEXT);''')
+                        modelname TEXT, status TEXT, file TEXT);''')
         # 创建等待任务表
         c.execute('''CREATE TABLE waittasks 
                         (user TEXT, id NUMBER, 

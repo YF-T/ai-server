@@ -65,8 +65,8 @@
 ##### 部署模型
 
 - 部署模型服务的接口
-- 启动服务的接口
-- 暂停服务的接口
+- 启动服务的接口（完成）
+- 暂停服务的接口（完成）
 - 删除服务的接口
 - 显示当前服务状态的接口
 
@@ -256,6 +256,44 @@
 >                 'user not found' : 用户不存在
 >                 'invalid password' : 密码错误
 >                 'model not found' : 找不到该名称模型
+>
+> Raises:
+>  本函数不应该报错
+
+#### /settaskstatusrunning (post)
+
+> 启动服务
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  taskid : str - 部署任务id
+>
+> Returns:
+>  status : str - 'success' : 设置成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'task not found' : 任务id不存在
+>                 'invalid status' : 状态不存在
+>
+> Raises:
+>  本函数不应该报错
+
+#### /settaskstatuspause (post)
+
+> 暂停服务
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  taskid : str - 部署任务id
+>
+> Returns:
+>  status : str - 'success' : 设置成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'task not found' : 任务id不存在
+>                 'invalid status' : 状态不存在
 >
 > Raises:
 >  本函数不应该报错

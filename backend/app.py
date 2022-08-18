@@ -1,7 +1,16 @@
+import threading
+
 import database
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+
+from myThread import MyThread
+from threading import Thread
+import pickle
+
+from pypmml import Model
+import onnxruntime as ort
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -173,6 +182,64 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
 
+@app.route('/settaskstatusrunning',methods=["POST"])
+def settaskstatusrunning():
+    '''
+    启动服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     taskid : str - 部署任务id
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'task not found' : 任务id不存在
+                    'invalid status' : 状态不存在
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    taskid = request.form['taskid']
+    # 设置为暂停
+    status = database.settaskstatus(user, password, taskid, 'running')
+    # 返回成功/报错
+    return jsonify({'status' : status})
+
+@app.route('/settaskstatuspause',methods=["POST"])
+def settaskstatuspause():
+    '''
+    暂停服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     taskid : str - 部署任务id
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'task not found' : 任务id不存在
+                    'invalid status' : 状态不存在
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    taskid = request.form['taskid']
+    # 设置为暂停
+    status = database.settaskstatus(user, password, taskid, 'pause')
+    # 返回成功/报错
+    return jsonify({'status' : status})
+
 @app.route('/fake_getmodelinfo',methods=['POST',"GET"])
 def fake_getmodelinfo():
     user = request.form['user']
@@ -259,7 +326,7 @@ def getmodelinfo():
 def testmodel_quickresponse():
     '''
     名称：快速返回预测结果
-    功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
+    功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果（不使用多线程）
     Parameters:
      user : str - 用户名
      password : str - 密码
@@ -284,39 +351,20 @@ def testmodel_quickresponse():
         return jsonify({'status': info if not status2 else input})
     
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
-    status3, address = database.getmodelroute(user, password, modelname)
-    if not status3:
+    address = find_model(user, password, modelname)
+    if address == 'model not found':
         return jsonify({'status': address})
-    address = './model/' + address
-    suffix = address[-4:]
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
-    #多线程
-    from myThread import MyThread
-    if suffix == 'pmml':  # 模型为pmml格式
-        from pypmml import Model
-        model = Model.fromFile(address)
-        task=MyThread(model.predict,(input,))
-        task.join()
-        output = task.get_result()
-        # 输出格式虽然为dict，但并不是前端的标准格式，应调整
-        return output
-    elif suffix == 'onnx':  # 模型为onnx格式
-        import onnxruntime as ort
-        sess = ort.InferenceSession(address)  # 加载模型
-        task = MyThread(sess.run.predict, (None, input))
-        task.join()
-        output = task.get_result()
-        # 默认输出格式为list，待调整
-        return output
-    else:
-        pass
+    # 本模块（快速返回）暂时不使用多线程
+    output = naive_test_model(address, input)
+    return output
 
-@app.route('/testmodel_delayresponse',methods=["GET"])
+@app.route('/testmodel_delayresponse',methods=["GET","POST"])
 def testmodel_delayresponse():
     '''
     名称：等待返回预测结果
-    功能、说明基本同testmodel_quickresponse
+    功能、说明基本同testmodel_quickresponse，使用多线程
     '''
     user = request.form['user']
     password = request.form['password']
@@ -328,13 +376,108 @@ def testmodel_delayresponse():
         return jsonify({'status': info if not status2 else input})
     
     # 提取待测试模型地址
+    address = find_model(user, password, modelname)
+    if address == 'model not found':
+        return jsonify({'status': address})
+
+    # 接下来的部分需要参考database和hw4，使用多线程，同快速返回的预测过程
+    #创建id
+    state, id = database.createtask()
+    if state == False:
+        return jsonify({'status': id})
+    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id))
+    task.start()
+    #成功建立新线程
+    return jsonify({'status': "success"})
+
+@app.route('/get_result_delayresponse',methods=["GET","POST"])
+def get_result(user: str, password: str, taskid:str):
+    '''
+    功能：查询等待返回的结果
+    Args:
+        user: 用户名
+        password: 密码
+        taskid: 任务id
+
+    Returns:
+        status：str 成功为success，失败为错误信息
+        output： 成功为返回结果，失败为None
+        file: 成功为pkl文件，失败为None
+    '''
+    #调用database查询任务id对应的文件
+    state,path=database.gettaskfile(user,password,taskid)
+    if state == False:
+        return jsonify({'status': path,
+                        'output':None,
+                        'file':None})
+    else:
+        f_read = open(path, 'rb')
+        output = pickle.load(f_read)
+        f_read.close()
+        return jsonify({'status':"success",
+                        'output':output,
+                        'file':None})
+
+def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str):
+    '''
+    功能：多线程执行等待返回 将返回的结果的文件路径和对应id储存在database
+    Args:
+        address:
+        input: 输入格式应统一为dataframe（需要pandas）
+        user: 用户
+        password: 密码
+        id: 任务id
+
+    Returns:
+    '''
+    suffix = address[-4:]
+    file_path='./output/'+id+'.pkl'
+    if suffix == 'pmml':  # 模型为pmml格式
+        model = Model.fromFile(address)
+        output = model.predict(input)  
+        # pmml模型下dataframe的输出结果仍为dataframe
+        # 储存output为文件 先用pickle，不行再改
+        f_save = open(file_path, 'wb')
+        pickle.dump(output, f_save)
+        f_save.close()
+        # 将id和对应文件储存到数据库
+        database.settaskfile(user,password,id,file_path)
+        #return output
+    elif suffix == 'onnx':  # 模型为onnx格式
+        sess = ort.InferenceSession(address)  # 加载模型
+        output = sess.run(None, input)
+        # 储存output为文件 先用pickle，不行再改
+        f_save = open(file_path, 'wb')
+        pickle.dump(output, f_save)
+        f_save.close()
+        # 将id和对应文件储存到数据库
+        database.settaskfile(user, password, id, file_path)
+        #return output
+    else:
+        pass
+
+
+def find_model(user: str, password: str, modelname: str):
+    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
     if not status3:
         return jsonify({'status': address})
     address = './model/' + address
+    return address
+
+def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于快速返回
     suffix = address[-4:]
-    # 接下来的部分需要参考database和hw4
-    pass
+    if suffix == 'pmml':  # 模型为pmml格式
+        model = Model.fromFile(address)
+        output = model.predict(input)
+        return output
+    elif suffix == 'onnx':  # 模型为onnx格式
+        sess = ort.InferenceSession(address)  # 加载模型
+        output = sess.run(None, input)
+        return output
+    else:
+        pass
+
 
 if __name__ == '__main__':
     database.init()
