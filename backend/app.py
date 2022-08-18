@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 from myThread import MyThread
 from threading import Thread
+import pickle
 
 from pypmml import Model
 import onnxruntime as ort
@@ -356,7 +357,7 @@ def testmodel_quickresponse():
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
-    output = test_model(address, input)
+    output = naive_test_model(address, input)
     return output
 
 @app.route('/testmodel_delayresponse',methods=["GET"])
@@ -378,17 +379,14 @@ def testmodel_delayresponse():
     address = find_model(user, password, modelname)
     if address == 'model not found':
         return jsonify({'status': address})
-    # 接下来的部分需要参考database和hw4，使用多线程
-    # 同快速返回的预测过程
-    #多线程
+
+    # 接下来的部分需要参考database和hw4，使用多线程，同快速返回的预测过程
     #创建id
     state, id = database.createtask()
     if state == False:
         return jsonify({'status': id})
-    task=threading.Thread(target=test_model_delayresponse,args=(address, input,user, password,id))
+    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id))
     task.start()
-    #output = test_model(address, input)
-    #return output
     #成功建立新线程
     return jsonify({'status': "success"})
 
@@ -402,13 +400,12 @@ def get_result(user: str, password: str, taskid:str):
         taskid: 任务id
 
     Returns:
-        status：str 成功为”success“，失败为错误信息
-        output 成功为返回结果，失败为None
+        status：str 成功为success，失败为错误信息
+        output：成功为返回结果，失败为None
     '''
-    import pickle
     #调用database查询任务id对应的文件
     state,path=database.gettaskfile(user,password,taskid)
-    if state== False:
+    if state == False:
         return jsonify({'status': path,
                         'output':None})
     else:
@@ -417,30 +414,29 @@ def get_result(user: str, password: str, taskid:str):
         return jsonify({'status':"success",
                         'output':output})
 
-def test_model_delayresponse(address: str, input: dict,user : str, password : str,id:str):
+def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str):
     '''
     功能：多线程执行等待返回 将返回的结果的文件路径和对应id储存在database
     Args:
         address:
-        input:
+        input: 输入格式应统一为dataframe（需要pandas）
         user: 用户
         password: 密码
         id: 任务id
 
     Returns:
-
     '''
-    import pickle
     suffix = address[-4:]
     file_path='./output/'+id+'.pkl'
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
-        output = model.predict(input)
-        #储存output为文件 先用pickle，不行再改
+        output = model.predict(input)  
+        # pmml模型下dataframe的输出结果仍为dataframe
+        # 储存output为文件 先用pickle，不行再改
         f_save = open(file_path, 'wb')
         pickle.dump(output, f_save)
         f_save.close()
-        #将id和对应文件储存到数据库
+        # 将id和对应文件储存到数据库
         database.settaskfile(user,password,id,file_path)
         #return output
     elif suffix == 'onnx':  # 模型为onnx格式
@@ -455,8 +451,6 @@ def test_model_delayresponse(address: str, input: dict,user : str, password : st
         #return output
     else:
         pass
-    pass
-
 
 
 def find_model(user: str, password: str, modelname: str):
@@ -466,9 +460,8 @@ def find_model(user: str, password: str, modelname: str):
         return jsonify({'status': address})
     address = './model/' + address
     return address
-    pass
 
-def test_model(address: str, input: dict):
+def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于快速返回
     suffix = address[-4:]
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
@@ -480,7 +473,7 @@ def test_model(address: str, input: dict):
         return output
     else:
         pass
-    pass
+
 
 if __name__ == '__main__':
     database.init()
