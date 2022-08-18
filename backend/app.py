@@ -359,7 +359,7 @@ def testmodel_quickresponse():
     output = test_model(address, input)
     return output
 
-@app.route('/testmodel_delayresponse',methods=["GET"])
+@app.route('/testmodel_delayresponse',methods=["GET","POST"])
 def testmodel_delayresponse():
     '''
     名称：等待返回预测结果
@@ -392,7 +392,7 @@ def testmodel_delayresponse():
     #成功建立新线程
     return jsonify({'status': "success"})
 
-@app.route('/get_result_delayresponse',methods=["GET"])
+@app.route('/get_result_delayresponse',methods=["GET","POST"])
 def get_result(user: str, password: str, taskid:str):
     '''
     功能：查询等待返回的结果
@@ -403,19 +403,23 @@ def get_result(user: str, password: str, taskid:str):
 
     Returns:
         status：str 成功为”success“，失败为错误信息
-        output 成功为返回结果，失败为None
+        output： 成功为返回结果，失败为None
+        file: 成功为pkl文件，失败为None
     '''
     import pickle
     #调用database查询任务id对应的文件
     state,path=database.gettaskfile(user,password,taskid)
     if state== False:
         return jsonify({'status': path,
-                        'output':None})
+                        'output':None,
+                        'file':None})
     else:
-        f_read=pickle(path,'rb')
-        output=pickle.loads(f_read)
+        f_read = open(path, 'rb')
+        output = pickle.load(f_read)
+        f_read.close()
         return jsonify({'status':"success",
-                        'output':output})
+                        'output':output,
+                        'file':None})
 
 def test_model_delayresponse(address: str, input: dict,user : str, password : str,id:str):
     '''
