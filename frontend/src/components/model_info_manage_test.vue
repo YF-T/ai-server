@@ -15,12 +15,13 @@
                 <label class="argsname">{{inputone.name}}:</label>
                 <label class="radiolabel">输入方式选择：</label>
                   <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' @click="inputtypeshow(i,1)"/>文本框输入</label>
-                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" checked :name=inputone.name value='0' @click="inputtypeshow(i,0)"/>文件输入</label><br/>
-                <div class="parent" v-if="nofileshow[i]==='1'">
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='0' @click="inputtypeshow(i,0)"/>文件输入</label><br/>
+                <input type="file" v-if="nofileshow[i]==='0'"/>
+                <div class="parent" v-else>
                   <div class="dummy" name='point'></div>
                   <textarea class="textarea" v-on:input="test(i)" v-model="valuelist[i]"></textarea>
                 </div>
-                <input type="file" v-else/>
+                
               </div>
               <!-- {% endfor %} -->
               <!-- <input type="button" value="清空" onclick="argsform.reset()"/> -->
