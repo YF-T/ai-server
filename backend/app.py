@@ -1,3 +1,5 @@
+import threading
+
 import database
 
 from flask import Flask, jsonify, request
@@ -377,10 +379,85 @@ def testmodel_delayresponse():
     if address == 'model not found':
         return jsonify({'status': address})
     # 接下来的部分需要参考database和hw4，使用多线程
-
     # 同快速返回的预测过程
-    output = test_model(address, input)
-    return output
+    #多线程
+    #创建id
+    state, id = database.createtask()
+    if state == False:
+        return jsonify({'status': id})
+    task=threading.Thread(target=test_model_delayresponse,args=(address, input,user, password,id))
+    task.start()
+    #output = test_model(address, input)
+    #return output
+    #成功建立新线程
+    return jsonify({'status': "success"})
+
+@app.route('/get_result_delayresponse',methods=["GET"])
+def get_result(user: str, password: str, taskid:str):
+    '''
+    功能：查询等待返回的结果
+    Args:
+        user: 用户名
+        password: 密码
+        taskid: 任务id
+
+    Returns:
+        status：str 成功为”success“，失败为错误信息
+        output 成功为返回结果，失败为None
+    '''
+    import pickle
+    #调用database查询任务id对应的文件
+    state,path=database.gettaskfile(user,password,taskid)
+    if state== False:
+        return jsonify({'status': path,
+                        'output':None})
+    else:
+        f_read=pickle(path,'rb')
+        output=pickle.loads(f_read)
+        return jsonify({'status':"success",
+                        'output':output})
+
+def test_model_delayresponse(address: str, input: dict,user : str, password : str,id:str):
+    '''
+    功能：多线程执行等待返回 将返回的结果的文件路径和对应id储存在database
+    Args:
+        address:
+        input:
+        user: 用户
+        password: 密码
+        id: 任务id
+
+    Returns:
+
+    '''
+    import pickle
+    suffix = address[-4:]
+    file_path='./output/'+id+'.pkl'
+    if suffix == 'pmml':  # 模型为pmml格式
+        model = Model.fromFile(address)
+        output = model.predict(input)
+        #储存output为文件 先用pickle，不行再改
+        f_save = open(file_path, 'wb')
+        pickle.dump(output, f_save)
+        f_save.close()
+        #将id和对应文件储存到数据库
+        database.settaskfile(user,password,id,file_path)
+        #return output
+    elif suffix == 'onnx':  # 模型为onnx格式
+        sess = ort.InferenceSession(address)  # 加载模型
+        output = sess.run(None, input)
+        # 储存output为文件 先用pickle，不行再改
+        f_save = open(file_path, 'wb')
+        pickle.dump(output, f_save)
+        f_save.close()
+        # 将id和对应文件储存到数据库
+        database.settaskfile(user, password, id, file_path)
+        #return output
+    else:
+        pass
+    pass
+
+
 
 def find_model(user: str, password: str, modelname: str):
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
