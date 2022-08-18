@@ -3,6 +3,9 @@ import database
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from myThread import MyThread
+from threading import Thread
+
 from pypmml import Model
 import onnxruntime as ort
 
@@ -287,25 +290,14 @@ def testmodel_quickresponse():
         return jsonify({'status': info if not status2 else input})
     
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
-    status3, address = database.getmodelroute(user, password, modelname)
-    if not status3:
+    address = find_model(user, password, modelname)
+    if address == 'model not found':
         return jsonify({'status': address})
-    address = './model/' + address
-    suffix = address[-4:]
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
-    #先不用多线程
-    from myThread import MyThread
-    if suffix == 'pmml':  # 模型为pmml格式
-        model = Model.fromFile(address)
-        output = model.predict(input)
-        return output
-    elif suffix == 'onnx':  # 模型为onnx格式
-        sess = ort.InferenceSession(address)  # 加载模型
-        output = sess.run(None, input)
-        return output
-    else:
-        pass
+    # 本模块（快速返回）暂时不使用多线程
+    output = test_model(address, input)
+    return output
 
 @app.route('/testmodel_delayresponse',methods=["GET"])
 def testmodel_delayresponse():
@@ -323,12 +315,36 @@ def testmodel_delayresponse():
         return jsonify({'status': info if not status2 else input})
     
     # 提取待测试模型地址
+    address = find_model(user, password, modelname)
+    if address == 'model not found':
+        return jsonify({'status': address})
+    # 接下来的部分需要参考database和hw4，使用多线程
+
+    # 同快速返回的预测过程
+    output = test_model(address, input)
+    return output
+
+def find_model(user: str, password: str, modelname: str):
+    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
     if not status3:
         return jsonify({'status': address})
     address = './model/' + address
+    return address
+    pass
+
+def test_model(address: str, input: dict):
     suffix = address[-4:]
-    # 接下来的部分需要参考database和hw4
+    if suffix == 'pmml':  # 模型为pmml格式
+        model = Model.fromFile(address)
+        output = model.predict(input)
+        return output
+    elif suffix == 'onnx':  # 模型为onnx格式
+        sess = ort.InferenceSession(address)  # 加载模型
+        output = sess.run(None, input)
+        return output
+    else:
+        pass
     pass
 
 if __name__ == '__main__':
