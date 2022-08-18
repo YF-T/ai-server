@@ -173,6 +173,64 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
 
+@app.route('/settaskstatusrunning',methods=["POST"])
+def settaskstatusrunning():
+    '''
+    启动服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     taskid : str - 部署任务id
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'task not found' : 任务id不存在
+                    'invalid status' : 状态不存在
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    taskid = request.form['taskid']
+    # 设置为暂停
+    status = database.settaskstatus(user, password, taskid, 'running')
+    # 返回成功/报错
+    return jsonify({'status' : status})
+
+@app.route('/settaskstatuspause',methods=["POST"])
+def settaskstatuspause():
+    '''
+    暂停服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     taskid : str - 部署任务id
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'task not found' : 任务id不存在
+                    'invalid status' : 状态不存在
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    taskid = request.form['taskid']
+    # 设置为暂停
+    status = database.settaskstatus(user, password, taskid, 'pause')
+    # 返回成功/报错
+    return jsonify({'status' : status})
+
 @app.route('/fake_getmodelinfo',methods=["GET"])
 def fake_getmodelinfo():
     user = request.form['user']

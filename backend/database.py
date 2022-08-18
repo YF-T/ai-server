@@ -334,6 +334,10 @@ def deletemodel(user : str, password : str, modelname : str):
         return 'model not found'
     c.execute('DELETE FROM models WHERE user = ? AND modelname = ?', 
                     (user, modelname))
+    c.execute('DELETE FROM variables WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    c.execute('DELETE FROM immediatetasks WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
     conn.commit()
     conn.close()
     return 'success'
@@ -358,11 +362,14 @@ def createtask(user : str, password : str, modelname : str):
     Raises:
      参数类型错误
     '''
+    # 检验操作合法性
     if identify(user, password) != 'success':
         return False, identify(user, password)
     assert isinstance(modelname, str)
+    # 连接数据库
     conn = sqlite3.connect(database)
     c = conn.cursor()
+    # 得到数据库的
     c.execute('SELECT immediatetaskid FROM users WHERE user = ?', 
                     (user,))
     immediatetaskid = c.fetchone()[0]
