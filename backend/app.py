@@ -294,21 +294,15 @@ def testmodel_quickresponse():
     suffix = address[-4:]
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
-    #多线程
+    #先不用多线程
     from myThread import MyThread
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
-        task=MyThread(model.predict,(input,))
-        task.start()
-        task.join()
-        output = task.get_result()
+        output = model.predict(input)
         return output
     elif suffix == 'onnx':  # 模型为onnx格式
         sess = ort.InferenceSession(address)  # 加载模型
-        task = MyThread(sess.run.predict, (None, input))
-        task.start()
-        task.join()
-        output = task.get_result()
+        output = sess.run(None, input)
         return output
     else:
         pass
