@@ -79,5 +79,3 @@ export default defineComponent({
   align-content:center;
 }
 </style>
-
-

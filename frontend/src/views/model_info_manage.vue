@@ -10,11 +10,11 @@
           <th width = "10%">引擎</th>
         </tr>
         <tr>
-          <td>任务名称</td>
-          <td>修改时间</td>
-          <td>类型</td>
-          <td>算法</td>
-          <td>引擎</td>
+          <td>{{modelname}}</td>
+          <td>{{modification_time}}</td>
+          <td>{{modeltype}}</td>
+          <td>{{algorithm}}</td>
+          <td>{{engine}}</td>
         </tr>
       </table>      
     </div>
@@ -43,6 +43,8 @@ import model_info_overview from '@/components/model_info_manage_overview.vue';
 import model_info_test from '@/components/model_info_manage_test.vue'; 
 import model_info_deploy from '@/components/model_info_manage_deploy.vue'; 
 import model_info_addserver from  '@/components/model_info_manage_addserver.vue'; 
+import { useStore } from 'vuex';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'model_info_manage',
@@ -52,9 +54,18 @@ export default defineComponent({
     model_info_deploy,
     model_info_addserver,
   },
+  created:function(){
+    this.modelinfoshow();
+  },
   data () {
     return {
       index: 1,
+      modelname:'未知',
+      modification_time:'未知',
+      modeltype:'未知',
+      algorithm:'未知',
+      engine:"未知",
+      store: useStore(),
     }
   },
   methods: {
@@ -63,6 +74,26 @@ export default defineComponent({
     },
     mainpagechange(value:number){
       this.index = value;
+    },
+    modelinfoshow(){
+      let param=new FormData();
+      console.log(this.store.state.username,this.store.state.password,this.store.state.modelname)
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      var path = 'http://127.0.0.1:5000/getmodelinfo';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          console.log(res.data.status);
+          if(res.data.status==='success'){
+            this.modelname = res.data.modelname;
+            this.modification_time = res.data.time;
+            this.modeltype = res.data.modeltype;
+            this.algorithm = res.data.algorithm;
+            this.engine = res.data.engine;
+          }
+        });
     },
   },
 });

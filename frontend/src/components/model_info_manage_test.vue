@@ -3,15 +3,20 @@
         <div class="datatran">
           <div class="inputtest">
             <div class="infoline">
-              <label>输入变量</label>
+              <label>输入</label>
               <a href="">JSON</a>
             </div>
             <span style="white-space:pre"></span><span class="line"></span>
             <form name="argsform">
               <!-- 需要知道变量名和变量类型，变量数量-->
               <!-- {% for %} -->
-              <label class="argsname">sepal length (cm):</label><br/>
-              <input type="number"/>
+              <div v-for="(inputone,i) in inputlist" :key="inputone">
+                <label class="argsname">{{inputone.name}}</label><br/>
+                <div class="parent">
+                  <div class="dummy" name='point'></div>
+                  <textarea class="textarea" v-on:input="test(i)" v-model="valuelist[i]"></textarea>
+                </div>
+              </div>
               <!-- {% endfor %} -->
               <!-- <input type="button" value="清空" onclick="argsform.reset()"/> -->
               <div class="trashbutton">
@@ -52,7 +57,7 @@
             </form>
           </div>
           <div class="outputtest">
-            <label>输出变量</label>
+            <label>输出</label>
             <span style="white-space:pre"></span><span class="line"></span>
             <!-- {% for %} -->
             <div class="codeline">
@@ -68,19 +73,51 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { gsap } from "gsap";
+import { useStore } from 'vuex';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'model_info_test',
   props: {
     msg: String,
   },
+  created:function(){
+    this.overviewshow();
+  },
   mounted(){
     this.truckanimationadd();
     this.trashanimationadd();
   },
+  data(){
+    return {
+      inputlist:[],
+      outputlist:[],
+      store: useStore(),
+      valuelist:[],
+    }
+  },
   methods:{
+    test(i:number){
+      let s1=document.getElementsByName("point")[i];
+      s1.textContent = this.valuelist[i];
+    },
     pagechange(index:number){
       this.$emit('pagechange',index);
+    },
+    overviewshow(){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      var path = 'http://127.0.0.1:5000/getmodelinfo';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          if(res.data.status==='success'){
+            this.inputlist = res.data.input;
+            this.outputlist = res.data.output;
+          }
+        });
     },
     truckanimationadd(){
           document.querySelectorAll('.truck-button').forEach(button => {
@@ -201,7 +238,15 @@ export default defineComponent({
 
 @import "../static/css/truck.css";
 @import "../static/css/index.css";
+textarea{
+  resize: none;
+  width: 400px;
+  min-height: 20px;
+  max-height: 300px;
+  line-height: 24px;
+  overflow-y: hidden;
 
+}
 .context {
     height: 500px;
     width: auto;
@@ -291,6 +336,35 @@ span[class='codeshow']{
   display: block;
   margin: 10px 0px;
   line-height: 1em;
+}
+
+.parent {
+  width: 500px;
+  font: 20px monospace;
+  position: relative;
+  max-height: 120px;
+  word-break:break-all;
+}
+.dummy {
+  padding: 2px;
+  border: 1px solid;
+  visibility: hidden;
+  white-space: pre-wrap;
+  overflow-y:auto;
+}
+.dummy::after {
+  content: " ";
+}
+.textarea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  resize: none;
+  width: 100%;
+  font: inherit;
+  overflow-y:auto;
 }
 
 

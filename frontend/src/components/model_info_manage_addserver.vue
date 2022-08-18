@@ -4,13 +4,19 @@
       <span class="totaltitle"><label class="totalname">部署服务信息填写</label></span>
       <span style="white-space:pre"></span><span class="line"></span>
       <form>
-        <label class='servername'>部署服务名称</label>
-        <input type="text" />
-        <label class='servername'>类型</label>
-        <input type="text" />
+        <label class='servername' >部署服务名称</label>
+        <input type="text" v-model="name" />
+        <label class='servername' >类型</label>
+        <input type="text" v-model="webtype"/>
+        <label class='servername'>开始时间</label>
+        <input type="text" v-model="starttime"/>
+        <label class='servername'>状态</label>
+        <input type="text" v-model="state"/>
+        <label class='servername'>操作</label>
+        <input type="text" v-model="operator"/>
         <div class="buttonspace">
-          <button type="button" @click="pagechange(3)"><span>返回</span></button>
-          <button type="submit"><span>确认</span></button>
+          <button type="button" @click="pagechange(3,0)"><span>返回</span></button>
+          <button type="submit" @click="pagechange(3,1)"><span>确认</span></button>
         </div>
       </form>
     </div>
@@ -19,15 +25,44 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'model_info_addserver',
   props: {
     msg: String,
   },
+  data(){
+    return {
+      store: useStore(),
+      name:'',
+      webtype:'',
+      starttime:'',
+      state:'',
+      operator:'',
+    }
+  },
   methods:{
-    pagechange(index:number){
-      this.$emit('pagechange',index);
+    pagechange(index:number,button:number){
+      if(button==0){
+        this.$emit('pagechange',index);
+      }
+      else{
+        if(this.name!='' &&
+        this.webtype!='' &&
+        this.starttime!='' &&
+        this.state!='' &&
+        this.operator!='' ){
+          this.store.commit('savewebinfo',{
+            name :this.name ,
+            webtype : this.webtype,
+            starttime: this.starttime ,
+            state : this.state ,
+            operator:this.operator ,
+            });
+          this.$emit('pagechange',index);
+        }
+      }
     },
   }
 });
