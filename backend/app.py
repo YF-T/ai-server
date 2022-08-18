@@ -297,6 +297,7 @@ def testmodel_quickresponse():
         from pypmml import Model
         model = Model.fromFile(address)
         task=MyThread(model.predict,(input,))
+        task.start()
         task.join()
         output = task.get_result()
         # 输出格式虽然为dict，但并不是前端的标准格式，应调整
@@ -305,6 +306,7 @@ def testmodel_quickresponse():
         import onnxruntime as ort
         sess = ort.InferenceSession(address)  # 加载模型
         task = MyThread(sess.run.predict, (None, input))
+        task.start()
         task.join()
         output = task.get_result()
         # 默认输出格式为list，待调整
