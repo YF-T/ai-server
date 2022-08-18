@@ -3,6 +3,9 @@ import database
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from pypmml import Model
+import onnxruntime as ort
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -259,7 +262,7 @@ def getmodelinfo():
 def testmodel_quickresponse():
     '''
     名称：快速返回预测结果
-    功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果
+    功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果（不使用多线程）
     Parameters:
      user : str - 用户名
      password : str - 密码
@@ -294,22 +297,18 @@ def testmodel_quickresponse():
     #多线程
     from myThread import MyThread
     if suffix == 'pmml':  # 模型为pmml格式
-        from pypmml import Model
         model = Model.fromFile(address)
         task=MyThread(model.predict,(input,))
         task.start()
         task.join()
         output = task.get_result()
-        # 输出格式虽然为dict，但并不是前端的标准格式，应调整
         return output
     elif suffix == 'onnx':  # 模型为onnx格式
-        import onnxruntime as ort
         sess = ort.InferenceSession(address)  # 加载模型
         task = MyThread(sess.run.predict, (None, input))
         task.start()
         task.join()
         output = task.get_result()
-        # 默认输出格式为list，待调整
         return output
     else:
         pass
@@ -318,7 +317,7 @@ def testmodel_quickresponse():
 def testmodel_delayresponse():
     '''
     名称：等待返回预测结果
-    功能、说明基本同testmodel_quickresponse
+    功能、说明基本同testmodel_quickresponse，使用多线程
     '''
     user = request.form['user']
     password = request.form['password']
