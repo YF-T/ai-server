@@ -29,13 +29,15 @@
               <tr>
                 <th>字段</th>
                 <th>类型</th>
-                <th>维数</th>
+                <th v-if="modeltype==='pmml'">维数</th>
+                <th v-else>测量</th>
                 <th>取值</th>
               </tr>
               <tr v-for="outputone in outputlist" :key="outputone">
                 <td>{{outputone.name}}</td>
                 <td>{{outputone.type}}</td>
-                <td>{{outputone.dimension}}</td>
+                <td v-if="modeltype==='pmml'">{{outputone.dimension}}</td>
+                <td v-else>{{outputone.optype}}</td>
                 <td>{{outputone.range}}</td>
               </tr>
             </table>
@@ -62,6 +64,7 @@ export default defineComponent({
       inputlist:[],
       outputlist:[],
       store: useStore(),
+      modeltype:'',
     }
   },
   methods:{
@@ -77,6 +80,7 @@ export default defineComponent({
           if(res.data.status==='success'){
             this.inputlist = res.data.input;
             this.outputlist = res.data.output;
+            this.modeltype = res.data.modeltype;
           }
         });
     }
@@ -116,6 +120,7 @@ label {
 
 table{
   width: 100%;
+  font-size:25px;
   background: white;
 }
 

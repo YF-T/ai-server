@@ -8,7 +8,7 @@
               <button class='inputtype' @click="input(0)"><span>JSON输入</span></button>
             </div>
             <span style="white-space:pre"></span><span class="line"></span>
-            <form name="argsform" v-if="inputtypeindex===1">
+            <form name="argsform" v-if="inputtypeindex===1" onsubmit="return false">
               <!-- 需要知道变量名和变量类型，变量数量-->
               <!-- {% for %} -->
               <div v-for="(inputone,i) in inputlist" :key="inputone">
@@ -61,7 +61,7 @@
                 </button>
               </div>
             </form>
-            <form v-else>
+            <form v-else onsubmit="return false">
               <div id="parent">
                 <div id="dummy"></div>
                 <textarea id="textarea" oninput="document.getElementById('dummy').textContent = this.value"></textarea>
