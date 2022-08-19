@@ -175,28 +175,32 @@ def deletemodel():
     # 解析数据包
     user = request.form['user']
     password = request.form['password']
-    modelname = request.form['modelname']
     # 执行删除
     status = database.deletemodel(user, password, modelname)
     # 返回状态
     return jsonify({'status' : status})
-
-@app.route('/settaskstatusrunning',methods=["POST"])
-def settaskstatusrunning():
+    
+@app.route('/getmodeldeployment',methods=["GET"])
+def getmodeldeployment():
     '''
-    启动服务
+    查看部署的服务
 
     Parameters:
      user : str - 用户名
      password : str - 密码
-     taskid : str - 部署任务id
+     modelname : str - 模型名
 
     Returns:
      status : str - 'success' : 设置成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
-                    'task not found' : 任务id不存在
-                    'invalid status' : 状态不存在
+                    'model not found' : 找不到该名称模型
+     若成功才有以下属性：
+     deployment : list - 一个包括所有该模型部署的简略信息
+                    每个元素为一个字典，属性包括
+                    'deployment' : str - 部署名
+                    'status' : str - 模型类型
+                    'time' : str - 创建日期
 
     Raises:
      本函数不应该报错
@@ -204,28 +208,67 @@ def settaskstatusrunning():
     # 解析数据包
     user = request.form['user']
     password = request.form['password']
-    taskid = request.form['taskid']
-    # 设置为暂停
-    status = database.settaskstatus(user, password, taskid, 'running')
+    modelname = request.form['modelname']
+    # 调用数据库访问函数获取部署信息
+    status, answer = database.getmodeldeployment(user, password, modelname)
+    # 若报错则返回错误信息
+    if not status:
+        return jsonify({'status' : answer})
+    # 转换answer变量的存储格式
+    deploymenttitle = ['deployment', 'status', 'time']
+    answer = list(map(lambda x : dict(zip(deploymenttitle, x)), answer))
+    # 返回值
+    return jsonify({'status' : 'success', 
+                    'deployment' : answer})
+
+@app.route('/createdeployment',methods=["POST"])
+def createdeployment():
+    '''
+    启动部署的服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     modelname : str - 模型名
+     deployment : str - 部署名
+     time : str - 部署时间
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'duplication' : 部署名重复
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    deployment = request.form['deployment']
+    time = request.form['time']
+    # 创建部署
+    status = database.createdeployment(user, password, modelname, deployment, time)
     # 返回成功/报错
     return jsonify({'status' : status})
 
-@app.route('/settaskstatuspause',methods=["POST"])
-def settaskstatuspause():
+@app.route('/setdeploymentstatusrunning',methods=["POST"])
+def setdeploymentstatusrunning():
     '''
-    暂停服务
+    启动部署的服务
 
     Parameters:
      user : str - 用户名
      password : str - 密码
-     taskid : str - 部署任务id
+     modelname : str - 模型名
+     deployment : str - 部署名
 
     Returns:
      status : str - 'success' : 设置成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
-                    'task not found' : 任务id不存在
-                    'invalid status' : 状态不存在
+                    'deployment not found' : 部署不存在
 
     Raises:
      本函数不应该报错
@@ -233,9 +276,40 @@ def settaskstatuspause():
     # 解析数据包
     user = request.form['user']
     password = request.form['password']
-    taskid = request.form['taskid']
+    modelname = request.form['modelname']
+    deployment = request.form['deployment']
     # 设置为暂停
-    status = database.settaskstatus(user, password, taskid, 'pause')
+    status = database.setdeploymentstatus(user, password, modelname, deployment, 'running')
+    # 返回成功/报错
+    return jsonify({'status' : status})
+
+@app.route('/setdeploymentstatuspause',methods=["POST"])
+def setdeploymentstatuspause():
+    '''
+    暂停部署的服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     modelname : str - 模型名
+     deployment : str - 部署名
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'deployment not found' : 部署不存在
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    deployment = request.form['deployment']
+    # 设置为暂停
+    status = database.setdeploymentstatus(user, password, modelname, deployment, 'pause')
     # 返回成功/报错
     return jsonify({'status' : status})
 

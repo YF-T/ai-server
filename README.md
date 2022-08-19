@@ -69,6 +69,7 @@
 - 暂停服务的接口（完成）
 - 删除服务的接口
 - 显示当前服务状态的接口
+- 查看当前模型的所有部署的接口
 
 ##### 部署模型的restful api
 
@@ -260,43 +261,67 @@
 > Raises:
 >  本函数不应该报错
 
-#### /settaskstatusrunning (post)
+#### /getmodeldeployment (get)
 
-> 启动服务
+> 查看部署的服务
 >
 > Parameters:
 >  user : str - 用户名
 >  password : str - 密码
->  taskid : str - 部署任务id
+>  modelname : str - 模型名
 >
 > Returns:
 >  status : str - 'success' : 设置成功
 >                 'user not found' : 用户不存在
 >                 'invalid password' : 密码错误
->                 'task not found' : 任务id不存在
->                 'invalid status' : 状态不存在
+>                 'model not found' : 找不到该名称模型
+>  若成功才有以下属性：
+>  deployment : list - 一个包括所有该模型部署的简略信息
+>                 每个元素为一个字典，属性包括
+>                 'deployment' : str - 部署名
+>                 'status' : str - 模型类型
+>                 'time' : str - 创建日期
 >
 > Raises:
 >  本函数不应该报错
+
+#### /setdeploymentstatusrunning (post)
+
+> 启动部署的服务
+>
+> Parameters:
+>   user : str - 用户名
+>   password : str - 密码
+>   modelname : str - 模型名
+> deployment : str - 部署名
+> 
+>  Returns:
+>     status : str - 'success' : 设置成功
+>                    'user not found' : 用户不存在
+>                    'invalid password' : 密码错误
+>                    'deployment not found' : 部署不存在
+>
+> Raises:
+>   本函数不应该报错
 
 #### /settaskstatuspause (post)
 
-> 暂停服务
+> 暂停部署的服务
 >
 > Parameters:
->  user : str - 用户名
->  password : str - 密码
->  taskid : str - 部署任务id
->
-> Returns:
->  status : str - 'success' : 设置成功
->                 'user not found' : 用户不存在
->                 'invalid password' : 密码错误
->                 'task not found' : 任务id不存在
->                 'invalid status' : 状态不存在
+>   user : str - 用户名
+>   password : str - 密码
+>   modelname : str - 模型名
+> deployment : str - 部署名
+> 
+>  Returns:
+>     status : str - 'success' : 设置成功
+>                    'user not found' : 用户不存在
+>                    'invalid password' : 密码错误
+>                    'deployment not found' : 部署不存在
 >
 > Raises:
->  本函数不应该报错
+>   本函数不应该报错
 
 ### 报错信息
 
