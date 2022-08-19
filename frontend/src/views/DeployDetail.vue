@@ -28,7 +28,18 @@
     <el-table :data="replicates" stripe style="width: 100%">
     <el-table-column prop="name" label="名称" />
     <el-table-column prop="status" label="状态" />
-    <el-table-column prop="operation" label="操作" />
+    <el-table-column prop="operation" label="操作" >
+        <template #default="scope">
+        <el-button
+          link
+          type="primary"
+          size="small"
+          @click.prevent="deleteRow(scope.$index)"
+        >
+          Remove
+        </el-button>
+      </template>
+    </el-table-column>
     
     
   </el-table>
