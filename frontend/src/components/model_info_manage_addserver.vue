@@ -3,7 +3,7 @@
     <div class="addserverblock">
       <span class="totaltitle"><label class="totalname">部署服务信息填写</label></span>
       <span style="white-space:pre"></span><span class="line"></span>
-      <form>
+      <form onsubmit="return false">
         <label class='servername' >部署服务名称</label>
         <input type="text" v-model="name" />
         <label class='servername' >类型</label>
