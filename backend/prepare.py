@@ -1,7 +1,9 @@
+from msilib.schema import File
 import cv2
 import base64
 import numpy as np
 import pandas as pd
+import json
 import onnx
 import onnxruntime as ort
 
@@ -10,7 +12,7 @@ import onnxruntime as ort
 #脚本
 #处理图片
 #要改，可能传入jpg路径
-def process_img(img_array,model_input_type):
+def process_img(img_array, model_input_type):
     #处理img文件
     if img_array.shape[2] > 1:
         # print(img_array.shape[2])
@@ -19,7 +21,7 @@ def process_img(img_array,model_input_type):
     return res
 
 #处理图片 base64格式输入
-def process_base64_to_img(base64_str,model_input_type):
+def process_base64_to_img(base64_str: str, model_input_type):
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     byte_data = base64.b64decode(base64_str)  # 将base64转换为二进制
     encode_image = np.asarray(bytearray(byte_data), dtype="uint8")  # 二进制转换为一维数组
@@ -37,24 +39,37 @@ def resize_img(img,model_input_type):
     res = res.reshape(1, 1, 28, 28)
     return res
 
+# 处理文本
+def process_text_to_json(fileaddress: str):
+    f = open(fileaddress)
+    string = f.read()
+    json_dict = json.loads(string)
+    return json_dict
+
+
 #处理视频
-def process_base64_to_vedio(base64_str):
+def process_base64_to_vedio(base64_str: str):
     pass
 
 
+# 处理压缩包(转成csv)
+def process_base64_to_csv(base64_str: str):
+    pass
 
 
 #预处理总函数
-def prepare(model_input_type,file,filetype):
+def prepare(model_input_type, file, filetype, fileaddress):
     if filetype=="jpgbase64":
         process_base64_to_img(file,model_input_type)
     elif filetype=="csv":
+        return file
+        # 对于csv格式，pmml和onnx都可以直接读取，本示例中不做预处理
+    elif filetype=="txt":
+        return process_text_to_json(fileaddress)
+        # 对于txt格式文件：将文件内json形式的字符串转化为dict
+    elif filetype=="mp4base64":
         pass
     elif filetype=="zip":
-        pass
-    elif filetype=="txt":
-        pass
-    elif filetype=="mp4base64":
         pass
 
 

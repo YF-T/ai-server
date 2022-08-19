@@ -465,7 +465,7 @@ def find_model(user: str, password: str, modelname: str):
     address = './model/' + address
     return address
 
-def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于快速返回
+def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于测试界面快速返回
     suffix = address[-4:]
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
@@ -474,6 +474,7 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
     elif suffix == 'onnx':  # 模型为onnx格式
         sess = ort.InferenceSession(address)  # 加载模型
         output = sess.run(None, input)
+        # 注意：run函数的第二个参数必须为dict或者list
         return output
     else:
         pass
