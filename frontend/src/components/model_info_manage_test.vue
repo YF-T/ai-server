@@ -3,15 +3,26 @@
         <div class="datatran">
           <div class="inputtest">
             <div class="infoline">
-              <label>输入变量</label>
-              <a href="">JSON</a>
+              <label>输入</label>
+              <button class='inputtype' @click="input(1)"><span>表单输入</span></button>
+              <button class='inputtype' @click="input(0)"><span>JSON输入</span></button>
             </div>
             <span style="white-space:pre"></span><span class="line"></span>
-            <form name="argsform">
+            <form name="argsform" v-if="inputtypeindex===1" onsubmit="return false">
               <!-- 需要知道变量名和变量类型，变量数量-->
               <!-- {% for %} -->
-              <label class="argsname">sepal length (cm):</label><br/>
-              <input type="number"/>
+              <div v-for="(inputone,i) in inputlist" :key="inputone">
+                <label class="argsname">{{inputone.name}}:</label>
+                <label class="radiolabel">输入方式选择：</label>
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' @click="inputtypeshow(i,1)"/>文本框输入</label>
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='0' @click="inputtypeshow(i,0)"/>文件输入</label><br/>
+                <input type="file" v-if="nofileshow[i]==='0'"/>
+                <div class="parent" v-else>
+                  <div class="dummy" name='point'></div>
+                  <textarea class="textarea" v-on:input="test(i)" v-model="valuelist[i]"></textarea>
+                </div>
+                
+              </div>
               <!-- {% endfor %} -->
               <!-- <input type="button" value="清空" onclick="argsform.reset()"/> -->
               <div class="trashbutton">
@@ -33,7 +44,7 @@
               <!-- <input type="reset" value="清空"/> -->
               <!-- <input type="submit" @click="pagechange(2)"/> -->
               <div class="truckbuttonflex">
-                <button type="submit" class="truck-button" @click="pagechange(2)">
+                <button type="submit" class="truck-button" @click="pagechange(2,1)">
                     <span class="default">Complete Order</span>
                     <span class="success">
                         Order Placed
@@ -50,9 +61,16 @@
                 </button>
               </div>
             </form>
+            <form v-else onsubmit="return false">
+              <div id="parent">
+                <div id="dummy"></div>
+                <textarea id="textarea" oninput="document.getElementById('dummy').textContent = this.value"></textarea>
+              </div>
+              <button type="submit" class='jsonsubmit' @click="pagechange(2,0)"><span>提交</span></button>
+            </form>
           </div>
           <div class="outputtest">
-            <label>输出变量</label>
+            <label>输出</label>
             <span style="white-space:pre"></span><span class="line"></span>
             <!-- {% for %} -->
             <div class="codeline">
@@ -68,19 +86,60 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { gsap } from "gsap";
+import { useStore } from 'vuex';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'model_info_test',
   props: {
     msg: String,
   },
+  created:function(){
+    this.overviewshow();
+  },
   mounted(){
     this.truckanimationadd();
     this.trashanimationadd();
   },
+  data(){
+    return {
+      inputlist:[],
+      outputlist:[],
+      store: useStore(),
+      valuelist:[],
+      nofileshow:[],
+      inputtypeindex:1,
+    }
+  },
   methods:{
-    pagechange(index:number){
+    inputtypeshow(i:number,index:number){
+      // this.nofileshow[i] = index; 
+    },
+    input(index:number){
+      this.inputtypeindex = index;
+    },
+    test(i:number){
+      let s1=document.getElementsByName("point")[i];
+      s1.textContent = this.valuelist[i];
+    },
+    pagechange(index:number,inputtypeindex:number){
       this.$emit('pagechange',index);
+      this.inputtypeindex = inputtypeindex;
+    },
+    overviewshow(){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      var path = 'http://127.0.0.1:5000/getmodelinfo';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          if(res.data.status==='success'){
+            this.inputlist = res.data.input;
+            this.outputlist = res.data.output;
+          }
+        });
     },
     truckanimationadd(){
           document.querySelectorAll('.truck-button').forEach(button => {
@@ -201,7 +260,15 @@ export default defineComponent({
 
 @import "../static/css/truck.css";
 @import "../static/css/index.css";
+textarea{
+  resize: none;
+  width: 400px;
+  min-height: 20px;
+  max-height: 300px;
+  line-height: 24px;
+  overflow-y: hidden;
 
+}
 .context {
     height: 500px;
     width: auto;
@@ -247,15 +314,14 @@ label {
   flex:5;
 }
 /* 修改为相对位置 */
-a{
-  flex:1;
-  text-decoration: none;
-  line-height: 45px;
-}
 
 label[class='argsname']{
   font-size: 20px;
   font-weight: lighter;
+}
+
+label[class="radiolabel"]{
+  font-size: 15px;
 }
 
 form{
@@ -270,8 +336,7 @@ div[class="trashbutton"],div[class="truckbuttonflex"]{
 
 input {
   font-size: 20px;
-  width: 100%;
-  margin-top: 10px;
+  margin: 10px 0px 0px 30px;
 }
 
 div[class='codeline']{
@@ -293,5 +358,115 @@ span[class='codeshow']{
   line-height: 1em;
 }
 
+.parent {
+  width: 500px;
+  font: 20px monospace;
+  position: relative;
+  max-height: 120px;
+  word-break:break-all;
+}
+.dummy {
+  padding: 2px;
+  border: 1px solid;
+  visibility: hidden;
+  white-space: pre-wrap;
+  overflow-y:auto;
+}
+.dummy::after {
+  content: " ";
+}
+.textarea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  resize: none;
+  width: 100%;
+  font: inherit;
+  overflow-y:auto;
+}
 
+.inputtype{
+  flex:2;
+  position: relative;
+  top:8px;
+  border: none;
+  display: inline-block;
+  padding: 10px 30px;
+  margin: 0px 20px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color:#5a94a2;
+  border-radius: 40px;
+  box-shadow: -2px -2px 8px rgba(255, 255, 255, 1),-2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.inputtype:hover{
+  box-shadow: inset -2px -2px 8px rgba(255, 255, 255, 1),inset -2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),inset 2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.inputtype:hover:span{
+  display: inline-block;
+  transform: scale(0.98);
+}
+
+.jsonsubmit{
+  position: relative;
+  top:8px;
+  border: none;
+  display: flex;
+  justify-content: center;
+  padding: 10px 30px;
+  margin: 20px auto;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color:#5a94a2;
+  border-radius: 40px;
+  box-shadow: -2px -2px 8px rgba(255, 255, 255, 1),-2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.jsonsubmit:hover{
+  box-shadow: inset -2px -2px 8px rgba(255, 255, 255, 1),inset -2px -2px 12px rgba(255, 255, 255, 0.5),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),inset 2px 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.jsonsubmit:hover:span{
+  display: inline-block;
+  transform: scale(0.98);
+}
+
+#parent {
+  width: 600px;
+  min-height: 120px;
+  max-height: 180px;
+  font: 20px monospace;
+  word-break:break-all;
+  position: relative;
+}
+#dummy {
+  padding: 2px;
+  border: 1px solid;
+  visibility: hidden;
+  white-space: pre-wrap;
+}
+#dummy::after {
+  content: " ";
+}
+#textarea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  resize: none;
+  width: 100%;
+  font: inherit;
+  overflow-y:auto;
+}
 </style>

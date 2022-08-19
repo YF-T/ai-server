@@ -2,6 +2,7 @@ import { compile } from 'vue'
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import model_info_manage from '../views/model_info_manage.vue'
 import login from '../views/login.vue'
+import register from '../views/register.vue'
 import DeployDetail from '../views/DeployDetail.vue'
 import DeployTest from '../views/DeployTest.vue'
 const routes: Array<RouteRecordRaw> = [

@@ -4,7 +4,6 @@
           <div class="infoline">
             <label>部署</label>
             <button @click="pagechange(4)"><span>添加服务</span></button>
-            <button><span>添加任务</span></button>
           </div>
           <span style="white-space:pre"></span><span class="line"></span>
           <table>
@@ -15,12 +14,19 @@
               <th>状态</th>
               <th>操作</th>
             </tr>
-            <tr>
+            <tr v-if="store.state.count===0">
               <td>名称</td>
               <td>类型</td>
               <td>开始时间</td>
               <td>状态</td>
               <td>操作</td>
+            </tr>
+            <tr v-else v-for="(item) in store.state.weblist" :key="item">
+              <td>{{item.name}}</td>
+              <td>{{item.webtype}}</td>
+              <td>{{item.starttime}}</td>
+              <td>{{item.state}}</td>
+              <td>{{item.operator}}</td>
             </tr>
           </table>
       </div>
@@ -29,11 +35,17 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'model_info_deploy',
   props: {
     msg: String,
+  },
+  data(){
+    return{
+      store: useStore(),
+    }
   },
   methods:{
     pagechange(index:number){

@@ -1,7 +1,6 @@
 <template>
   <div class="user_info_show">
     <div class="contain">
-      <!-- <h2>water</h2> -->
       <span>AI-server</span>
       <span>AI-server</span>
     </div>
@@ -56,11 +55,11 @@ export default defineComponent({
 
 .contain span:nth-child(1){
   color:transparent;
-  -webkit-text-stroke: 2px purple;
+  -webkit-text-stroke: 2px blue;
 }
 
 .contain span:nth-child(2){
-  color:purple;
+  color:blue;
   animation: animate 8s ease-in-out infinite;
 }
 

@@ -49,13 +49,13 @@
 
   > 用于接收上传的模型，并存储在当前模型的列表中
 
-- 删除模型的接口
+- 删除模型的接口（完成）
 
 - 修改模型信息的接口
 
 - 查看模型信息的接口（完成）
 
-- 查看用户的所有模型的简略信息
+- 查看用户的所有模型的简略信息（完成）
 
 ##### 测试模型
 
@@ -65,8 +65,8 @@
 ##### 部署模型
 
 - 部署模型服务的接口
-- 启动服务的接口
-- 暂停服务的接口
+- 启动服务的接口（完成）
+- 暂停服务的接口（完成）
 - 删除服务的接口
 - 显示当前服务状态的接口
 
@@ -164,14 +164,15 @@
 >
 > Parameters:
 > uesr - 用户名
->  password - 密码
+> password - 密码
 >
 > Returns:
 > 'success' : 成功
->  'duplication' : 用户重名
+> 'user not found' : 用户不存在
+> 'invalid password' : 密码错误
 >
 > Raises:
->     若用户名或密码不是字符串则报错
+>  若用户名或密码不是字符串则报错
 
 #### /register (post)
 
@@ -183,11 +184,10 @@
 >
 > Returns:
 >  'success' : 成功
->  'user not found' : 用户不存在
->  'invalid password' : 密码错误
->
-> Raises:
->  若用户名或密码不是字符串则报错
+>  'duplication' : 用户重名
+>  
+>Raises:
+> 若用户名或密码不是字符串则报错
 
 #### /getmodelinfo (get)
 
@@ -220,6 +220,83 @@
 >
 > Raises:
 >  输入变量类型错误则报错
+
+#### /getusermodel (get)
+
+> 获取用户模型信息
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>
+> Returns:
+>  status : str - 'success' : 成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>  若成功才有以下属性：
+>  model : list - 一个包括所有该用户model的简略信息
+>                 每个元素为一个字典，属性包括
+>                 'modelname' : str - 模型名
+>                 'modeltype' : str - 模型类型
+>                 'time' : str - 模型日期
+>
+> Raises:
+> 输入变量类型错误则报错
+
+#### /deletemodel (delete)
+
+> 删除模型
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>
+> Returns:
+>  status : str - 'success' : 成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'model not found' : 找不到该名称模型
+>
+> Raises:
+>  本函数不应该报错
+
+#### /settaskstatusrunning (post)
+
+> 启动服务
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  taskid : str - 部署任务id
+>
+> Returns:
+>  status : str - 'success' : 设置成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'task not found' : 任务id不存在
+>                 'invalid status' : 状态不存在
+>
+> Raises:
+>  本函数不应该报错
+
+#### /settaskstatuspause (post)
+
+> 暂停服务
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  taskid : str - 部署任务id
+>
+> Returns:
+>  status : str - 'success' : 设置成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'task not found' : 任务id不存在
+>                 'invalid status' : 状态不存在
+>
+> Raises:
+>  本函数不应该报错
 
 ### 报错信息
 
