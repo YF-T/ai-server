@@ -12,6 +12,8 @@ import pickle
 from pypmml import Model
 import onnxruntime as ort
 
+import json
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -396,6 +398,53 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
+@app.route('/testmodel_test',methods=["POST"])
+def testmodel_test():
+    '''
+    名称：测试模型
+    功能：对应lxt说的模型测试
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     modelname : str - 模型名称
+     input : dict - 模型需要的变量
+
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'invalid input' : 输入不合法
+                    'model not found' : 未找到模型
+     
+     若成功，返回：
+     output : dict - 输出结果，格式服从前端要求
+     '''
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    input = json.loads(request.form['input'])
+    # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
+    # 获取用户输入变量的信息
+    status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
+    if not status:
+        return jsonify({'status': inputvariables})
+    # 检查input是否符合输入变量的要求
+    for variable in inputvariables:
+        # 若input中没有需要的变量
+        if variable[0] not in input:
+            return jsonify({'status': 'invalid input'})
+    
+    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
+    address = find_model(user, password, modelname)
+    if address == 'model not found':
+        return jsonify({'status': address})
+
+    # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
+    # 本模块（快速返回）暂时不使用多线程
+    output = naive_test_model(address, input)
+    return jsonify('status': 'success', 
+                   'output': dict(output))
+
 @app.route('/testmodel_quickresponse',methods=["GET"])
 def testmodel_quickresponse():
     '''
@@ -411,6 +460,7 @@ def testmodel_quickresponse():
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
+                    'model not found' : 找不到模型
      
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
@@ -535,7 +585,7 @@ def find_model(user: str, password: str, modelname: str):
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
     if not status3:
-        return jsonify({'status': address})
+        return address
     address = './model/' + address
     return address
 

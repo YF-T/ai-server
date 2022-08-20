@@ -64,12 +64,12 @@
 
 ##### 部署模型
 
-- 部署模型服务的接口
+- 部署模型服务的接口（完成）
 - 启动服务的接口（完成）
 - 暂停服务的接口（完成）
 - 删除服务的接口
 - 显示当前服务状态的接口
-- 查看当前模型的所有部署的接口
+- 查看当前模型的所有部署的接口（完成）
 
 ##### 部署模型的restful api
 
@@ -193,7 +193,7 @@
 #### /getmodelinfo (get)
 
 >
-> 获取用户模型信息
+> 获取模型详细信息
 >
 > Parameters:
 >  user : str - 用户名
@@ -224,7 +224,7 @@
 
 #### /getusermodel (get)
 
-> 获取用户模型信息
+> 获取用户所有模型信息
 >
 > Parameters:
 >  user : str - 用户名
@@ -285,6 +285,26 @@
 > Raises:
 >  本函数不应该报错
 
+#### /createdeployment (post)
+
+> 启动部署的服务
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  modelname : str - 模型名
+>  deployment : str - 部署名
+>  time : str - 部署时间
+>
+> Returns:
+>  status : str - 'success' : 设置成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'duplication' : 部署名重复
+>
+> Raises:
+>  本函数不应该报错
+
 #### /setdeploymentstatusrunning (post)
 
 > 启动部署的服务
@@ -322,6 +342,29 @@
 >
 > Raises:
 >   本函数不应该报错
+
+#### /testmodel_test (post)
+
+>  名称：测试模型
+>  功能：对应lxt界面的模型测试
+>
+> 暂时只能接收字段输入，文件输入还不支持
+>
+> Parameters:
+>      user : str - 用户名
+>      password : str - 密码
+>      modelname : str - 模型名称
+>      input : dict - 模型需要的变量
+>
+> Returns:
+>  status : str - 'success' : 成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'invalid input' : 输入不合法
+>                 'model not found' : 未找到模型
+>
+>  若成功，返回：
+>  output : dict - 输出结果，格式服从前端要求
 
 ### 报错信息
 
