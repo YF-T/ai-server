@@ -370,95 +370,17 @@ def createtask(user : str, password : str, modelname : str):
     conn = sqlite3.connect(database)
     c = conn.cursor()
     # 得到数据库的
-    c.execute('SELECT immediatetaskid FROM users WHERE user = ?', 
+    c.execute('SELECT delayresponsetaskid FROM users WHERE user = ?', 
                     (user,))
-    immediatetaskid = c.fetchone()[0]
-    c.execute('UPDATE users SET immediatetaskid = ? WHERE user = ?', 
-                    (immediatetaskid + 1, user))
-    taskid = user + '_task_' + str(immediatetaskid)
-    c.execute('INSERT INTO immediatetasks VALUES (?,?,?,?,?)', 
+    delayresponsetaskid = c.fetchone()[0]
+    c.execute('UPDATE users SET delayresponsetaskid = ? WHERE user = ?', 
+                    (delayresponsetaskid + 1, user))
+    taskid = user + '_task_' + str(delayresponsetaskid)
+    c.execute('INSERT INTO delayresponsetasks VALUES (?,?,?,?,?)', 
                     (user, taskid, modelname, 'running', 'None'))
     conn.commit()
     conn.close()
     return True, taskid
-
-def gettaskstatus(user : str, password : str, taskid : str):
-    '''
-    查看任务状态，启动/暂停
-     
-    Parameters:
-     uesr - 用户名
-     password - 密码
-     taskid - 任务id
-     
-    Returns:
-     多值返回
-     第一个变量为一个布尔变量，False为访问失败，True为访问成功
-     第二个变量为一个字符串
-     成功则为模型状态，'running' : 正在运行
-                       'pause' : 暂停
-     失败则为错误信息，'user not found' : 用户不存在
-                       'invalid password' : 密码错误
-                       'task not found' : 任务id不存在
-     
-    Raises:
-     参数类型错误
-    '''
-    if identify(user, password) != 'success':
-        return False, identify(user, password)
-    assert isinstance(taskid, str)
-    conn = sqlite3.connect(database)
-    c = conn.cursor()
-    c.execute('SELECT status FROM immediatetasks WHERE user = ? AND id = ?', 
-                    (user, taskid))
-    row = c.fetchone()
-    if row is None:
-        answer = 'model not found'
-    else:
-        answer = row[0]
-    conn.close()
-    return bool(row), answer
-
-def settaskstatus(user : str, password : str, taskid : str, status : str):
-    '''
-    设置任务状态为启动/暂停
-     
-    Parameters:
-     uesr - 用户名
-     password - 密码
-     taskid - 任务id
-     status - 待设置的任务状态，取值为'running', 'pause'
-     
-    Returns:
-     'success' : 设置成功
-     'user not found' : 用户不存在
-     'invalid password' : 密码错误
-     'task not found' : 任务id不存在
-     'invalid status' : 状态不存在
-     
-    Raises:
-     参数类型错误
-    '''
-    if identify(user, password) != 'success':
-        return identify(user, password)
-    assert isinstance(taskid, str)
-    assert isinstance(status, str)
-    if status not in ('running', 'pause'):
-        return 'invalid status'
-    conn = sqlite3.connect(database)
-    c = conn.cursor()
-    c.execute('UPDATE immediatetasks SET status = ? WHERE user = ? AND id = ?', 
-                    (status, user, taskid))
-    c.execute('SELECT status FROM immediatetasks WHERE user = ? AND id = ?', 
-                    (user, taskid))
-    row = c.fetchone()
-    if row is None:
-        answer = 'task not found'
-    else:
-        answer = 'success'
-    conn.commit()
-    conn.close()
-    return answer
 
 def deletetask(user : str, password : str, taskid : str):
     '''
@@ -483,14 +405,14 @@ def deletetask(user : str, password : str, taskid : str):
     assert isinstance(taskid, str)
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('SELECT status FROM immediatetasks WHERE user = ? AND id = ?', 
+    c.execute('SELECT status FROM delayresponsetasks WHERE user = ? AND id = ?', 
                     (user, taskid))
     row = c.fetchone()
     if row is None:
         answer = 'task not found'
     else:
         answer = 'success'
-    c.execute('DELETE FROM immediatetasks WHERE user = ? AND id = ?', 
+    c.execute('DELETE FROM delayresponsetasks WHERE user = ? AND id = ?', 
                     (user, taskid))
     conn.commit()
     conn.close()
@@ -522,7 +444,7 @@ def gettaskfile(user : str, password : str, taskid : str):
     assert isinstance(taskid, str)
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('SELECT file FROM immediatetasks WHERE user = ? AND id = ?', 
+    c.execute('SELECT file FROM delayresponsetasks WHERE user = ? AND id = ?', 
                     (user, taskid))
     row = c.fetchone()
     if row is None:
@@ -557,9 +479,9 @@ def settaskfile(user : str, password : str, taskid : str, file : str):
     assert isinstance(file, str)
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('UPDATE immediatetasks SET file = ? WHERE user = ? AND id = ?', 
+    c.execute('UPDATE delayresponsetasks SET file = ? WHERE user = ? AND id = ?', 
                     (file, user, taskid))
-    c.execute('SELECT file FROM immediatetasks WHERE user = ? AND id = ?', 
+    c.execute('SELECT file FROM delayresponsetasks WHERE user = ? AND id = ?', 
                     (user, taskid))
     row = c.fetchone()
     if row is None:
@@ -569,6 +491,178 @@ def settaskfile(user : str, password : str, taskid : str, file : str):
     conn.commit()
     conn.close()
     return answer
+
+def createdeployment(user : str, password : str, modelname : str, 
+                     deployment : str, time : str):
+    '''
+    创建一个新的部署
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     modelname - 模型名称
+     deployment - 部署名
+     time - 创建时间
+     
+    Returns:
+     'success' : 设置成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'duplication' : 部署名重复
+     
+    Raises:
+     参数类型错误
+    '''
+    # 检验操作合法性
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    assert isinstance(modelname, str)
+    assert isinstance(deployment, str)
+    # 连接数据库
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('''SELECT time FROM deployments 
+                    WHERE user = ? AND modelname = ? AND deployment = ?''' , 
+                    (user, modelname, deployment))
+    if not c.fetchone() is None:
+        conn.close()
+        return 'duplication'
+    c.execute('INSERT INTO deployments VALUES (?,?,?,?,?)', 
+                    (user, modelname, deployment, 'running', time))
+    conn.commit()
+    conn.close()
+    return 'success'
+
+def getdeploymentstatus(user : str, password : str, modelname : str, deployment : str):
+    '''
+    查看部署状态，启动/暂停
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     modelname - 模型名称
+     deployment - 部署名称
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量为一个字符串
+     成功则为模型状态，'running' : 正在运行
+                       'pause' : 暂停
+     失败则为错误信息，'user not found' : 用户不存在
+                       'invalid password' : 密码错误
+                       'deployment not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(modelname, str)
+    assert isinstance(deployment, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('''SELECT status FROM deployments 
+                    WHERE user = ? AND modelname = ? AND deployment = ?''' , 
+                    (user, modelname, deployment))
+    row = c.fetchone()
+    if row is None:
+        answer = 'deployment not found'
+    else:
+        answer = row[0]
+    conn.close()
+    return bool(row), answer
+
+def setdeploymentstatus(user : str, password : str, modelname : str,
+                        deployment : str, status : str):
+    '''
+    设置部署状态为启动/暂停
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     modelname - 模型名称
+     deployment - 部署名称
+     status - 待设置的任务状态，取值为'running', 'pause'
+     
+    Returns:
+     'success' : 设置成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'deployment not found' : 任务id不存在
+     'invalid status' : 状态不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    assert isinstance(modelname, str)
+    assert isinstance(deployment, str)
+    if status not in ('running', 'pause'):
+        return 'invalid status'
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('''UPDATE deployments SET status = ?
+                    WHERE user = ? AND modelname = ? AND deployment = ?''' , 
+                    (status, user, modelname, deployment))
+    c.execute('''SELECT status FROM deployments 
+                    WHERE user = ? AND modelname = ? AND deployment = ?''' , 
+                    (user, modelname, deployment))
+    row = c.fetchone()
+    if row is None:
+        answer = 'deployment not found'
+    else:
+        answer = 'success'
+    conn.commit()
+    conn.close()
+    return answer
+    
+def getmodeldeployment(user : str, password : str, modelname : str):
+    '''
+    返回一个模型的所有部署
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     modelname - 模型名称
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     若成功：
+     第二个变量为一个list，里面装着所有的部署信息
+        每个输入变量信息用一个元组(tuple)表示，元组里有四个str类型的元素，
+        分别为
+            部署名，
+            部署状态（运行/暂停），
+            部署时间
+        如('deployment1', 'running', '2022-08-04 20:00:00')
+     若失败：
+     第二个变量返回报错信息
+        'model not found' : 找不到该名称模型
+        'user not found' : 用户不存在
+        'invalid password' : 密码错误 
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return False, identify(user, password)
+    assert isinstance(modelname, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT description FROM models WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    if c.fetchone() is None:
+        conn.close()
+        return False, 'model not found'
+    c.execute('''SELECT deployment, status, time FROM deployments
+                    WHERE user = ? AND modelname = ?''', 
+                    (user, modelname))
+    deployments = c.fetchall()
+    conn.close()
+    return True, deployments
 
 def init():
     '''
@@ -591,7 +685,7 @@ def init():
         # 创建用户表
         c.execute('''CREATE TABLE users 
                         (user TEXT, password TEXT, roll TEXT, 
-                        modelid NUMBER, immediatetaskid NUMBER, waittaskid NUMBER);''')
+                        modelid NUMBER, delayresponsetaskid NUMBER, waittaskid NUMBER);''')
         c.executemany('INSERT INTO users VALUES (?,?,?,?,?,?)', 
                         [('tyf', '123456', 'administrator', 1, 1, 1),
                          ('crk', '123456', 'administrator', 1, 1, 1),
@@ -626,7 +720,7 @@ def init():
                          '2020-08-03 16:00:00', 'randomForest.pmml', 
                          'randomforest', 'pypmml', '测试模型')])
         # 创建立即任务表
-        c.execute('''CREATE TABLE immediatetasks
+        c.execute('''CREATE TABLE delayresponsetasks
                         (user TEXT, id TEXT, 
                         modelname TEXT, status TEXT, file TEXT);''')
         # 创建等待任务表
@@ -638,6 +732,10 @@ def init():
                         (user TEXT, id NUMBER, modelname TEXT, 
                         inout TEXT, name TEXT, 
                         type TEXT, value TEXT, dim TEXT, optype TEXT);''')
+        # 创建部署任务表
+        c.execute('''CREATE TABLE deployments 
+                        (user TEXT, modelname TEXT, 
+                        deployment TEXT, status TEXT, time TEXT);''')
         # 提交，关闭数据库
         conn.commit()
         conn.close()

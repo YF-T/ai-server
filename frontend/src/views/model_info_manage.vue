@@ -31,7 +31,7 @@
     <!-- 面板二 -->
     <model_info_test @pagechange="mainpagechange" v-show="index===2"/>
     <!-- 面板三 -->
-    <model_info_deploy @pagechange="mainpagechange" v-show="index===3"/>
+    <model_info_deploy @pagechange="mainpagechange" v-show="index===3" :key="index===3?1:2"/>
     <!-- 面板四 -->
     <model_info_addserver @pagechange="mainpagechange" v-show="index===4"/>
   </div>

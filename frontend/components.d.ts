@@ -13,6 +13,7 @@ declare module '@vue/runtime-core' {
     Model_info_manage_deploy: typeof import('./src/components/model_info_manage_deploy.vue')['default']
     Model_info_manage_overview: typeof import('./src/components/model_info_manage_overview.vue')['default']
     Model_info_manage_test: typeof import('./src/components/model_info_manage_test.vue')['default']
+    Model_manage_item: typeof import('./src/components/model_manage_item.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     User_info: typeof import('./src/components/user_info.vue')['default']

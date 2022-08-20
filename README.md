@@ -64,11 +64,12 @@
 
 ##### 部署模型
 
-- 部署模型服务的接口
+- 部署模型服务的接口（完成）
 - 启动服务的接口（完成）
 - 暂停服务的接口（完成）
 - 删除服务的接口
 - 显示当前服务状态的接口
+- 查看当前模型的所有部署的接口（完成）
 
 ##### 部署模型的restful api
 
@@ -192,7 +193,7 @@
 #### /getmodelinfo (get)
 
 >
-> 获取用户模型信息
+> 获取模型详细信息
 >
 > Parameters:
 >  user : str - 用户名
@@ -223,7 +224,7 @@
 
 #### /getusermodel (get)
 
-> 获取用户模型信息
+> 获取用户所有模型信息
 >
 > Parameters:
 >  user : str - 用户名
@@ -260,43 +261,122 @@
 > Raises:
 >  本函数不应该报错
 
-#### /settaskstatusrunning (post)
+#### /getmodeldeployment (get)
 
-> 启动服务
+> 查看部署的服务
 >
 > Parameters:
 >  user : str - 用户名
 >  password : str - 密码
->  taskid : str - 部署任务id
+>  modelname : str - 模型名
 >
 > Returns:
 >  status : str - 'success' : 设置成功
 >                 'user not found' : 用户不存在
 >                 'invalid password' : 密码错误
->                 'task not found' : 任务id不存在
->                 'invalid status' : 状态不存在
+>                 'model not found' : 找不到该名称模型
+>  若成功才有以下属性：
+>  deployment : list - 一个包括所有该模型部署的简略信息
+>                 每个元素为一个字典，属性包括
+>                 'deployment' : str - 部署名
+>                 'status' : str - 模型类型
+>                 'time' : str - 创建日期
 >
 > Raises:
 >  本函数不应该报错
+
+#### /createdeployment (post)
+
+> 启动部署的服务
+>
+> Parameters:
+>  user : str - 用户名
+>  password : str - 密码
+>  modelname : str - 模型名
+>  deployment : str - 部署名
+>  time : str - 部署时间
+>
+> Returns:
+>  status : str - 'success' : 设置成功
+>                 'user not found' : 用户不存在
+>                 'invalid password' : 密码错误
+>                 'duplication' : 部署名重复
+>
+> Raises:
+>  本函数不应该报错
+
+#### /setdeploymentstatusrunning (post)
+
+> 启动部署的服务
+>
+> Parameters:
+>   user : str - 用户名
+>   password : str - 密码
+>   modelname : str - 模型名
+> deployment : str - 部署名
+> 
+>  Returns:
+>     status : str - 'success' : 设置成功
+>                    'user not found' : 用户不存在
+>                    'invalid password' : 密码错误
+>                    'deployment not found' : 部署不存在
+>
+> Raises:
+>   本函数不应该报错
 
 #### /settaskstatuspause (post)
 
-> 暂停服务
+> 暂停部署的服务
 >
 > Parameters:
->  user : str - 用户名
->  password : str - 密码
->  taskid : str - 部署任务id
->
-> Returns:
->  status : str - 'success' : 设置成功
->                 'user not found' : 用户不存在
->                 'invalid password' : 密码错误
->                 'task not found' : 任务id不存在
->                 'invalid status' : 状态不存在
+>   user : str - 用户名
+>   password : str - 密码
+>   modelname : str - 模型名
+> deployment : str - 部署名
+> 
+>  Returns:
+>     status : str - 'success' : 设置成功
+>                    'user not found' : 用户不存在
+>                    'invalid password' : 密码错误
+>                    'deployment not found' : 部署不存在
 >
 > Raises:
->  本函数不应该报错
+>   本函数不应该报错
+
+#### /testmodel_test (post)
+
+>  名称：测试模型
+>  功能：对应lxt说的模型测试
+>  Parameters:
+>   user : str - 用户名
+>   password : str - 密码
+>   modelname : str - 模型名称
+>   input : dict - 模型需要的变量
+>               或 str - 传输jpg的base64编码
+>               或 file - txt的文件
+>   filetype : str - 'none' : 正常输入
+>                        'jpgbase64' : 图片
+>                        'csv' : csv
+>                        'txt' : txt
+>                        'mp4base64'
+>                        'mp4'
+>                        'zip'
+>                  或
+>                  dict - 一个表示input的元素是否危文件的字典
+>                  例如
+>                  {'input1' : 'none', 'input2' : 'jpgbase64'}
+>                  这时则可以从inputfile_input2中读取文件
+>                        
+>
+>  Returns:
+>   status : str - 'success' : 成功
+>                  'user not found' : 用户不存在
+>                  'invalid password' : 密码错误
+>                  'invalid input' : 输入不合法
+>                  'model not found' : 未找到模型
+>
+>   若成功，返回：
+>   output : dict - 输出结果，格式服从前端要求
 
 ### 报错信息
 
