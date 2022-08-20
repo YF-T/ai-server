@@ -113,19 +113,12 @@ def upload():
     if valid:#模型有效
         #从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
-        print(dict)
+        #print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
-        modelname=file_name+modeltype
-        print("file_name",file_name)
-        print(modelname)
-        print(user)
-        print(description)
-        print("haha")
+        modelname=file_name[0:-5]+'_'+modeltype
         a=database.savemodel(user, password, modelname,modeltype,time,modelname,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
-        print("haha")
-        print("a")
     else:
         pass
 
