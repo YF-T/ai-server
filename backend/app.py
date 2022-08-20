@@ -631,14 +631,13 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
     file_path='./output/'+id+'.pkl'
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
-        for input in data:
-            output = model.predict(input)
-            # pmml模型下dataframe的输出结果仍为dataframe
-            # 储存output为文件 先用pickle，不行再改
-            f_save = open(file_path, 'ab')
-            pickle.dump(output, f_save)
-            f_save.close()
-            # 将id和对应文件储存到数据库
+        output = model.predict(input)
+        # pmml模型下dataframe的输出结果仍为dataframe
+        # 储存output为文件 先用pickle，不行再改
+        f_save = open(file_path, 'ab')
+        pickle.dump(output, f_save)
+        f_save.close()
+        # 将id和对应文件储存到数据库
         database.settaskfile(user,password,id,file_path)
         #return output
     elif suffix == 'onnx':  # 模型为onnx格式
