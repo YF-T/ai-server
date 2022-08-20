@@ -491,6 +491,25 @@ def settaskfile(user : str, password : str, taskid : str, file : str):
     conn.commit()
     conn.close()
     return answer
+    
+def getdeployment(deployment : str):
+    '''
+    TODO
+    '''
+    assert isinstance(deployment, str)
+    # 连接数据库
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('''SELECT user, modelname FROM deployments 
+                    WHERE deployment = ?''' , 
+                    (deployment, ))
+    user, modelname = c.fetchone()
+    c.execute('''SELECT password FROM users
+                    WHERE deployment = ?''' , 
+                    (deployment, ))
+    password = c.fetchone()[0]
+    conn.close()
+    return user, password, modelname
 
 def createdeployment(user : str, password : str, modelname : str, 
                      deployment : str, time : str):
@@ -522,8 +541,8 @@ def createdeployment(user : str, password : str, modelname : str,
     conn = sqlite3.connect(database)
     c = conn.cursor()
     c.execute('''SELECT time FROM deployments 
-                    WHERE user = ? AND modelname = ? AND deployment = ?''' , 
-                    (user, modelname, deployment))
+                    WHERE deployment = ?''' , 
+                    (deployment, ))
     if not c.fetchone() is None:
         conn.close()
         return 'duplication'

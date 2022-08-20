@@ -169,6 +169,7 @@ def deletemodel():
     Parameters:
      user : str - 用户名
      password : str - 密码
+     modelname : str - 模型名
 
     Returns:
      status : str - 'success' : 成功
@@ -182,6 +183,7 @@ def deletemodel():
     # 解析数据包
     user = request.form['user']
     password = request.form['password']
+    modelname = request.form['modelname']
     # 执行删除
     status = database.deletemodel(user, password, modelname)
     # 返回状态
@@ -448,7 +450,7 @@ def testmodel_test():
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
             file = request.files.get('input')
-            filepath = './textfile/' + username + '_' + modelname + '.txt'
+            filepath = './textfile/' + user + '_' + modelname + '.txt'
             file.save(filepath)
             input = prepare.prepare(None, file, request.form['filetype'], filepath)
     else:
@@ -480,16 +482,27 @@ def testmodel_test():
     return jsonify({'status': 'success', 
                     'output': dict(output)})
 
-@app.route('/testmodel_quickresponse',methods=["POST", "GET"])
-def testmodel_quickresponse():
+@app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
+def testmodel_quickresponse(deployment : str):
     '''
     名称：快速返回预测结果
     功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果（不使用多线程）
     Parameters:
-     user : str - 用户名
-     password : str - 密码
-     modelname : str - 模型名称
-     input : dict - 模型需要的变量
+     file : dict - 模型需要的变量
+             或 str - 传输jpg的base64编码
+             或 file - txt的文件
+     filetype : str - 'none' : 正常输入
+                      'jpgbase64' : 图片
+                      'csv' : csv
+                      'txt' : txt
+                      'mp4base64'
+                      'mp4'
+                      'zip'
+                或
+                dict - 一个表示input的元素是否危文件的字典
+                例如
+                {'input1' : 'none', 'input2' : 'jpgbase64'}
+                这时则可以从inputfile_input2中读取文件
 
     Returns:
      status : str - 'success' : 成功
@@ -501,11 +514,9 @@ def testmodel_quickresponse():
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''
-    user = request.form['user']
-    password = request.form['password']
-    modelname = request.form['modelname']
+    user, password, modelname = database.getdeployment(deployment)
     #从前端接收文件 具体代码需要修改
-    file=request.form['modelname']
+    file=request.form['file']
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
     prepare_py = request.form['prepare_py']
@@ -535,15 +546,13 @@ def testmodel_quickresponse():
     output = naive_test_model(address, data)
     return output
 
-@app.route('/testmodel_delayresponse',methods=["GET","POST"])
-def testmodel_delayresponse():
+@app.route('/testmodel_delayresponse/<deployment>',methods=["GET","POST"])
+def testmodel_delayresponse(deployment : str):
     '''
     名称：等待返回预测结果
     功能、说明基本同testmodel_quickresponse，使用多线程
     '''
-    user = request.form['user']
-    password = request.form['password']
-    modelname = request.form['modelname']
+    user, password, modelname = database.getdeployment(deployment)
     # 从前端接收文件 具体代码需要修改
     file = request.form['modelname']
     # 从前端接收用户的python代码 #伪
@@ -580,7 +589,7 @@ def testmodel_delayresponse():
     return jsonify({'status': "success"})
 
 @app.route('/get_result_delayresponse',methods=["GET","POST"])
-def get_result_delayresponse(user: str, password: str, taskid:str):
+def get_result(user: str, password: str, taskid:str):
     '''
     功能：查询等待返回的结果
     Args:
@@ -593,6 +602,7 @@ def get_result_delayresponse(user: str, password: str, taskid:str):
         output： 成功为返回结果，失败为None
         file: 成功为pkl文件，失败为None
     '''
+    user, password, modelname = database.getdeployment(deployment)
     #调用database查询任务id对应的文件
     #path具体是啥。。
     state,path=database.gettaskfile(user,password,taskid)
