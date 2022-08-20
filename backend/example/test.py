@@ -37,20 +37,31 @@ def prepare():
     pass
 
 
+from importlib import reload
+def find():
+    reload(haha)
+    c = haha.admin()
+    print(c)
+
+
 if __name__ == '__main__':
+    f2=open("haha.py", 'w', encoding='UTF-8')
+    str="def admin():\n    return 7+2"
+    f2.write(str)
+    f2.close()
+    #判断haha.py是否有语法错误
+    try:
+        import haha
+        print('a')
+    except:
+        print('false')
+        pass
+    else:
+        c=haha.admin()
+        print(c)
 
-    cv2_img = cv2.imread('./t1.jpg')
-    print(type(cv2_img))
-    b=img_to_base64(cv2_img)
-    print(b)
-    i=base64_to_img(b)
 
-    i = i.astype('float32')
-    sess = ort.InferenceSession('./model/testonnx.onnx')  # 加载模型
-    ort_inputs = {sess.get_inputs()[0].name: i}
-    print(sess.get_inputs()[0])
-    output = sess.run(None, ort_inputs)
-    print(output)
+
 
 
     '''a = [1, 2, 3]

@@ -12,6 +12,10 @@ import pickle
 from pypmml import Model
 import onnxruntime as ort
 
+import json
+
+import prepare
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -396,6 +400,84 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
+@app.route('/testmodel_test',methods=["POST"])
+def testmodel_test():
+    '''
+    名称：测试模型
+    功能：对应lxt说的模型测试
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     modelname : str - 模型名称
+     input : dict - 模型需要的变量
+             或 str - 传输jpg的base64编码
+             或 file - txt的文件
+     filetype : str - 'none' : 正常输入
+                      'jpgbase64' : 图片
+                      'csv' : csv
+                      'txt' : txt
+                      'mp4base64'
+                      'mp4'
+                      'zip'
+                或
+                dict - 一个表示input的元素是否危文件的字典
+                例如
+                {'input1' : 'none', 'input2' : 'jpgbase64'}
+                这时则可以从inputfile_input2中读取文件
+                      
+    Returns:
+     status : str - 'success' : 成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'invalid input' : 输入不合法
+                    'model not found' : 未找到模型
+     
+     若成功，返回：
+     output : dict - 输出结果，格式服从前端要求
+     '''
+    user = request.form['user']
+    password = request.form['password']
+    modelname = request.form['modelname']
+    if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt', 
+                                    'mp4base64', 'mp4', 'zip'):
+        if request.form['filetype'] == 'none':
+            input = json.loads(request.form['input'])
+        elif request.form['filetype'] == 'jpgbase64':
+            input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
+        else:
+            file = request.files.get('input')
+            filepath = './textfile/' + username + '_' + modelname + '.txt'
+            file.save(filepath)
+            input = prepare.prepare(None, file, request.form['filetype'], filepath)
+    else:
+        filetype = json.loads(request.form['filetype'])
+        input = json.loads(request.form['input'])
+        for variable in filetype:
+            if filetype[variable] in ('jpgbase64', 'mp4base64'):
+                input[variable] = prepare.prepare(None, input[variable], 
+                                                   filetype[variable], None)
+    # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
+    # 获取用户输入变量的信息
+    status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
+    if not status:
+        return jsonify({'status': inputvariables})
+    # 检查input是否符合输入变量的要求
+    for variable in inputvariables:
+        # 若input中没有需要的变量
+        if variable[0] not in input:
+            return jsonify({'status': 'invalid input'})
+    
+    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
+    address = find_model(user, password, modelname)
+    if address == 'model not found':
+        return jsonify({'status': address})
+
+    # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
+    # 本模块（快速返回）暂时不使用多线程
+    output = naive_test_model(address, input)
+    return jsonify({'status': 'success', 
+                    'output': dict(output)})
+
 @app.route('/testmodel_quickresponse',methods=["GET"])
 def testmodel_quickresponse():
     '''
@@ -409,8 +491,10 @@ def testmodel_quickresponse():
 
     Returns:
      status : str - 'success' : 成功
+                    'prepare invalid' :用户自定义预处理
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
+                    'model not found' : 找不到模型
      
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
@@ -418,12 +502,27 @@ def testmodel_quickresponse():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
+    #从前端接收文件 具体代码需要修改
+    file=request.form['modelname']
+    #预处理，用户自定义，任务2测试模型不需要
+    #从前端接收用户的python代码
+    prepare_py = request.form['prepare_py']
+    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+    f1.write(prepare_py)
+    f1.close()
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
-    
+
+    # 检验用户的模型 语法是否有问题 获得输入 data
+    try:
+        import user_prepare
+        data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
+    except:
+        return jsonify({'status':'prepare invalid'})
+
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
     if address == 'model not found':
@@ -431,7 +530,7 @@ def testmodel_quickresponse():
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
-    output = naive_test_model(address, input)
+    output = naive_test_model(address, data)
     return output
 
 @app.route('/testmodel_delayresponse',methods=["GET","POST"])
@@ -443,7 +542,7 @@ def testmodel_delayresponse():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    # 判断输入参数是否合法
+    # 判断输入参数是否合法，此处的input不等于待使用的input
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
@@ -531,11 +630,12 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         pass
 
 
+# 以下函数基本只适用于测试界面
 def find_model(user: str, password: str, modelname: str):
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
     if not status3:
-        return jsonify({'status': address})
+        return address
     address = './model/' + address
     return address
 
