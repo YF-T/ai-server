@@ -89,8 +89,10 @@ def upload():
     import os
     import getInfoFromModel
     #route未和前端统一
+    print("in")
     file = request.files.get('file')
     if file is None:  #接受失败
+        print("err file")
         return {
             'status': False,
             'error':"文件上传失败"
@@ -111,11 +113,19 @@ def upload():
     if valid:#模型有效
         #从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
+        print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
         modelname=file_name+modeltype
-        database.savemodel(user, password, modelname,modeltype,time,modelname,description,
+        print("file_name",file_name)
+        print(modelname)
+        print(user)
+        print(description)
+        print("haha")
+        a=database.savemodel(user, password, modelname,modeltype,time,modelname,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
+        print("haha")
+        print("a")
     else:
         pass
 
