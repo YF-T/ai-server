@@ -491,6 +491,7 @@ def testmodel_quickresponse():
 
     Returns:
      status : str - 'success' : 成功
+                    'prepare invalid' :用户自定义预处理
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
                     'model not found' : 找不到模型
@@ -501,12 +502,27 @@ def testmodel_quickresponse():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
+    #从前端接收文件 具体代码需要修改
+    file=request.form['modelname']
+    #预处理，用户自定义，任务2测试模型不需要
+    #从前端接收用户的python代码
+    prepare_py = request.form['prepare_py']
+    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+    f1.write(prepare_py)
+    f1.close()
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
-    
+
+    # 检验用户的模型 语法是否有问题 获得输入 data
+    try:
+        import user_prepare
+        data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
+    except:
+        return jsonify({'status':'prepare invalid'})
+
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
     if address == 'model not found':
@@ -514,7 +530,7 @@ def testmodel_quickresponse():
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
-    output = naive_test_model(address, input)
+    output = naive_test_model(address, data)
     return output
 
 @app.route('/testmodel_delayresponse',methods=["GET","POST"])
@@ -526,7 +542,7 @@ def testmodel_delayresponse():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    # 判断输入参数是否合法
+    # 判断输入参数是否合法，此处的input不等于待使用的input
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
@@ -614,6 +630,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         pass
 
 
+# 以下函数基本只适用于测试界面
 def find_model(user: str, password: str, modelname: str):
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
