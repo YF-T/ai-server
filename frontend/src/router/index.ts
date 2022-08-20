@@ -5,6 +5,8 @@ import login from '../views/login.vue'
 import register from '../views/register.vue'
 import DeployDetail from '../views/DeployDetail.vue'
 import DeployTest from '../views/DeployTest.vue'
+import BatchTaskList from '../views/BatchTaskList.vue'
+import TaskDetail from '../views/TaskDetail.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -26,7 +28,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/deploy/test', 
     name: 'deployTest',
     component: DeployTest
-  }
+  },
+  {
+    path: '/tasks', 
+    name: 'tasks',
+    component: TaskDetail,
+  },
 ]
 
 const router = createRouter({

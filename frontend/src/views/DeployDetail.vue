@@ -34,9 +34,9 @@
           link
           type="primary"
           size="small"
-          @click.prevent="deleteRow(scope.$index)"
+          @click.prevent="pause(scope.$index)"
         >
-          Remove
+          暂停
         </el-button>
       </template>
     </el-table-column>
@@ -88,7 +88,9 @@ const replicates = [
 
 const count = computed(() => replicates.length)
 
-
+const pause = (index: number) => {
+  
+}
 </script>
 
 <style scoped>

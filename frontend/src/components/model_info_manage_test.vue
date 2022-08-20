@@ -109,7 +109,7 @@ export default defineComponent({
       valuelist:[],
       nofileshow:[],
       inputtypeindex:1,
-    }
+    } as any
   },
   methods:{
     inputtypeshow(i:number,index:number){
@@ -134,7 +134,7 @@ export default defineComponent({
       var path = 'http://127.0.0.1:5000/getmodelinfo';
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-        .then(res=> {
+        .then((res: any)=> {
           if(res.data.status==='success'){
             this.inputlist = res.data.input;
             this.outputlist = res.data.output;

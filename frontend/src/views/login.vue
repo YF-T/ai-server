@@ -64,7 +64,7 @@ export default defineComponent({
         param.append('password',this.password);
         var path = 'http://127.0.0.1:5000/register';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-          .then(response=> {
+          .then((response: any)=> {
             console.log(response);
             if (response.data.status === 'success') {
               this.islogin = 1;
@@ -84,7 +84,7 @@ export default defineComponent({
         param.append('password',this.password);
         var path = 'http://127.0.0.1:5000/login';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-          .then(response=>{
+          .then((response: any)=>{
           console.log(response);
           if (response.data.status === 'success'){
             this.store.commit('saveusername',this.username);

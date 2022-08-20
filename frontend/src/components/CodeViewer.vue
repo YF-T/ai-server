@@ -1,5 +1,5 @@
 <template>
-  <pre :class="[languageClass, 'line-numbers']">
+  <pre :class="[languageClass]" class="codeviewer" >
     <code v-html="highlighted" ></code>
   </pre>
 </template>
@@ -17,5 +17,17 @@ const highlighted = highlight(code, prismLanguage, language)
 <style>
 .token.operator {
     background: none !important;
+}
+
+.codeviewer {
+  width: 100%;
+}
+
+pre[class*="language-"]:before {
+  box-shadow: none !important;
+}
+
+pre[class*="language-"]:after {
+  box-shadow: none !important;
 }
 </style>
