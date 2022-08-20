@@ -55,7 +55,7 @@ export default defineComponent({
       param.append('time',current);
       param.append('description',this.op);
       var path = 'http://127.0.0.1:5000/upload';
-      axios.get(path,{params:param})
+      axios.post(path,param)
           .then(response=>{console.log(response);});
 
       let data = {
