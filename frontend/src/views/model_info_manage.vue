@@ -31,7 +31,7 @@
     <!-- 面板二 -->
     <model_info_test @pagechange="mainpagechange" v-show="index===2"/>
     <!-- 面板三 -->
-    <model_info_deploy @pagechange="mainpagechange" v-show="index===3"/>
+    <model_info_deploy @pagechange="mainpagechange" v-show="index===3" :key="index===3?1:2"/>
     <!-- 面板四 -->
     <model_info_addserver @pagechange="mainpagechange" v-show="index===4"/>
   </div>
@@ -84,7 +84,7 @@ export default defineComponent({
       var path = 'http://127.0.0.1:5000/getmodelinfo';
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-        .then(res=> {
+        .then((res: any) => {
           console.log(res.data.status);
           if(res.data.status==='success'){
             this.modelname = res.data.modelname;
