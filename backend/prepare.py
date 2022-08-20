@@ -15,6 +15,21 @@ import onnxruntime as ort
 
 #脚本
 #处理图片：要改，可能传入jpg路径
+
+#传入jpg路径
+def process_img_path(path, model_input_type):
+    # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
+    img_array =cv2.imread(path)
+    if img_array.shape[2]>1:
+        #print(img_array.shape[2])
+        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)#转换为单通道
+    res=resize_img(img_array,model_input_type)
+    #根据模型需要的输入调节
+    res = res.astype('float32')
+    res = {"Input3": res}
+    return res
+
+#传入编码好的jpg
 def process_img(img_array, model_input_type):
     #处理img文件
     if img_array.shape[2] > 1:
@@ -130,16 +145,16 @@ def img_to_base64(img_array):
     base64_str = base64.b64encode(byte_data).decode("ascii")  # 转换为base64
     return base64_str
 
-'''if __name__ == '__main__':
+if __name__ == '__main__':
 
-    cv2_img = cv2.imread('./example/t1.jpg')
-    print(type(cv2_img))
-    b=img_to_base64(cv2_img)
-    print(b)
-    i=process_base64_to_img(b,"a")
+    #cv2_img = cv2.imread('./example/t1.jpg')
+    #print(type(cv2_img))
+    #b=img_to_base64(cv2_img)
+    i=process_img_path('./example/t1.jpg',"a")
+
     sess = ort.InferenceSession('./model/testonnx.onnx')  # 加载模型
     output = sess.run(None, i)
-    print(output)'''
+    print(output)
 
     #e=pd.DataFrame(i)
     #i=i.reshape(4,)
