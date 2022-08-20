@@ -14,6 +14,8 @@ import onnxruntime as ort
 
 import json
 
+import prepare
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -408,7 +410,21 @@ def testmodel_test():
      password : str - 密码
      modelname : str - 模型名称
      input : dict - 模型需要的变量
-
+             或 str - 传输jpg的base64编码
+             或 file - txt的文件
+     filetype : str - 'none' : 正常输入
+                      'jpgbase64' : 图片
+                      'csv' : csv
+                      'txt' : txt
+                      'mp4base64'
+                      'mp4'
+                      'zip'
+                或
+                dict - 一个表示input的元素是否危文件的字典
+                例如
+                {'input1' : 'none', 'input2' : 'jpgbase64'}
+                这时则可以从inputfile_input2中读取文件
+                      
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
@@ -422,7 +438,24 @@ def testmodel_test():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    input = json.loads(request.form['input'])
+    if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt', 
+                                    'mp4base64', 'mp4', 'zip'):
+        if request.form['filetype'] == 'none':
+            input = json.loads(request.form['input'])
+        elif request.form['filetype'] == 'jpgbase64':
+            input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
+        else:
+            file = request.files.get('input')
+            filepath = './textfile/' + username + '_' + modelname + '.txt'
+            file.save(filepath)
+            input = prepare.prepare(None, file, request.form['filetype'], filepath)
+    else:
+        filetype = json.loads(request.form['filetype'])
+        input = json.loads(request.form['input'])
+        for variable in filetype:
+            if filetype[variable] in ('jpgbase64', 'mp4base64'):
+                input[variable] = prepare.prepare(None, input[variable], 
+                                                   filetype[variable], None)
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
@@ -442,8 +475,8 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
-    return jsonify('status': 'success', 
-                   'output': dict(output))
+    return jsonify({'status': 'success', 
+                    'output': dict(output)})
 
 @app.route('/testmodel_quickresponse',methods=["GET"])
 def testmodel_quickresponse():

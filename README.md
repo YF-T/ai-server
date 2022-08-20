@@ -346,25 +346,37 @@
 #### /testmodel_test (post)
 
 >  名称：测试模型
->  功能：对应lxt界面的模型测试
+>  功能：对应lxt说的模型测试
+>  Parameters:
+>   user : str - 用户名
+>   password : str - 密码
+>   modelname : str - 模型名称
+>   input : dict - 模型需要的变量
+>               或 str - 传输jpg的base64编码
+>               或 file - txt的文件
+>   filetype : str - 'none' : 正常输入
+>                        'jpgbase64' : 图片
+>                        'csv' : csv
+>                        'txt' : txt
+>                        'mp4base64'
+>                        'mp4'
+>                        'zip'
+>                  或
+>                  dict - 一个表示input的元素是否危文件的字典
+>                  例如
+>                  {'input1' : 'none', 'input2' : 'jpgbase64'}
+>                  这时则可以从inputfile_input2中读取文件
+>                        
 >
-> 暂时只能接收字段输入，文件输入还不支持
+>  Returns:
+>   status : str - 'success' : 成功
+>                  'user not found' : 用户不存在
+>                  'invalid password' : 密码错误
+>                  'invalid input' : 输入不合法
+>                  'model not found' : 未找到模型
 >
-> Parameters:
->      user : str - 用户名
->      password : str - 密码
->      modelname : str - 模型名称
->      input : dict - 模型需要的变量
->
-> Returns:
->  status : str - 'success' : 成功
->                 'user not found' : 用户不存在
->                 'invalid password' : 密码错误
->                 'invalid input' : 输入不合法
->                 'model not found' : 未找到模型
->
->  若成功，返回：
->  output : dict - 输出结果，格式服从前端要求
+>   若成功，返回：
+>   output : dict - 输出结果，格式服从前端要求
 
 ### 报错信息
 
