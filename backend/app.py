@@ -181,7 +181,7 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
     
-@app.route('/getmodeldeployment',methods=["GET"])
+@app.route('/getmodeldeployment',methods=["POST","GET"])
 def getmodeldeployment():
     '''
     查看部署的服务
@@ -222,7 +222,7 @@ def getmodeldeployment():
     return jsonify({'status' : 'success', 
                     'deployment' : answer})
 
-@app.route('/createdeployment',methods=["POST"])
+@app.route('/createdeployment',methods=["POST","GET"])
 def createdeployment():
     '''
     启动部署的服务
