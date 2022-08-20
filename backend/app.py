@@ -121,7 +121,7 @@ def upload():
                     'error':err_info})
 
 
-@app.route('/getusermodel',methods=["GET"])
+@app.route('/getusermodel',methods=["POST", "GET"])
 def getusermodel():
     '''
     获取用户模型信息
@@ -159,7 +159,7 @@ def getusermodel():
     return jsonify({'status' : 'success', 
                     'model' : answer})
 
-@app.route('/deletemodel',methods=["DELETE"])
+@app.route('/deletemodel',methods=["DELETE", "POST"])
 def deletemodel():
     '''
     删除模型
@@ -185,7 +185,7 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
     
-@app.route('/getmodeldeployment',methods=["POST","GET"])
+@app.route('/getmodeldeployment',methods=["GET"])
 def getmodeldeployment():
     '''
     查看部署的服务
@@ -478,7 +478,7 @@ def testmodel_test():
     return jsonify({'status': 'success', 
                     'output': dict(output)})
 
-@app.route('/testmodel_quickresponse',methods=["GET"])
+@app.route('/testmodel_quickresponse',methods=["POST", "GET"])
 def testmodel_quickresponse():
     '''
     名称：快速返回预测结果
