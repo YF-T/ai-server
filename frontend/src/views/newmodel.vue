@@ -54,19 +54,21 @@ export default defineComponent({
       param.append('file',this.file);//TODO
       param.append('time',current);
       param.append('description',this.op);
+      param.append('modelname',this.modelname);
       var path = 'http://127.0.0.1:5000/upload';
-      axios.post(path,param)
-          .then(response=>{console.log(response);});
-
       let data = {
-        modelname:this.modelname,
-        modeltype:this.modeltype,
-        time:this.time,
-        op:"???"
-      }
+                 modelname:this.modelname,
+                 modeltype:this.modeltype,
+                 time:this.time,
+                 op:"???"
+                 }
       this.store.commit('savemodelname',this.modelname);
       this.store.commit('savedetail',data);
-      this.$router.push('/model_info_manage');
+      axios.post(path,param)
+          .then(response=>{console.log(response);
+                this.$router.push('/model_info_manage');});
+
+      
     }
   }
 

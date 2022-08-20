@@ -106,6 +106,7 @@ def upload():
     user = request.form['user']
     password = request.form['password']
     modeltype = request.form['modeltype']
+    modelname = request.form['modelname']
     time = request.form['time']
     description = request.form['description']
     #检测模型有效性
@@ -116,7 +117,6 @@ def upload():
         #print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
-        modelname=file_name[0:-5]+'_'+modeltype
         a=database.savemodel(user, password, modelname,modeltype,time,modelname,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
     else:
