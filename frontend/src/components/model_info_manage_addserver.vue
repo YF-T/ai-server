@@ -25,6 +25,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import axios from 'axios';
 import { useStore } from 'vuex';
 
 export default defineComponent({
@@ -43,8 +44,30 @@ export default defineComponent({
     }
   },
   methods:{
+    getvalue(){
+      var date = new Date();
+      //年 getFullYear()：四位数字返回年份
+      var year = date.getFullYear(); //getFullYear()代替getYear()
+      //月 getMonth()：0 ~ 11
+      var month = date.getMonth() + 1;
+      //日 getDate()：(1 ~ 31)
+      var day = date.getDate();
+      //时 getHours()：(0 ~ 23)
+      var hour = date.getHours();
+      //分 getMinutes()： (0 ~ 59)
+      var minute = date.getMinutes();
+      //秒 getSeconds()：(0 ~ 59)
+      var second = date.getSeconds();
+
+      var time = year + '-' + this.addZero(month) + '-' + this.addZero(day) + ' ' + this.addZero(hour) + ':' + this.addZero(minute) + ':' + this.addZero(second);
+      return time;
+    },
+    //小于10的拼接上0字符串
+    addZero(s:number) {
+        return s < 10 ? ('0' + s) : s;
+    },
     pagechange(index:number,button:number){
-      if(button==0){
+      if(button===0){
         this.$emit('pagechange',index);
       }
       else{
@@ -53,14 +76,35 @@ export default defineComponent({
         this.starttime!='' &&
         this.state!='' &&
         this.operator!='' ){
-          this.store.commit('savewebinfo',{
-            name :this.name ,
-            webtype : this.webtype,
-            starttime: this.starttime ,
-            state : this.state ,
-            operator:this.operator ,
-            });
-          this.$emit('pagechange',index);
+          let param=new FormData();
+          param.append('user',this.store.state.username);
+          param.append('password',this.store.state.password);
+          param.append('modelname',this.store.state.modelname);
+          param.append('deployment',this.name);
+          param.append('time',this.getvalue())
+          var path = 'http://127.0.0.1:5000/createdeployment';
+          axios
+            .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+            .then(res=> {
+              if(res.data.status==='success'){
+                alert("设置成功");
+                this.$emit('pagechange',index);
+              }
+              else{
+                if(res.data.status==='duplication'){
+                  alert("部署名重复");
+                }
+                else{
+                  if(res.data.status==="user not found"){
+                    alert("用户不存在");
+                  }
+                  else{
+                    alert("密码错误");
+                  }
+                }
+              }
+              });
+          
         }
       }
     },

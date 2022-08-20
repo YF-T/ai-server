@@ -21,12 +21,12 @@
               <td>状态</td>
               <td>操作</td>
             </tr>
-            <tr v-else v-for="(item) in store.state.weblist" :key="item">
-              <td>{{item.name}}</td>
-              <td>{{item.webtype}}</td>
-              <td>{{item.starttime}}</td>
-              <td>{{item.state}}</td>
-              <td>{{item.operator}}</td>
+            <tr v-else v-for="item in weblist" :key="item">
+              <td>{{item.deployment}}</td>
+              <td>{{item.status}}</td>
+              <td>{{item.time}}</td>
+              <td>???</td>
+              <td>???</td>
             </tr>
           </table>
       </div>
@@ -36,21 +36,53 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useStore } from 'vuex';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'model_info_deploy',
   props: {
     msg: String,
   },
+  created(){
+    this.infoshow();
+  },
   data(){
     return{
       store: useStore(),
+      weblist:[],
     }
   },
   methods:{
     pagechange(index:number){
       this.$emit('pagechange',index);
     },
+    infoshow(){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      var path = 'http://127.0.0.1:5000/getmodeldeployment';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          if(res.data.status==='success'){
+            this.weblist = res.data.deployment;
+          }
+          else{
+            if(res.data.status==='duplication'){
+              alert("部署名重复");
+            }
+            else{
+              if(res.data.status==="user not found"){
+                alert("用户不存在");
+              }
+              else{
+                alert("密码错误");
+              }
+            }
+          }
+          });
+    }
   }
 });
 </script>

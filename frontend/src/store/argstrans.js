@@ -6,8 +6,6 @@ export default createStore({
         username: "未登录",
         password: "",
         modelname:'test2',
-        weblist:[],
-        count:0,
     },
     mutations:{
         // 保存当前菜单栏的路径
@@ -19,11 +17,6 @@ export default createStore({
         },
         savemodelname(state,modelname){
             state.modelname=modelname;
-        },
-        savewebinfo(state,item){
-            state.weblist.push(item);
-            state.count+=1;
-        }
-        
+        },        
     }
 })

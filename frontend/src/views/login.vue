@@ -65,7 +65,6 @@ export default defineComponent({
         var path = 'http://127.0.0.1:5000/register';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
           .then(response=> {
-            console.log(response);
             if (response.data.status === 'success') {
               this.islogin = 1;
             } else if (response.data.status === 'duplication') {
@@ -85,7 +84,6 @@ export default defineComponent({
         var path = 'http://127.0.0.1:5000/login';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
           .then(response=>{
-          console.log(response);
           if (response.data.status === 'success'){
             this.store.commit('saveusername',this.username);
             this.store.commit('savepassword',this.password);
@@ -105,7 +103,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
 .loginblock{
   margin:0;
   padding: 0;
