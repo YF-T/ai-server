@@ -37,15 +37,11 @@ def prepare():
     pass
 
 
-from importlib import reload
-def find():
-    reload(haha)
-    c = haha.admin()
-    print(c)
 
 
+import pickle
 if __name__ == '__main__':
-    f2=open("haha.py", 'w', encoding='UTF-8')
+    '''f2=open("haha.py", 'w', encoding='UTF-8')
     str="def admin():\n    return 7+2"
     f2.write(str)
     f2.close()
@@ -58,7 +54,24 @@ if __name__ == '__main__':
         pass
     else:
         c=haha.admin()
-        print(c)
+        print(c)'''
+    f_save = open('file.pkl', 'ab')
+    dict={'a':"haha"}
+    pickle.dump(dict, f_save)
+    f_save.close()
+    f_save = open('file.pkl', 'ab')
+    dict = {'b': "haha"}
+    pickle.dump(dict, f_save)
+    f_save.close()
+    f_read=open('file.pkl', 'rb')
+    while True:
+        try:
+            a=pickle.load(f_read)
+            print(a)
+        except:
+            break
+    f_read.close()
+
 
 
 

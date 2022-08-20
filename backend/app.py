@@ -110,7 +110,9 @@ def upload():
         #从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
         #储存模型
-        database.savemodel(user, password, file_name,modeltype,time,file_path,description,
+        #需要把route改成文件名 第6项 filepath改
+        modelname=file_name+modeltype
+        database.savemodel(user, password, modelname,modeltype,time,modelname,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
     else:
         pass
@@ -509,12 +511,26 @@ def testmodel_delayresponse():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
+    # 从前端接收文件 具体代码需要修改
+    file = request.form['modelname']
+    # 从前端接收用户的python代码 #伪
+    prepare_py = request.form['prepare_py']
+    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+    f1.write(prepare_py)
+    f1.close()
     # 判断输入参数是否合法，此处的input不等于待使用的input
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
-    
+
+    # 检验用户的模型 语法是否有问题 获得输入 data
+    try:
+        import user_prepare
+        data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
+    except:
+        return jsonify({'status': 'prepare invalid'})
+
     # 提取待测试模型地址
     address = find_model(user, password, modelname)
     if address == 'model not found':
@@ -525,13 +541,13 @@ def testmodel_delayresponse():
     state, id = database.createtask()
     if state == False:
         return jsonify({'status': id})
-    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id))
+    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id,data))
     task.start()
     #成功建立新线程
     return jsonify({'status': "success"})
 
 @app.route('/get_result_delayresponse',methods=["GET","POST"])
-def get_result(user: str, password: str, taskid:str):
+def get_result_delayresponse(user: str, password: str, taskid:str):
     '''
     功能：查询等待返回的结果
     Args:
@@ -545,20 +561,28 @@ def get_result(user: str, password: str, taskid:str):
         file: 成功为pkl文件，失败为None
     '''
     #调用database查询任务id对应的文件
+    #path具体是啥。。
     state,path=database.gettaskfile(user,password,taskid)
+    #目前用一个list储存所有的output
     if state == False:
         return jsonify({'status': path,
                         'output':None,
                         'file':None})
     else:
         f_read = open(path, 'rb')
-        output = pickle.load(f_read)
+        output=[]
+        while True:
+            try:
+                res = pickle.load(f_read)
+                output.append(res)
+            except:
+                break
         f_read.close()
         return jsonify({'status':"success",
                         'output':output,
                         'file':None})
 
-def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str):
+def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str,data):
     '''
     功能：多线程执行等待返回 将返回的结果的文件路径和对应id储存在database
     Args:
@@ -574,22 +598,24 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
     file_path='./output/'+id+'.pkl'
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
-        output = model.predict(input)  
-        # pmml模型下dataframe的输出结果仍为dataframe
-        # 储存output为文件 先用pickle，不行再改
-        f_save = open(file_path, 'wb')
-        pickle.dump(output, f_save)
-        f_save.close()
-        # 将id和对应文件储存到数据库
+        for input in data:
+            output = model.predict(input)
+            # pmml模型下dataframe的输出结果仍为dataframe
+            # 储存output为文件 先用pickle，不行再改
+            f_save = open(file_path, 'ab')
+            pickle.dump(output, f_save)
+            f_save.close()
+            # 将id和对应文件储存到数据库
         database.settaskfile(user,password,id,file_path)
         #return output
     elif suffix == 'onnx':  # 模型为onnx格式
         sess = ort.InferenceSession(address)  # 加载模型
-        output = sess.run(None, input)
-        # 储存output为文件 先用pickle，不行再改
-        f_save = open(file_path, 'wb')
-        pickle.dump(output, f_save)
-        f_save.close()
+        for input in data:
+            output = sess.run(None, input)
+            # 储存output为文件 先用pickle，不行再改
+            f_save = open(file_path, 'ab')
+            pickle.dump(output, f_save)
+            f_save.close()
         # 将id和对应文件储存到数据库
         database.settaskfile(user, password, id, file_path)
         #return output
