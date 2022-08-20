@@ -4,18 +4,36 @@
           <div class="inputtest">
             <div class="infoline">
               <label>输入</label>
+              <button class='inputtype' @click="input(2)"><span>单文件输入</span></button>
               <button class='inputtype' @click="input(1)"><span>表单输入</span></button>
               <button class='inputtype' @click="input(0)"><span>JSON输入</span></button>
             </div>
             <span style="white-space:pre"></span><span class="line"></span>
-            <form name="argsform" v-if="inputtypeindex===1" onsubmit="return false">
+            <div v-show="inputtypeindex===2">
+              <div class="content">
+                <div class="drag-area" @dragover="fileDragover" @drop="fileDrop">
+                  <div v-if="fileName" class="file-name">{{ fileName }}</div>
+                  <div v-else class="uploader-tips">
+                    <span class="upfile">将文件拖拽至此，或</span>
+                    <label class="upfile" for="fileInput" style="color: #11A8FF; cursor: pointer">点此上传</label>
+                  </div>
+                </div>
+              </div>
+          
+              <div class="footer">
+                <input type="file" id="fileInput" @change="chooseUploadFile" style="display: none;">
+                <label for="fileInput" v-if="fileName" style="color: #11A8FF; cursor: pointer">选择文件</label>
+                <button class='jsonsubmit' @click="uploadOk"><span>提交</span></button>
+              </div>
+            </div>
+            <form name="argsform" v-show="inputtypeindex===1" onsubmit="return false">
               <!-- 需要知道变量名和变量类型，变量数量-->
               <!-- {% for %} -->
               <div v-for="(inputone,i) in inputlist" :key="inputone">
                 <label class="argsname">{{inputone.name}}:</label>
                 <label class="radiolabel">输入方式选择：</label>
-                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' @click="inputtypeshow(i,1)"/>文本框输入</label>
-                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='0' @click="inputtypeshow(i,0)"/>文件输入</label><br/>
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' />文本框输入</label>
+                  <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='0' />文件输入</label><br/>
                 <input type="file" v-if="nofileshow[i]==='0'"/>
                 <div class="parent" v-else>
                   <div class="dummy" name='point'></div>
@@ -61,7 +79,7 @@
                 </button>
               </div>
             </form>
-            <form v-else onsubmit="return false">
+            <form v-show="inputtypeindex===0" onsubmit="return false">
               <div id="parent">
                 <div id="dummy"></div>
                 <textarea id="textarea" oninput="document.getElementById('dummy').textContent = this.value"></textarea>
@@ -109,11 +127,42 @@ export default defineComponent({
       valuelist:[],
       nofileshow:[],
       inputtypeindex:1,
+      fileName: '',
+      batchFile: '',
     }
   },
   methods:{
-    inputtypeshow(i:number,index:number){
-      // this.nofileshow[i] = index; 
+    chooseUploadFile (e:any) {
+      const file = e.target.files.item(0)
+      if (!file) return
+      this.batchFile = file
+      this.fileName = file.name
+      // 清空，防止上传后再上传没有反应
+      e.target.value = ''
+    },
+    // 拖拽上传
+    fileDragover (e:any) {
+      e.preventDefault()
+    },
+    fileDrop (e:any) {
+      e.preventDefault()
+      const file = e.dataTransfer.files[0] // 获取到第一个上传的文件对象
+      console.log(file)
+      console.log('拖拽释放鼠标时')
+      if (!file) return
+      this.batchFile = file
+      this.fileName = file.name
+    },
+    // 提交
+    uploadOk () {
+      if (this.batchFile === '') {
+        return alert('请选择要上传的文件')
+      }
+
+      let data = new FormData()
+      data.append('upfile', this.batchFile)
+      //todo
+      // ajax
     },
     input(index:number){
       this.inputtypeindex = index;
@@ -388,7 +437,7 @@ span[class='codeshow']{
 }
 
 .inputtype{
-  flex:2;
+  flex:4;
   position: relative;
   top:8px;
   border: none;
@@ -416,9 +465,10 @@ span[class='codeshow']{
 
 .jsonsubmit{
   position: relative;
-  top:8px;
+  top:2px;
   border: none;
   display: flex;
+  width: 100px;
   justify-content: center;
   padding: 10px 30px;
   margin: 20px auto;
@@ -468,5 +518,36 @@ span[class='codeshow']{
   width: 100%;
   font: inherit;
   overflow-y:auto;
+}
+form[class="fileinput"]{
+  text-align: center;
+}
+.drag-area {
+  height: 200px;
+  width: 300px;
+  border: dashed 1px gray;
+  margin-bottom: 10px;
+  color: #777;
+}
+.uploader-tips {
+  text-align: center;
+  height: 200px;
+  line-height: 200px;
+}
+.file-name {
+  text-align: center;
+  height: 200px;
+  line-height: 200px;
+}
+div[class="content"]{
+  display: flex;
+  justify-content: center;
+}
+div[class="footer"]{
+  display: flex;
+  justify-content: center;
+}
+.upfile{
+  font-size: 20px;
 }
 </style>
