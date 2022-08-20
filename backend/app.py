@@ -189,7 +189,7 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
     
-@app.route('/getmodeldeployment',methods=["GET"])
+@app.route('/getmodeldeployment',methods=["GET", "POST"])
 def getmodeldeployment():
     '''
     查看部署的服务
