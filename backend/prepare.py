@@ -1,18 +1,21 @@
+from asyncio import PidfdChildWatcher
 from msilib.schema import File
+from pyexpat import model
 import cv2
 import base64
 import numpy as np
 import pandas as pd
 import json
+import os
+from flask import jsonify
+import zipfile
 import onnx
 import onnxruntime as ort
 
 
 
 #脚本
-#处理图片
-
-#要改，可能传入jpg路径
+#处理图片：要改，可能传入jpg路径
 def process_img(img_array, model_input_type):
     #处理img文件
     if img_array.shape[2] > 1:
@@ -38,7 +41,7 @@ def process_base64_to_img(base64_str: str, model_input_type):
     res = {"Input3": res}
     return res
 
-def resize_img(img,model_input_type):
+def resize_img(img, model_input_type):
     # 修改图片大小
     res = cv2.resize(img, (28, 28), interpolation=cv2.INTER_CUBIC)
     # 符合模型维数
@@ -55,7 +58,7 @@ def process_text_to_json(fileaddress: str):
 
 
 #处理视频
-def process_mp4(file,model_input_type):
+def process_mp4(file, model_input_type):
     videoCapture = cv2.VideoCapture(file)
     rval = videoCapture.isOpened()
     res={"input":None}
@@ -66,7 +69,7 @@ def process_mp4(file,model_input_type):
             res = process_img(frame, model_input_type)
     return res
 
-def process_base64_mp4(file,model_input_type):
+def process_base64_mp4(file, model_input_type):
     #base64转码
     mp4_data = base64.b64decode(file)
     mp4_data = np.asarray(bytearray(mp4_data), dtype="uint8")
@@ -74,26 +77,49 @@ def process_base64_mp4(file,model_input_type):
     return mp4_data
 
 
-# 处理压缩包(转成csv)
-def process_base64_to_csv(base64_str: str):
-    pass
+# 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
+# 为了创建文件夹方便，希望最好能传入当前任务的id
+def process_base64_to_csv(file: File, id: int):
+    path = './output/zip/' + str(id)
+    os.mkDir(path)
+    if not file.endswith(".zip"):
+        return jsonify({'status': 'the file is not a zip'})
+    # 若非zip文件则返回，原则上不应报错
+    f = zipfile.ZipFile(file)
+    for fz in f.namelist():  # 遍历压缩包列表中的所有文件
+        # 解压缩到路径path
+        f.extract(fz, path)
+    file_list = os.listdir(path)
+    df = pd.DataFrame()
+    for txt_address in file_list:
+        temp_address = path + '/' + txt_address
+        # 对当前txt文件地址，调用text转json函数
+        temp_json_dict = process_text_to_json(temp_address)
+        temp_df = pd.DataFrame(temp_json_dict)
+        df = pd.concat([df, temp_df])
+    return df
 
 
-#预处理总函数
-def prepare(model_input_type, file, filetype, fileaddress):
+# 预处理总函数
+def prepare(model_input_type, file: File, filetype, fileaddress: str, id: 0):
     if filetype=="jpgbase64":
         #base64格式的jpg文件
         return process_base64_to_img(file,model_input_type)
+
     elif filetype=="csv":
         return file
         # 对于csv格式，pmml和onnx都可以直接读取，本示例中不做预处理
+
     elif filetype=="txt":
         return process_text_to_json(fileaddress)
         # 对于txt格式文件：将文件内json形式的字符串转化为dict
+
     elif filetype=="mp4base64":
-        return process_base64_mp4
+        return process_base64_mp4(file, model_input_type)
+
     elif filetype=="mp4":
-        return process_mp4
+        return process_mp4(file, model_input_type)
+
     elif filetype=="zip":
         pass
 
@@ -121,7 +147,7 @@ def img_to_base64(img_array):
     #e=pd.DataFrame(i)
     #print(e)
 
-'''#只是测试 要删
+''' 只是测试 要删
 def img_to_base64(img_array):
     # 传入图片为RGB格式numpy矩阵，传出的base64也是通过RGB的编码
     img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)  # RGB2BGR，用于cv2编码
