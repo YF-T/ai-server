@@ -76,7 +76,6 @@
       >
         关闭
       </el-button>
-      <!-- todo:introduce code editor -->
     </el-dialog>
   </div>
 </template>
@@ -98,6 +97,8 @@ import { reactive, ref, onMounted, nextTick } from 'vue'
 import type { FormRules, FormInstance } from 'element-plus'
 import CodeViewer from '../components/CodeViewer.vue'
 import CodeEditor from '../components/CodeEditor.vue'
+import axios from 'axios'
+import { useStore } from 'vuex'
 
 const handleClick = () => {}
 const form = reactive({
@@ -110,12 +111,22 @@ const rules = reactive<FormRules>({
   functionName: [{ required: true, message: '请填写函数名', trigger: 'blur' }],
   request: [{ required: true, message: '请填写请求', trigger: 'blur' }],
 })
+const store = useStore()
 
 const submit = () => {
   if (!formRef.value) return
 
   formRef.value.validate((valid, fields) => {
     if (valid) {
+      var path = 'http://127.0.0.1:5000/testmodel_quickresponse'
+      const param = new FormData()
+      param.append('user', store.state.username)
+      param.append('password', store.state.password)
+      param.append('modelname', store.state.modelname)
+      param.append('input', form.request)
+      axios.post(path, { params: param }).then((res: any) => {
+        response.value = res.output
+      })
       console.log('valid!')
     } else {
       console.log('error', fields)
