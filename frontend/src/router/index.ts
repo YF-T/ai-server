@@ -5,6 +5,8 @@ import login from '../views/login.vue'
 import register from '../views/register.vue'
 import DeployDetail from '../views/DeployDetail.vue'
 import DeployTest from '../views/DeployTest.vue'
+import model_manage from '../views/model_manage.vue'
+import newmodel from  '../views/newmodel.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -26,6 +28,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/deploy/test', 
     name: 'deployTest',
     component: DeployTest
+  },
+  {
+    path: '/model_manage',
+    name: 'model_manage',
+    component: model_manage
+  },
+  {
+    path: '/newmodel',
+    name: 'newmodel',
+    component: newmodel
   }
 ]
 

@@ -87,7 +87,7 @@ export default defineComponent({
           if (response.data.status === 'success'){
             this.store.commit('saveusername',this.username);
             this.store.commit('savepassword',this.password);
-            this.$router.push('/model_info_manage')
+            this.$router.push('/model_manage')
           }
           else if(response.data.status === 'user not found'){
             alert("用户不存在！请先注册！")
