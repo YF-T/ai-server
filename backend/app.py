@@ -442,8 +442,8 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
-    return jsonify('status': 'success', 
-                   'output': dict(output))
+    return jsonify ({'status': 'success', 
+                   'output': dict(output)})
 
 @app.route('/testmodel_quickresponse',methods=["GET"])
 def testmodel_quickresponse():
@@ -493,7 +493,7 @@ def testmodel_delayresponse():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    # 判断输入参数是否合法
+    # 判断输入参数是否合法，此处的input不等于待使用的input
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
@@ -581,6 +581,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         pass
 
 
+# 以下函数基本只适用于测试界面
 def find_model(user: str, password: str, modelname: str):
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
