@@ -574,7 +574,7 @@ def testmodel_delayresponse():
     state, id = database.createtask()
     if state == False:
         return jsonify({'status': id})
-    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id,data))
+    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
     return jsonify({'status': "success"})
@@ -594,10 +594,10 @@ def get_result_delayresponse(user: str, password: str, taskid:str):
         file: 成功为pkl文件，失败为None
     '''
     #调用database查询任务id对应的文件
-    #path具体是啥。。
-    state,path=database.gettaskfile(user,password,taskid)
+    #path具体是啥。。（应该是taskfile的存储路径，可以直接使用）
+    state, path = database.gettaskfile(user, password, taskid)
     #目前用一个list储存所有的output
-    if state == False:
+    if not state:
         return jsonify({'status': path,
                         'output':None,
                         'file':None})

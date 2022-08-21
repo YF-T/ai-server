@@ -31,7 +31,7 @@ def process_base64_to_img(base64_str: str, model_input_type):
     byte_data = base64.b64decode(base64_str)  # 将base64转换为二进制
     encode_image = np.asarray(bytearray(byte_data), dtype="uint8")  # 二进制转换为一维数组
     img_array = cv2.imdecode(encode_image, cv2.IMREAD_COLOR)  # 用cv2解码为三通道矩阵
-    if img_array.shape[2]>1:
+    if img_array.shape[2] > 1:
         #print(img_array.shape[2])
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)#转换为单通道
     res=resize_img(img_array,model_input_type)
