@@ -64,7 +64,7 @@ export default defineComponent({
                  }
       this.store.commit('savemodelname',this.modelname);
       this.store.commit('savedetail',data);
-      axios.post(path,param)
+      axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
           .then(response=>{console.log(response);
                 this.$router.push('/model_info_manage');});
 

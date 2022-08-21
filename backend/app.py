@@ -192,7 +192,7 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
     
-@app.route('/getmodeldeployment',methods=["GET", "POST"])
+@app.route('/getmodeldeployment',methods=["POST","GET"])
 def getmodeldeployment():
     '''
     查看部署的服务
@@ -586,7 +586,7 @@ def testmodel_delayresponse(deployment : str):
     state, id = database.createtask()
     if state == False:
         return jsonify({'status': id})
-    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id,data))
+    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
     return jsonify({'status': "success"})
@@ -607,10 +607,10 @@ def get_result(deployment : str):
     '''
     user, password, modelname = database.getdeployment(deployment)
     #调用database查询任务id对应的文件
-    #path具体是啥。。
-    state,path=database.gettaskfile(user,password,taskid)
+    #path具体是啥。。（应该是taskfile的存储路径，可以直接使用）
+    state, path = database.gettaskfile(user, password, taskid)
     #目前用一个list储存所有的output
-    if state == False:
+    if not state:
         return jsonify({'status': path,
                         'output':None,
                         'file':None})

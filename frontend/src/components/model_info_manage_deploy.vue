@@ -65,21 +65,9 @@ export default defineComponent({
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then(res=> {
+          console.log(res.data.status);
           if(res.data.status==='success'){
             this.weblist = res.data.deployment;
-          }
-          else{
-            if(res.data.status==='duplication'){
-              alert("部署名重复");
-            }
-            else{
-              if(res.data.status==="user not found"){
-                alert("用户不存在");
-              }
-              else{
-                alert("密码错误");
-              }
-            }
           }
           });
     }
