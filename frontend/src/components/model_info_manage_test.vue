@@ -168,15 +168,15 @@ export default defineComponent({
       if (this.batchFile === '') {
         return alert('请选择要上传的文件')
       }
-      let index = this.fileName.lastIndexOf('.');
-      let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
-      console.log(fileType);
-      let param=new FormData();
-      param.append('user',this.store.state.username);
-      param.append('password',this.store.state.password);
-      param.append('modelname',this.store.state.modelname);
-      param.append("filetype",fileType);
-      param.append('upfile', this.batchFile);
+      // let index = this.fileName.lastIndexOf('.');
+      // let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
+      // console.log(fileType);
+      // let param=new FormData();
+      // param.append('user',this.store.state.username);
+      // param.append('password',this.store.state.password);
+      // param.append('modelname',this.store.state.modelname);
+      // param.append("filetype",fileType);
+      // param.append('upfile', this.batchFile);
       //todo
       // ajax
     },

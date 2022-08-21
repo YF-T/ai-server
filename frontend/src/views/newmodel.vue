@@ -62,10 +62,11 @@ export default defineComponent({
                  time:this.time,
                  op:"???"
                  }
+      console.log("11111111111111");
       this.store.commit('savemodelname',this.modelname);
       this.store.commit('savedetail',data);
       axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-          .then(response=>{console.log(response);
+          .then(response=>{console.log("test");
                 this.$router.push('/model_info_manage');});
 
       
