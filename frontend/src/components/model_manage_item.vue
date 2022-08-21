@@ -41,7 +41,7 @@ export default defineComponent({
 p{
     text-align:center;
     float:left;
-    width:100px;
+    width:200px;
     height:30px;
     font-size: large;
     color:pink;
