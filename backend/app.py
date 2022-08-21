@@ -100,6 +100,7 @@ def upload():
     import os
     import getInfoFromModel
     #print("in")
+    
     file = request.files.get('file')
     if file is None:  #接受失败
         #print("err file")
@@ -471,13 +472,16 @@ def testmodel_test():
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''
+    
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
+    print(user,password,modelname)
     if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
+            print(input,request.form["input"])
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
@@ -495,6 +499,7 @@ def testmodel_test():
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
+    print(status,inputvariables)
     if not status:
         return jsonify({'status': inputvariables})
     # 检查input是否符合输入变量的要求
@@ -505,12 +510,15 @@ def testmodel_test():
 
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
+    print(address)
     if address == 'model not found':
         return jsonify({'status': address})
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    if output is None:
+        return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
                     'output': dict(output)})
 

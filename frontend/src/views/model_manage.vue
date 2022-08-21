@@ -1,7 +1,7 @@
 <template>
 <div>
   <h1 id="title">模型管理</h1>
-  <label>模型类型 : </label><input type='text' v-model="filter"/>
+  <label>模型名称 : </label><input type='text' v-model="filter"/>
   <br/><br/>
   <div class="body">
   <div class = "center">
@@ -9,7 +9,7 @@
   </div>
   <br/>
   <div class = "center" v-for = "item in data" v-show = "show(item.modelname)">
-<!--  <div class = "center" v-for = "item in this.store.state.details" v-show = "show(item.modeltype)">-->
+<!--  <div class = "center" v-for = "item in this.store.state.details" v-show = "show(item.modelname)">-->
       <model_manage_item :modelname="item.modelname" :modeltype="item.modeltype" :time="item.time" :op="`???`"></model_manage_item>
   </div>
   </div>
@@ -51,11 +51,10 @@ export default defineComponent({
       param.append('user', this.store.state.username);
       param.append('password', this.store.state.password);
       var path = 'http://127.0.0.1:5000/getusermodel ';
-      axios
-        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+      axios.get(path, {params: param})
           .then(response => {
-            console.log(response.data);
-            this.data = response.data.model;
+            console.log(response);
+            this.data = response.data.model
           });
     }
     },
@@ -69,22 +68,26 @@ export default defineComponent({
 button{
   align-content: center;
   background-image: linear-gradient( 135deg, skyblue 10%, violet 100%);
+  height:50px;
+  width:80px;
 }
 #thead{
   float:left;
   text-align:center;
-  width:100px;
+  width:200px;
+  border:solid black thin;
 }
 .center{
-  width:400px;
+  width:810px;
   /*position:absolute;*/
-  margin-left:570px;
   margin-bottom: 10px;
   margin-top: 10px;
 }
 .body{
   height:400px;
+  width:830px;
   overflow-y: scroll;
+  margin:auto;
 }
 
 </style>
