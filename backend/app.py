@@ -83,54 +83,74 @@ def upload():
     description： str 模型描述
 
     Returns:
-        'status':bool 表示上传模型成功或失败
-        'error':str 若status为False，返回错误信息，若status为True为空字符串
+        'status':bool 表示从接收模型，验证有效性，读取信息到将其存在数据库中整个过程是否成功，成功为True，否则为False
+
+        'errortype':str 表示出错的步骤 若status为True为空字符串
+                    ’can't get model‘接收不到模型，file为None
+                    ’model is invalid‘ 模型无效
+                    ’can't save model‘ 将模型存入数据库过程出错，具体错误见errinfo
+
+        'errorinfo':str 若status为False，返回错误具体的错误信息，若status为True为空字符串
+                    例如：若模型无效，返回具体无效原因，如："model is invalid:can't get version"
+                        若将模型存入数据库过程出错，返回具体出错原因，如:'user not found' : 用户不存在
+                                                                'invalid password' : 密码错误
+                                                                'duplication' : 部署名重复
     '''
     import os
     import getInfoFromModel
-    #route未和前端统一
-    print("in")
+    #print("in")
     file = request.files.get('file')
     if file is None:  #接受失败
-        print("err file")
+        #print("err file")
         return {
             'status': False,
-            'error':"文件上传失败"
+            'errortype':"can't get model",
+            'errorinfo':'file is None'
         }
-    file_name = file.filename.replace(" ", "")
-    #print("获取上传文件的名称为[%s]\n" % file_name)
-    #保存文件
-    file_path=os.path.dirname(__file__) + '/model/' + file_name
-    file.save(os.path.dirname(__file__) + '/model/' + file_name)
     # 获取前端传入信息
     user = request.form['user']
     password = request.form['password']
+    modelname = request.form['modelname']
     modeltype = request.form['modeltype']
     time = request.form['time']
     description = request.form['description']
+    #print("获取上传文件的名称为[%s]\n" % file_name)
+    #保存文件
+    file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
+    file_path=os.path.dirname(__file__) + '/model/' + file_name
+    file.save(os.path.dirname(__file__) + '/model/' + file_name)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
     if valid:#模型有效
         #从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
-        print(dict)
+        #print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
-        modelname=file_name+modeltype
-        print("file_name",file_name)
-        print(modelname)
-        print(user)
-        print(description)
-        print("haha")
-        a=database.savemodel(user, password, modelname,modeltype,time,modelname,description,
+        '''print('user',user)
+        print('password',password)
+        print('modelname',modelname)
+        print('modeltype',modeltype)
+        print('time',time)
+        print('file_path',file_path)
+        print('description',description)
+        print('dict',dict)'''
+        save_status=database.savemodel(user, password, modelname,modeltype,time,file_name,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
-        print("haha")
-        print("a")
+        #print('save_status',save_status)
+        if save_status !='success':
+            jsonify({'status': False,
+                     'errortype': "can't save model",
+                     'errorinfo': save_status})
     else:
-        pass
+        #模型不合法
+        return jsonify({'status': False,
+                        'errortype':'model is invalid',
+                        'errorinfo': err_info})
 
-    return jsonify({'status':valid,
-                    'error':err_info})
+    return jsonify({'status': True,
+                    'errortype':'',
+                    'errorinfo':''})
 
 
 @app.route('/getusermodel',methods=["POST", "GET"])
@@ -168,7 +188,7 @@ def getusermodel():
     modeltitle = ['modelname', 'modeltype', 'time']
     answer = list(map(lambda x : dict(zip(modeltitle, x)), answer))
     # 返回值
-    return jsonify({'status' : 'success', 
+    return jsonify({'status' : 'success',
                     'model' : answer})
 
 @app.route('/deletemodel',methods=["DELETE", "POST"])
@@ -198,7 +218,7 @@ def deletemodel():
     status = database.deletemodel(user, password, modelname)
     # 返回状态
     return jsonify({'status' : status})
-    
+
 @app.route('/getmodeldeployment',methods=["GET", "POST"])
 def getmodeldeployment():
     '''
@@ -237,7 +257,7 @@ def getmodeldeployment():
     deploymenttitle = ['deployment', 'status', 'time']
     answer = list(map(lambda x : dict(zip(deploymenttitle, x)), answer))
     # 返回值
-    return jsonify({'status' : 'success', 
+    return jsonify({'status' : 'success',
                     'deployment' : answer})
 
 @app.route('/createdeployment',methods=["POST","GET"])
@@ -438,21 +458,22 @@ def testmodel_test():
                 例如
                 {'input1' : 'none', 'input2' : 'jpgbase64'}
                 这时则可以从inputfile_input2中读取文件
-                      
+
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
                     'invalid input' : 输入不合法
                     'model not found' : 未找到模型
-     
+                    'runtime error' : 模型运行出错
+                    
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt', 
+    if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
@@ -468,7 +489,7 @@ def testmodel_test():
         input = json.loads(request.form['input'])
         for variable in filetype:
             if filetype[variable] in ('jpgbase64', 'mp4base64'):
-                input[variable] = prepare.prepare(None, input[variable], 
+                input[variable] = prepare.prepare(None, input[variable],
                                                    filetype[variable], None)
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
@@ -480,7 +501,7 @@ def testmodel_test():
         # 若input中没有需要的变量
         if variable[0] not in input:
             return jsonify({'status': 'invalid input'})
-    
+
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
     if address == 'model not found':
@@ -501,18 +522,13 @@ def testmodel_quickresponse(deployment : str):
      file : dict - 模型需要的变量
              或 str - 传输jpg的base64编码
              或 file - txt的文件
-     filetype : str - 'none' : 正常输入
+     filetype : str - 'none' : 正常输入(json)
                       'jpgbase64' : 图片
                       'csv' : csv
                       'txt' : txt
                       'mp4base64'
                       'mp4'
                       'zip'
-                或
-                dict - 一个表示input的元素是否危文件的字典
-                例如
-                {'input1' : 'none', 'input2' : 'jpgbase64'}
-                这时则可以从inputfile_input2中读取文件
 
     Returns:
      status : str - 'success' : 成功
@@ -520,7 +536,7 @@ def testmodel_quickresponse(deployment : str):
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
                     'model not found' : 找不到模型
-     
+
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''

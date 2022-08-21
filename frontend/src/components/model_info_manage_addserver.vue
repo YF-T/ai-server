@@ -98,8 +98,8 @@ export default defineComponent({
                   if(res.data.status==="user not found"){
                     alert("用户不存在");
                   }
-                  else{
-                    alert("密码错误");
+                  else if(res.data.status === 'invalid password'){
+                    alert("密码错误！")
                   }
                 }
               }

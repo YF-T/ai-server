@@ -16,7 +16,7 @@
           <label>用户名: </label>
           <input type='text' name = 'user' placeholder="请输入您的用户名" required v-model="username"/><br/><br/>
           <label>密  码: </label>
-          <input type='password' name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/><br/>
+          <input type='password' autocomplete="off" name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/><br/>
           <button type="button" @click="changelogin(0)"><span>注册</span></button>
           <button type="submit" @click="updataall"><span>登录</span></button>
         </form>
