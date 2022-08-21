@@ -16,7 +16,7 @@
           <label>用户名: </label>
           <input type='text' name = 'user' placeholder="请输入您的用户名" required v-model="username"/><br/><br/>
           <label>密  码: </label>
-          <input type='password' name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/><br/>
+          <input type='password' autocomplete="off" name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/><br/>
           <button type="button" @click="changelogin(0)"><span>注册</span></button>
           <button type="submit" @click="updataall"><span>登录</span></button>
         </form>
@@ -64,7 +64,8 @@ export default defineComponent({
         param.append('password',this.password);
         var path = 'http://127.0.0.1:5000/register';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-          .then(response=> {
+          .then((response: any)=> {
+            console.log(response);
             if (response.data.status === 'success') {
               this.islogin = 1;
             } else if (response.data.status === 'duplication') {
@@ -83,11 +84,12 @@ export default defineComponent({
         param.append('password',this.password);
         var path = 'http://127.0.0.1:5000/login';
         axios.post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-          .then(response=>{
+          .then((response: any)=>{
+          console.log(response);
           if (response.data.status === 'success'){
             this.store.commit('saveusername',this.username);
             this.store.commit('savepassword',this.password);
-            this.$router.push('/model_info_manage')
+            this.$router.push('/model_manage')
           }
           else if(response.data.status === 'user not found'){
             alert("用户不存在！请先注册！")

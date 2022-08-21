@@ -65,7 +65,7 @@ export default defineComponent({
       outputlist:[],
       store: useStore(),
       modeltype:'',
-    }
+    } as any
   },
   methods:{
     overviewshow(){
@@ -76,7 +76,7 @@ export default defineComponent({
       var path = 'http://127.0.0.1:5000/getmodelinfo';
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-        .then(res=> {
+        .then((res: any)=> {
           if(res.data.status==='success'){
             this.inputlist = res.data.input;
             this.outputlist = res.data.output;
