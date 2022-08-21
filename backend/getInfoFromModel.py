@@ -226,7 +226,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_441.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml4-4-1.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -235,7 +235,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_44.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml4-4.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -244,7 +244,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_43.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml4-3.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -253,7 +253,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_42.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml4-2.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -262,7 +262,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_41.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml4-1.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -271,7 +271,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_40.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml4-0.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -281,7 +281,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
             try:
                 model = check_pmml_xsd.pmml_32.parse(file_path, silence=True)
             except Exception as e:
-                error_info = "model is invalid:"+e
+                error_info = "cannot pass pmml3-2.xsd validation"
                 valid = False
             else:
                 error_info = ""
@@ -294,7 +294,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
                 try:
                     model = check_pmml_xsd.pmml_44.parse(file_path, silence=True)
                 except Exception as e:
-                    error_info = "model is invalid:" + e
+                    error_info = "cannot pass pmml4-4.xsd validation"
                     valid = False
                 else:
                     error_info = ""
@@ -303,7 +303,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
                 try:
                     model = check_pmml_xsd.pmml_32.parse(file_path, silence=True)
                 except Exception as e:
-                    error_info = "model is invalid:" + e
+                    error_info = "cannot pass pmml3-2.xsd validation"
                     valid = False
                 else:
                     error_info = ""
@@ -344,6 +344,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
     return valid,error_info
 
 '''if __name__ == '__main__':
-    getmodelinfo("randomForest.pmml")'''
-
+    a,b=checkmodel('haha','haha','pmml',"randomForest.pmml")
+    print(a)
+    print(b)'''
 

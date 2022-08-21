@@ -78,6 +78,7 @@ def upload():
     user：str 用户名
     password：str 密码
     modeltype：str 模型类别 pmml或onnx 全大写或全小写
+    modelname:str 用户输入的模型名称
     file：模型文件 pmml或onnx
     time：str 创建时间
     description： str 模型描述
