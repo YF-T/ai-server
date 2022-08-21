@@ -61,8 +61,8 @@ def resize_img(img, model_input):
     #读取所需维数及其元组个数
     shape=model_input[3]
     type=model_input[2]
-    print(shape)
-    print(type(shape))
+    #print(shape)
+    #print(type(shape))
     if shape ==None:
         img=img.ravel()
         return img[0]
@@ -70,7 +70,7 @@ def resize_img(img, model_input):
         #读取总维数
         shape_list=shape.split("*")
         shape_list = np.array(shape_list).astype(dtype=int).tolist()
-        print(type(shape_list))
+        #print(type(shape_list))
         n=1
         for i in shape_list:
             n=n*int(i)
