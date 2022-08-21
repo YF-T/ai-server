@@ -497,6 +497,7 @@ def getdeployment(deployment : str):
     TODO
     '''
     assert isinstance(deployment, str)
+    print(deployment)
     # 连接数据库
     conn = sqlite3.connect(database)
     c = conn.cursor()
@@ -504,9 +505,10 @@ def getdeployment(deployment : str):
                     WHERE deployment = ?''' , 
                     (deployment, ))
     user, modelname = c.fetchone()
+    print(user)
     c.execute('''SELECT password FROM users
-                    WHERE deployment = ?''' , 
-                    (deployment, ))
+                    WHERE user = ?''' , 
+                    (user, ))
     password = c.fetchone()[0]
     conn.close()
     return user, password, modelname
