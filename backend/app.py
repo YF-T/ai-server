@@ -89,7 +89,10 @@ def upload():
     import os
     import getInfoFromModel
     #route未和前端统一
+    print("-------------------------------------")
+    print("good")
     file = request.files.get('file')
+    print(file)
     if file is None:  #接受失败
         return {
             'status': False,
@@ -189,7 +192,7 @@ def deletemodel():
     # 返回状态
     return jsonify({'status' : status})
     
-@app.route('/getmodeldeployment',methods=["GET"])
+@app.route('/getmodeldeployment',methods=["POST","GET"])
 def getmodeldeployment():
     '''
     查看部署的服务

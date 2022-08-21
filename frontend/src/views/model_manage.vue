@@ -50,11 +50,12 @@ export default defineComponent({
       let param = new FormData();
       param.append('user', this.store.state.username);
       param.append('password', this.store.state.password);
-      var path = 'http://127.0.0.1:5000/getusermodel ';
-      axios.get(path, {params: param})
+      var path = 'http://127.0.0.1:5000/getusermodel';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
           .then(response => {
-            console.log(response);
-            this.data = response.data.model
+            console.log(response.data);
+            this.data = response.data.model;
           });
     }
     },
