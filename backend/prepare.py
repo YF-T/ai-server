@@ -14,7 +14,7 @@ import onnxruntime as ort
 
 
 #脚本
-#处理图片：要改，可能传入jpg路径
+#jpg和mp4的model_input_type为单个输入变量的tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)示例代码在181行
 
 #传入jpg路径
 def process_img_path(path, model_input_type):
@@ -26,7 +26,7 @@ def process_img_path(path, model_input_type):
     res=resize_img(img_array,model_input_type)
     #根据模型需要的输入调节
     res = res.astype('float32')
-    res = {"Input3": res}
+    res = {model_input_type[0]: res}
     return res
 
 #传入编码好的jpg
@@ -37,7 +37,7 @@ def process_img(img_array, model_input_type):
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
     res = resize_img(img_array,model_input_type)
     res = res.astype('float32')
-    res={"input":res}
+    res={model_input_type[0]:res}
     return res
 
 #处理图片 base64格式输入
@@ -52,11 +52,34 @@ def process_base64_to_img(base64_str: str, model_input_type):
     res=resize_img(img_array,model_input_type)
     #根据模型需要的输入调节
     res = res.astype('float32')
-    res = {"Input3": res}
+    res = {model_input_type[0]: res}
     return res
 
-def resize_img(img, model_input_type):
+def resize_img(img, model_input):
+    import re
     # 修改图片大小
+    #读取所需维数及其元组个数
+    shape=model_input[3]
+    type=model_input[2]
+    #print(shape)
+    #print(type(shape))
+    if shape ==None:
+        img=img.ravel()
+        return img[0]
+    else:
+        #读取总维数
+        shape_list=shape.split("*")
+        shape_list = np.array(shape_list).astype(dtype=int).tolist()
+        #print(type(shape_list))
+        n=1
+        for i in shape_list:
+            n=n*int(i)
+        img=img.ravel()
+        img=img[0:n]
+        img=img.reshape(shape_list)
+        return img
+
+def reshape_onnx_test(img, model_input):
     res = cv2.resize(img, (28, 28), interpolation=cv2.INTER_CUBIC)
     # 符合模型维数
     res = res.reshape(1, 1, 28, 28)
@@ -120,6 +143,10 @@ def prepare(model_input_type, file: File, filetype, fileaddress: str, id: 0):
         #base64格式的jpg文件
         return process_base64_to_img(file,model_input_type)
 
+    elif filetype=="jpg":
+        return process_img_path(file, model_input_type)
+        # 传入jpg的地址
+
     elif filetype=="csv":
         return file
         # 对于csv格式，pmml和onnx都可以直接读取，本示例中不做预处理
@@ -133,6 +160,7 @@ def prepare(model_input_type, file: File, filetype, fileaddress: str, id: 0):
 
     elif filetype=="mp4":
         return process_mp4(file, model_input_type)
+        #传入mp4的地址
 
     elif filetype=="zip":
         pass
@@ -147,14 +175,14 @@ def img_to_base64(img_array):
 
 if __name__ == '__main__':
 
-    #cv2_img = cv2.imread('./example/t1.jpg')
-    #print(type(cv2_img))
-    #b=img_to_base64(cv2_img)
-    i=process_img_path('./example/t1.jpg',"a")
+    '''cv2_img = cv2.imread('./example/t1.jpg')
+    print(type(cv2_img))
+    b=img_to_base64(cv2_img)'''
+    '''i=process_mp4('./example/t2.mp4',('Input3', 'tensor(float)', None, '1*1*28*28', None))
 
-    sess = ort.InferenceSession('./model/testonnx.onnx')  # 加载模型
+    sess = ort.InferenceSession('./model/mnist-8.onnx')  # 加载模型
     output = sess.run(None, i)
-    print(output)
+    print(output)'''
 
     #e=pd.DataFrame(i)
     #i=i.reshape(4,)
