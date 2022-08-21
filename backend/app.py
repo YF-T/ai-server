@@ -511,6 +511,8 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    if output is None:
+        return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
                     'output': dict(output)})
 
