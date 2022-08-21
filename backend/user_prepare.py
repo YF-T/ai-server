@@ -1,4 +1,4 @@
-#用户自定义的预处理文件 接收后写入这个py文件里
-
+import json 
 def prepare(model_input_type,file):
-    pass
+    print(file)
+    return json.loads(file)

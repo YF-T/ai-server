@@ -21,6 +21,7 @@ const highlighted = highlight(code, prismLanguage, language)
 
 .codeviewer {
   width: 100%;
+  overflow-x: scroll;
 }
 
 pre[class*="language-"]:before {
