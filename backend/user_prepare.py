@@ -1,1 +1,4 @@
-import json ^ndef  prepare(model_input_type,file):^n    return json.loads(file)
+import json 
+def prepare(model_input_type,file):
+    print(file)
+    return json.loads(file)

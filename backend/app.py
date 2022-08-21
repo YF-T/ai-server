@@ -546,8 +546,7 @@ def testmodel_quickresponse(deployment: str):
     file = request.form['file']
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
-    prepare_py = request.form['prepare_py']
-    print(file, prepare)
+    prepare_py = request.form['prepare_py'].replace('@@', '\n')
     f1 = open("user_prepare.py", 'w', encoding='UTF-8')
     f1.write(prepare_py)
     f1.close()
@@ -557,9 +556,13 @@ def testmodel_quickresponse(deployment: str):
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
 
+    import user_prepare
+    data = user_prepare.prepare(input,file)
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
+        print('success1')
         import user_prepare
+        print('success2')
         data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
         return jsonify({'status': 'preprocess failed'})
