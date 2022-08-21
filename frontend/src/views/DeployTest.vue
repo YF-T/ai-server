@@ -25,23 +25,33 @@
           label-position="top"
           :rules="rules"
           ref="formRef"
+          class="form"
         >
-          <el-form-item label="函数名" prop="functionName">
-            <el-input v-model="form.functionName"></el-input>
+          <el-form-item label="Python 预处理代码" prop="preparationCode">
+            <CodeEditor
+              language="python"
+              :width="800"
+              :height="300"
+              :value="form.preparationCode"
+              @update:value="handleUpdate('preparationCode')"
+            />
           </el-form-item>
-          <el-form-item label="请求" prop="request">
+          <span style="text-align: left">请求内容</span>
+          <el-radio-group v-model="requestChoice" class="ml-4">
+            <el-radio label="JSON" size="small">JSON参数</el-radio>
+            <el-radio label="File" size="small">文件</el-radio>
+          </el-radio-group>
+          <el-form-item v-if="requestChoice == 'JSON'" prop="requestJSON">
             <CodeEditor
               language="javascript"
               :width="800"
-              :height="400"
-              :value="form.request"
-              @update:value="handleUpdate"
-              :options="{
-                minimap: {
-                  enabled: false,
-                },
-              }"
-            ></CodeEditor>
+              :height="300"
+              :value="form.requestJSON"
+              @update:value="handleUpdate('requestJSON')"
+            />
+          </el-form-item>
+          <el-form-item v-else="requestChoice == 'File'" prop="requestFile">
+            <input type="file" @change="chooseUploadFile" id="fileInput"/>
           </el-form-item>
           <el-form-item>
             <el-button-group>
@@ -62,10 +72,9 @@
       </el-card>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="生成代码">
-      <small>代码已复制到剪贴板</small>
+    <el-dialog v-model="dialogVisible" title="生成 CURL 代码">
       <CodeViewer :code="curlCode" language="shell"></CodeViewer>
-
+      <small>代码已复制到剪贴板</small>
       <el-button
         type="primary"
         @click="
@@ -88,7 +97,10 @@ import {
   ElInput,
   ElButton,
   ElButtonGroup,
+  ElRadio,
+  ElRadioGroup,
   ElDialog,
+  ElUpload,
   ElTag,
   ElIcon,
 } from 'element-plus'
@@ -97,21 +109,32 @@ import { reactive, ref, onMounted, nextTick } from 'vue'
 import type { FormRules, FormInstance } from 'element-plus'
 import CodeViewer from '../components/CodeViewer.vue'
 import CodeEditor from '../components/CodeEditor.vue'
-import axios from 'axios'
+import { request } from '../Util'
 import { useStore } from 'vuex'
 
-const handleClick = () => {}
 const form = reactive({
-  functionName: '',
-  request: '',
+  preparationCode: '',
+  requestJSON: '',
+  requestFile: null,
 })
+type RequestChoice = 'JSON' | 'File'
 
+const requestChoice = ref<RequestChoice>('JSON')
 const formRef = ref<FormInstance>()
 const rules = reactive<FormRules>({
-  functionName: [{ required: true, message: '请填写函数名', trigger: 'blur' }],
-  request: [{ required: true, message: '请填写请求', trigger: 'blur' }],
+  preparationCode: [
+    { required: false, message: '请填写函数名', trigger: 'blur' },
+  ],
 })
 const store = useStore()
+
+const chooseUploadFile = (e: any) => {
+  const file = e.target.files.item(0)
+  if (!file) return
+  form.requestFile = file
+  // 清空，防止上传后再上传没有反应
+  e.target.value = ''
+}
 
 const submit = () => {
   if (!formRef.value) return
@@ -123,8 +146,9 @@ const submit = () => {
       param.append('user', store.state.username)
       param.append('password', store.state.password)
       param.append('modelname', store.state.modelname)
-      param.append('input', form.request)
-      axios.post(path, { params: param }).then((res: any) => {
+      param.append('input', form.requestJSON || form.requestFile || '')
+
+      request(path, param).then((res: any) => {
         response.value = res.output
       })
       console.log('valid!')
@@ -135,8 +159,9 @@ const submit = () => {
 }
 
 const clear = () => {
-  form.functionName = ''
-  form.request = ''
+  form.preparationCode = ''
+  form.requestJSON = ''
+  form.requestFile = null
 }
 
 const response = ref('{"a": 1}')
@@ -183,10 +208,10 @@ ${endpoint.value} \
 -H 'Authorization: Bearer ${token}' \
 -H 'Cache-Control: no-cache' \
 -H 'Content-Type: application/json' \
--d ${form.request}`
+-d ${form.requestJSON}`
 
-const handleUpdate = (value: string) => {
-  form.request = value
+const handleUpdate = (key: keyof typeof form) => (value: string) => {
+  form[key] = value
 }
 </script>
 <style scoped>
@@ -218,5 +243,11 @@ const handleUpdate = (value: string) => {
 .card {
   width: 50%;
   margin: 0.5em;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  flex-gap: 10px;
 }
 </style>

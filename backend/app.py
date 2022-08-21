@@ -521,7 +521,7 @@ def testmodel_test():
                     'output': output})
 
 @app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
-def testmodel_quickresponse(deployment : str):
+def testmodel_quickresponse(deployment: str):
     '''
     名称：快速返回预测结果
     功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果（不使用多线程）
@@ -562,7 +562,7 @@ def testmodel_quickresponse(deployment : str):
         import user_prepare
         data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status':'prepare invalid'})
+        return jsonify({'status': 'preprocess failed'})
 
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
@@ -578,7 +578,7 @@ def testmodel_quickresponse(deployment : str):
                     'output': output})
 
 @app.route('/testmodel_delayresponse/<deployment>',methods=["GET","POST"])
-def testmodel_delayresponse(deployment : str):
+def testmodel_delayresponse(deployment: str):
     '''
     名称：等待返回预测结果
     功能、说明基本同testmodel_quickresponse，使用多线程
@@ -604,7 +604,7 @@ def testmodel_delayresponse(deployment : str):
         import user_prepare
         data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status': 'prepare invalid'})
+        return jsonify({'status': 'preprocess failed'})
 
     # 提取待测试模型地址
     address = find_model(user, password, modelname)
@@ -619,9 +619,9 @@ def testmodel_delayresponse(deployment : str):
     task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
-    return jsonify({'status': "success"})
+    return jsonify({'status': 'success'})
 
-@app.route('/get_result_delayresponse',methods=["GET","POST"])
+@app.route('/get_result_delayresponse',methods=["GET", "POST"])
 def get_result(user: str, password: str, taskid:str):
     '''
     功能：查询等待返回的结果
@@ -642,8 +642,8 @@ def get_result(user: str, password: str, taskid:str):
     #目前用一个list储存所有的output
     if state == False:
         return jsonify({'status': path,
-                        'output':None,
-                        'file':None})
+                        'output': None,
+                        'file': None})
     else:
         f_read = open(path, 'rb')
         output=[]

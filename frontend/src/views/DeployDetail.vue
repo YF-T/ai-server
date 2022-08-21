@@ -57,7 +57,7 @@
 <script lang="ts" setup>
 import { ElTable, ElTableColumn, ElCard, ElButton } from 'element-plus'
 import { computed } from 'vue'
-import axios from 'axios'
+import { request } from '../Util'
 import { useStore } from 'vuex'
 
 interface FunctionIndicator {
@@ -105,7 +105,7 @@ const toggle = (index: number) => {
   
   if (replicate.status == '运行中') {
     const path = 'http://127.0.0.1:5000/setdeploymentstatuspause '
-  axios.post(path, { params: param }).then((response: any) => {
+  request(path, param).then((response: any) => {
     if (response.status == 'success') {
       replicate.status = '已暂停'
     } 
@@ -113,7 +113,7 @@ const toggle = (index: number) => {
   })
   } else if (replicate.status == '已暂停') {
     const path = 'http://127.0.0.1:5000/setdeploymentstatusrunning'
-  axios.post(path, { params: param }).then((response: any) => {
+  request(path, param).then((response: any) => {
      if (response.status == 'success') {
       replicate.status = '运行中'
     }
