@@ -128,8 +128,17 @@ def upload():
         #需要把route改成文件名 第6项 filepath改
         modelname=file_name[0:-5]+'_'+modeltype
         file_path=modelname+file_name[-5:]
+        '''print('user',user)
+        print('password',password)
+        print('modelname',modelname)
+        print('modeltype',modeltype)
+        print('time',time)
+        print('file_path',file_path)
+        print('description',description)
+        print('dict',dict)'''
         save_status=database.savemodel(user, password, modelname,modeltype,time,file_path,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
+        #print('save_status',save_status)
         if save_status !='success':
             jsonify({'status': False,
                      'errortype': "can't save model",
