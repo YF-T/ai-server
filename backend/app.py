@@ -127,6 +127,7 @@ def upload():
         #储存模型
         #需要把route改成文件名 第6项 filepath改
         modelname=file_name[0:-5]+'_'+modeltype
+        file_path=modelname+file_name[-5:]
         save_status=database.savemodel(user, password, modelname,modeltype,time,modelname,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
         if save_status !='success':
