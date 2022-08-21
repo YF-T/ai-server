@@ -100,7 +100,7 @@ def upload():
     import os
     import getInfoFromModel
     #print("in")
-    
+    print(type(request.files.get('file')))
     file = request.files.get('file')
     if file is None:  #接受失败
         #print("err file")
@@ -476,7 +476,6 @@ def testmodel_test():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    print(user,password,modelname)
     if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
@@ -485,17 +484,18 @@ def testmodel_test():
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
+            print(type(request.files.get('input')))
             file = request.files.get('input')
             filepath = './textfile/' + user + '_' + modelname + '.txt'
             file.save(filepath)
-            input = prepare.prepare(None, file, request.form['filetype'], filepath)
+            input = prepare.prepare(None, file, request.form['filetype'], filepath, None)
     else:
         filetype = json.loads(request.form['filetype'])
         input = json.loads(request.form['input'])
         for variable in filetype:
             if filetype[variable] in ('jpgbase64', 'mp4base64'):
                 input[variable] = prepare.prepare(None, input[variable],
-                                                   filetype[variable], None)
+                                                   filetype[variable], None, None)
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
@@ -517,6 +517,8 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    print(output)
+    print(dict(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 

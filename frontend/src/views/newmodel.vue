@@ -45,6 +45,7 @@ export default defineComponent({
      //获取file内容
     let files:any = this.$refs.fileId;
     this.file = files.files[0];
+    console.log(this.file);
    },
     importance(){
       let param = new FormData();
