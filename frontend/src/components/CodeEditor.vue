@@ -59,6 +59,9 @@ export default defineComponent({
         value: value,
         language: language,
         theme: theme,
+        minimap: {
+          enabled: false,
+        },
         ...options,
       })
       this.diffEditor && this._setModel(this.value, this.original)
