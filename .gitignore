@@ -4,6 +4,7 @@
 /temp
 /backend/model
 /backend/output
+/backend/__pycache__
 
 # local env files
 .env.local
@@ -27,3 +28,5 @@ pnpm-debug.log*
 # database
 *.db
 node_modules
+
+
