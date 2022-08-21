@@ -325,34 +325,6 @@ def setdeploymentstatuspause():
     # 返回成功/报错
     return jsonify({'status' : status})
 
-@app.route('/fake_getmodelinfo',methods=['POST',"GET"])
-def fake_getmodelinfo():
-    user = request.form['user']
-    password = request.form['password']
-    modelname = request.form['modelname']
-    return jsonify({'status' : 'success',
-                    'modelname' : 'test',
-                    'time' : '2022-08-10 16:00:00',
-                    'modeltype' : 'pmml',
-                    'algorithm' : 'randomforest',
-                    'description' : '测试用模型',
-                    'engine' : 'pypmml',
-                    'input' : [{'name' : 'input1',
-                                'type' : 'int',
-                                'range' : '0,1,2,3',
-                                'dimension' : '5*5', 
-                                'optype' : None},
-                               {'name' : 'input2',
-                                'type' : 'int',
-                                'range' : None,
-                                'dimension' : None, 
-                                'optype' : 'don\'t know'},],
-                    'output' : [{'name' : 'output1',
-                                 'type' : 'int',
-                                 'range' : None,
-                                 'dimension' : None, 
-                                 'optype' : None},],})
-
 @app.route('/getmodelinfo',methods=["POST","GET"])
 def getmodelinfo():
     '''
@@ -438,6 +410,7 @@ def testmodel_test():
                     'invalid password' : 密码错误
                     'invalid input' : 输入不合法
                     'model not found' : 未找到模型
+                    'runtime error' : 模型运行出错
      
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
@@ -482,6 +455,8 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    if output is None:
+        return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
                     'output': dict(output)})
 
@@ -494,18 +469,13 @@ def testmodel_quickresponse(deployment : str):
      file : dict - 模型需要的变量
              或 str - 传输jpg的base64编码
              或 file - txt的文件
-     filetype : str - 'none' : 正常输入
+     filetype : str - 'none' : 正常输入(json)
                       'jpgbase64' : 图片
                       'csv' : csv
                       'txt' : txt
                       'mp4base64'
                       'mp4'
                       'zip'
-                或
-                dict - 一个表示input的元素是否危文件的字典
-                例如
-                {'input1' : 'none', 'input2' : 'jpgbase64'}
-                这时则可以从inputfile_input2中读取文件
 
     Returns:
      status : str - 'success' : 成功
