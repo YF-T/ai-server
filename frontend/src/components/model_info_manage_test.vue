@@ -61,8 +61,8 @@
               </div>
               <!-- <input type="reset" value="清空"/> -->
               <!-- <input type="submit" @click="pagechange(2)"/> -->
-              <div class="truckbuttonflex">
-                <button type="submit" class="truck-button" @click="pagechange(2,1)">
+              <div class="truckbuttonflex" @click="worduploaddata()">
+                <button type="submit" class="truck-button">
                     <span class="default">Complete Order</span>
                     <span class="success">
                         Order Placed
@@ -82,9 +82,9 @@
             <form v-show="inputtypeindex===0" onsubmit="return false">
               <div id="parent">
                 <div id="dummy"></div>
-                <textarea id="textarea" oninput="document.getElementById('dummy').textContent = this.value"></textarea>
+                <textarea id="textarea" oninput="document.getElementById('dummy').textContent = this.value" v-model="jsoninput"></textarea>
               </div>
-              <button type="submit" class='jsonsubmit' @click="pagechange(2,0)"><span>提交</span></button>
+              <button type="submit" class='jsonsubmit' @click="jsonuploaddata()"><span>提交</span></button>
             </form>
           </div>
           <div class="outputtest">
@@ -106,6 +106,7 @@ import { defineComponent } from 'vue';
 import { gsap } from "gsap";
 import { useStore } from 'vuex';
 import axios from 'axios';
+import { file } from '@babel/types';
 
 export default defineComponent({
   name: 'model_info_test',
@@ -122,16 +123,25 @@ export default defineComponent({
   data(){
     return {
       inputlist:[],
-      outputlist:[],
+      inputcontentlist:[],
+      output:'',
       store: useStore(),
       valuelist:[],
       nofileshow:[],
       inputtypeindex:1,
       fileName: '',
       batchFile: '',
+      jsoninput:'',
     }
   },
   methods:{
+    worduploaddata(){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append("filetype",'none');
+    },
     chooseUploadFile (e:any) {
       const file = e.target.files.item(0)
       if (!file) return
@@ -158,9 +168,15 @@ export default defineComponent({
       if (this.batchFile === '') {
         return alert('请选择要上传的文件')
       }
-
-      let data = new FormData()
-      data.append('upfile', this.batchFile)
+      let index = this.fileName.lastIndexOf('.');
+      let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
+      console.log(fileType);
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append("filetype",fileType);
+      param.append('upfile', this.batchFile);
       //todo
       // ajax
     },
@@ -171,9 +187,33 @@ export default defineComponent({
       let s1=document.getElementsByName("point")[i];
       s1.textContent = this.valuelist[i];
     },
-    pagechange(index:number,inputtypeindex:number){
-      this.$emit('pagechange',index);
-      this.inputtypeindex = inputtypeindex;
+    jsonuploaddata(){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append("filetype",'none');
+      param.append("input",this.jsoninput);
+      var path = 'http://127.0.0.1:5000/testmodel_test';
+      console.log("good");
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          console.log(res.data.status);
+          if(res.data.status=='success'){
+            this.output=res.data.output;
+          }
+          else{
+            if(res.data.status== 'user not found' )
+              alert("用户不存在");
+            else if(res.data.status=='invalid password' )
+              alert("密码错误");
+            else if(res.data.status=='invalid input')
+              alert("输入不合法");
+            else if(res.data.status== 'model not found' )
+              alert("未找到模型");
+          }
+        });
     },
     overviewshow(){
       let param=new FormData();
@@ -186,7 +226,6 @@ export default defineComponent({
         .then(res=> {
           if(res.data.status==='success'){
             this.inputlist = res.data.input;
-            this.outputlist = res.data.output;
           }
         });
     },

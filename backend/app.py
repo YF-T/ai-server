@@ -117,7 +117,7 @@ def upload():
         #print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
-        a=database.savemodel(user, password, modelname,modeltype,time,modelname,description,
+        a=database.savemodel(user, password, modelname,modeltype,time,file_name,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
     else:
         pass
@@ -407,7 +407,7 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
-@app.route('/testmodel_test',methods=["POST"])
+@app.route('/testmodel_test',methods=["POST","GET"])
 def testmodel_test():
     '''
     名称：测试模型
@@ -442,13 +442,17 @@ def testmodel_test():
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''
+    print(request.form['input'])
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
+    print(user,password,modelname)
     if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt', 
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
+            print("input:",input)   
+            print(type(input))
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
@@ -462,10 +466,12 @@ def testmodel_test():
         for variable in filetype:
             if filetype[variable] in ('jpgbase64', 'mp4base64'):
                 input[variable] = prepare.prepare(None, input[variable], 
-                                                   filetype[variable], None)
+                                                filetype[variable], None)
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
+    print("-------------------------------------------good")
+    print(status,inputvariables)
     if not status:
         return jsonify({'status': inputvariables})
     # 检查input是否符合输入变量的要求
@@ -473,17 +479,19 @@ def testmodel_test():
         # 若input中没有需要的变量
         if variable[0] not in input:
             return jsonify({'status': 'invalid input'})
-    
+    print("-------------------------------------------hi")
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
+    print(address)
     if address == 'model not found':
         return jsonify({'status': address})
-
+    print("-------------------------------------------goodhi")
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    print(output)
     return jsonify({'status': 'success', 
-                    'output': dict(output)})
+                     'output': dict(output)})
 
 @app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
 def testmodel_quickresponse(deployment : str):
