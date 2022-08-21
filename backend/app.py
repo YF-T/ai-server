@@ -107,17 +107,18 @@ def upload():
             'errortype':"can't get model",
             'errorinfo':'file is None'
         }
-    file_name = file.filename.replace(" ", "")
-    #print("获取上传文件的名称为[%s]\n" % file_name)
-    #保存文件
-    file_path=os.path.dirname(__file__) + '/model/' + file_name
-    file.save(os.path.dirname(__file__) + '/model/' + file_name)
     # 获取前端传入信息
     user = request.form['user']
     password = request.form['password']
+    modelname = request.form['modelname']
     modeltype = request.form['modeltype']
     time = request.form['time']
     description = request.form['description']
+    #print("获取上传文件的名称为[%s]\n" % file_name)
+    #保存文件
+    file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
+    file_path=os.path.dirname(__file__) + '/model/' + file_name
+    file.save(os.path.dirname(__file__) + '/model/' + file_name)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
     if valid:#模型有效
@@ -126,8 +127,6 @@ def upload():
         #print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
-        modelname=file_name[0:-5]+'_'+modeltype
-        file_path=modelname+file_name[-5:]
         '''print('user',user)
         print('password',password)
         print('modelname',modelname)
@@ -136,7 +135,7 @@ def upload():
         print('file_path',file_path)
         print('description',description)
         print('dict',dict)'''
-        save_status=database.savemodel(user, password, modelname,modeltype,time,file_path,description,
+        save_status=database.savemodel(user, password, modelname,modeltype,time,file_name,description,
                            dict['engine'],dict['algorithm'],dict['input_variate'],dict['predict_variate'])
         #print('save_status',save_status)
         if save_status !='success':
