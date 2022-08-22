@@ -1,21 +1,22 @@
 # 用requirements.txt搭建镜像会出错，原因未知
-# 可能是因为没有更新pip，也可能是因为国内无法访问国外的库，需要用国内镜像
-threading
-sqlite3
-os
-File
-model
-cv2
-base64
+# 所有被注释的库都不能直接搭建镜像，未被注释的可行，可能是需要指定版本
+#threading
+#sqlite3
+#os
+#File
+#model
+#cv2
+#base64
 numpy
 pandas
-json
+#json
 jsonify
-zipfile
+#zipfile
 onnx
 onnxruntime
-time
+#time
 Flask
-request
+#request
 CORS
-MyThread
+#MyThread
+#re

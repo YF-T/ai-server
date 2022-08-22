@@ -611,7 +611,7 @@ def testmodel_delayresponse(deployment: str):
     if address == 'model not found':
         return jsonify({'status': address})
 
-    # 接下来的部分需要参考database和hw4，使用多线程，同快速返回的预测过程
+    # 多线程
     #创建id
     state, id = database.createtask()
     if state == False:
