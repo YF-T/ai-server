@@ -129,7 +129,7 @@ const rules = reactive<FormRules>({
 const store = useStore()
 
 const chooseUploadFile = (e: any) => {
-  const file = e.target.files.item(0)
+  const file = e.target.files.item(0).getAsFile()
   if (!file) return
   form.requestFile = file
   // 清空，防止上传后再上传没有反应
