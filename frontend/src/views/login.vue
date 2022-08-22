@@ -118,7 +118,7 @@ h2{
   position: absolute;
   top: 50%;
   left: 50%;
-  height: 500px;
+  height: 400px;
   transform: translate(-50%,-50%);
   margin: 0;
   padding: 0;
@@ -155,14 +155,14 @@ h2 div[class="contain"]:nth-child(2){
 }
 
 h2:hover div[class="contain"]:nth-child(2){
-  transform: translateY(108px);
+  transform: translateY(120px);
 }
 
 h2 div[class="center"]{
   position: absolute;
   display: block;
   height: 200px;
-  top:50%;
+  top:55%;
   left:0;
   transform: translateY(-50%) scaleY(0);
   color:black;
