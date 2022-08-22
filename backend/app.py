@@ -1,13 +1,8 @@
 import threading
 
-import database
-
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from myThread import MyThread
-from threading import Thread
-# 以上两行是否并不使用？能否删除？
 import pickle
 
 from pypmml import Model
@@ -16,6 +11,7 @@ import onnxruntime as ort
 import json
 import os
 
+import database
 import prepare
 
 import getInfoFromModel
@@ -600,7 +596,7 @@ def testmodel_quickresponse(deployment: str):
         print('success1')
         import user_prepare
         print('success2')
-        data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
+        data = user_prepare.prepare(input, file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
         return jsonify({'status': 'preprocess failed'})
 
@@ -615,6 +611,33 @@ def testmodel_quickresponse(deployment: str):
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
                     'output': output})
+
+
+@app.route('/get_deployment_info/<deployment>', methods = ["GET", "POST"])
+def get_deployment_info(deployment: str):
+    '''
+    根据前端需求，返回当前部署的使用情况，包括：
+     deployment - 部署名称
+     times - 执行次数
+     averagecost - 平均执行时间
+     maxcost - 最大执行时间
+     mincost - 最小执行时间
+
+     Returns:
+     参考database.getdeploymentperformance的参数返回：
+     成功则返回一个四元组，从左往右依次是
+            (执行次数，平均响应时间，最大响应时间，最小响应时间，
+                首次访问时间点——初始值为None，最近一次访问时间点——初始值为None)
+     失败则为错误信息，'deployment not found' : 任务id不存在
+    '''
+    flag, output = database.getdeploymentperformance(deployment)
+    if flag:
+        return jsonify({'status': 'success', 
+                    'output': output})
+    else:  # 原则上不应该发生错误
+        return jsonify({'status': 'failed', 
+                    'output': output})
+
 
 @app.route('/testmodel_delayresponse/<deployment>',methods=["GET","POST"])
 def testmodel_delayresponse(deployment: str):

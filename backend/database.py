@@ -686,12 +686,11 @@ def getmodeldeployment(user : str, password : str, modelname : str):
     conn.close()
     return True, deployments
     
-def setdeploymentperformance(deployment : str, times : int, averagecost : float, 
-                             maxcost : float, mincost : float, 
-                             firstvisit : str, lastvisit : str):
+def setdeploymentperformance(deployment: str, times: int, averagecost: float, 
+                             maxcost: float, mincost: float, 
+                             firstvisit: str, lastvisit: str):
     '''
-    写入部署性能
-     
+    写入部署性能     
     Parameters:
      deployment - 部署名称
      times - 执行次数
@@ -729,7 +728,7 @@ def setdeploymentperformance(deployment : str, times : int, averagecost : float,
     conn.close()
     return answer
     
-def getdeploymentperformance(deployment : str):
+def getdeploymentperformance(deployment: str):
     '''
     查看部署性能
      
