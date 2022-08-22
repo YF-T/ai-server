@@ -476,7 +476,7 @@ def testmodel_test():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt',
+    if request.form['filetype'] in ('none','jpg', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
