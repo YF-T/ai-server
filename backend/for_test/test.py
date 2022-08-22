@@ -21,4 +21,46 @@ curl -X POST -F file={"""sepal length (cm)""":1.0,"""sepal width (cm)""":1.0,"""
 curl -X POST -H '{"Content-Type":"application/x-www-form-urlencoded"}' -F 'file=10' -F 'prepare_py=20' http://127.0.0.1:5000/testmodel_quickresponse/ttt
 
 curl -X POST -F user="tyf" -F password="123456" http://127.0.0.1:5000/login
+
+curl -X POST -F file=@"./input.txt" -F prepare_py="import json @@def prepare(model_input_type,file):@@    string = file.read()@@    return json.loads(string)" http://127.0.0.1:5000/testmodel_quickresponse/vvv
+
+def process_text_to_json(fileaddress: str):
+    
+    f = open(fileaddress)
+    string = f.read()
+    json_dict = json.loads(string)
+    return json_dict
+    
+    
+    
+def process_base64_to_csv(file, id: int):
+    path = './output/zip/' + str(id)
+    os.mkDir(path)
+    if not file.endswith(".zip"):
+        return jsonify({'status': 'the file is not a zip'})
+    # 若非zip文件则返回，原则上不应报错
+    f = zipfile.ZipFile(file)
+    for fz in f.namelist():  # 遍历压缩包列表中的所有文件
+        # 解压缩到路径path
+        f.extract(fz, path)
+    file_list = os.listdir(path)
+    df = pd.DataFrame()
+    for txt_address in file_list:
+        temp_address = path + '/' + txt_address
+        # 对当前txt文件地址，调用text转json函数
+        temp_json_dict = process_text_to_json(temp_address)
+        temp_df = pd.DataFrame(temp_json_dict)
+        df = pd.concat([df, temp_df])
+    return df
+    
+def prepare(model_input_type,file):
+    return process_base64_to_csv(file, 100)
+    
+import zipfile@@def process_base64_to_csv(file, id: int):@@    path = \'./output/zip/\' + str(id)@@    os.mkDir(path)@@    if not file.endswith(".zip"):@@        return jsonify({\'status\': \'the file is not a zip\'})@@    # 若非zip文件则返回，原则上不 应报错@@    f = zipfile.ZipFile(file)@@    for fz in f.namelist():  # 遍历压缩包列表中的所有文件@@        # 解压缩到路径path@@        f.extract(fz, path)@@    file_list = os.listdir(path)@@    df = pd.DataFrame()@@    for txt_address in file_list:@@        temp_address = path + \'/\' + txt_address@@        # 对当前txt文件地址，调用text转json函数@@        temp_json_dict = process_text_to_json(temp_address)@@        temp_df = pd.DataFrame(temp_json_dict)@@        df = pd.concat([df, temp_df])@@    return df@@    @@def prepare(model_input_type,file):@@    return process_base64_to_csv(file, 100)@@
+
+curl -X POST -F file=@"./input.zip" -F prepare_py="import zipfile@@import pandas as pd@@import json@@import os@@def process_text_to_json(fileaddress: str):@@    f = open(fileaddress)@@    string = f.read()@@    f.close()@@    json_dict = json.loads(string)@@    return json_dict@@def process_base64_to_csv(file, id: int):@@    path = './output/zip/' + str(id)@@    #os.makedirs(path)@@    f = zipfile.ZipFile(file)@@    for fz in f.namelist():  @@        f.extract(fz, path)@@    file_list = os.listdir(path)@@    df = pd.DataFrame()@@    for txt_address in file_list:@@        temp_address = path + '/' + txt_address@@        temp_json_dict = process_text_to_json(temp_address)@@        temp_df = pd.DataFrame(temp_json_dict, index=[0])@@        df = pd.concat([df, temp_df])@@    return df@@    @@def prepare(model_input_type,file):@@    return process_base64_to_csv(file, 100)@@" http://127.0.0.1:5000/testmodel_delayresponse/vvv
+
+curl -X POST http://127.0.0.1:5000/get_result_delayresponse/vvv/tyf_task_9
+
+/get_result_delayresponse/<deployment>/<taskid>
 '''

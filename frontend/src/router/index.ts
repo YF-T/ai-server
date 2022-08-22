@@ -1,14 +1,13 @@
-import { compile } from 'vue'
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import model_info_manage from '../views/model_info_manage.vue'
 import login from '../views/login.vue'
-import register from '../views/register.vue'
 import DeployDetail from '../views/DeployDetail.vue'
 import DeployTest from '../views/DeployTest.vue'
 import model_manage from '../views/model_manage.vue'
 import newmodel from  '../views/newmodel.vue'
 import BatchTaskList from '../views/BatchTaskList.vue'
 import TaskDetail from '../views/TaskDetail.vue'
+import Deploysum from '../views/Deploysum.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -22,14 +21,27 @@ const routes: Array<RouteRecordRaw> = [
     component: model_info_manage
   },
   {
-    path: '/deploy/info', 
-    name: 'deployInfo',
-    component: DeployDetail
-  },
-  {
-    path: '/deploy/test', 
-    name: 'deployTest',
-    component: DeployTest
+    path: "/deploy",
+    name: "deploysum",
+    component: Deploysum,
+    children: [
+      {
+        // path: '/deploy/info', 
+        path: '/deploy/', 
+        name: 'deployInfo',
+        component: DeployDetail
+      },
+      {
+        path: '/deploy/test', 
+        name: 'deployTest',
+        component: DeployTest
+      },  
+      {
+        path: '/deploy/tasks', 
+        name: 'tasks',
+        component: TaskDetail,
+      },
+    ]
   },
   {
     path: '/model_manage',
@@ -40,11 +52,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/newmodel',
     name: 'newmodel',
     component: newmodel
-  },
-  {
-    path: '/tasks', 
-    name: 'tasks',
-    component: TaskDetail,
   },
 ]
 

@@ -3,7 +3,7 @@
     <div class="model_info_show">
       <table>
         <tr>
-          <th width = "40%">任务名称</th>
+          <th width = "40%">模型名称</th>
           <th width = "20%">修改时间</th>
           <th width = "10%">类型</th>
           <th width = "20%">算法</th>

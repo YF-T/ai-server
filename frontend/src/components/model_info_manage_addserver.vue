@@ -15,8 +15,8 @@
         <label class='servername'>操作</label>
         <input type="text" v-model="operator"/>
         <div class="buttonspace">
-          <button type="button" @click="pagechange(3,0)"><span>返回</span></button>
-          <button type="submit" @click="pagechange(3,1)"><span>确认</span></button>
+          <button type="button" @click="pagechange(3)"><span>返回</span></button>
+          <button type="submit" @click="uploaddata()"><span>确认</span></button>
         </div>
       </form>
     </div>
@@ -67,10 +67,9 @@ export default defineComponent({
         return s < 10 ? ('0' + s) : s;
     },
     pagechange(index:number,button:number){
-      if(button===0){
         this.$emit('pagechange',index);
-      }
-      else{
+    },
+    uploaddata(){
         if(this.name!='' &&
         this.webtype!='' &&
         this.starttime!='' &&
@@ -82,13 +81,13 @@ export default defineComponent({
           param.append('modelname',this.store.state.modelname);
           param.append('deployment',this.name);
           param.append('time',this.getvalue())
-          var path = 'http://127.0.0.1:5000/createdeployment';
+          var path1 = 'http://127.0.0.1:5000/createdeployment';
           axios
-            .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+            .post(path1,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
             .then(res=> {
               if(res.data.status==='success'){
-                alert("设置成功");
-                this.$emit('pagechange',index);
+                this.store.commit('savewebname',this.name);
+                this.$router.push('/deploy')
               }
               else{
                 if(res.data.status==='duplication'){
@@ -104,9 +103,24 @@ export default defineComponent({
                 }
               }
               });
-          
+            var path2 = 'http://127.0.0.1:5000/setdeploymentstatusrunning';
+            axios
+            .post(path2,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+            .then(res=> {
+                if(res.data.status==='deployment not found'){
+                  alert("部署不存在");
+                }
+                else{
+                  if(res.data.status==="user not found"){
+                    alert("用户不存在");
+                  }
+                  else if(res.data.status === 'invalid password'){
+                    alert("密码错误！")
+                  }
+                }
+              }
+              );
         }
-      }
     },
   }
 });

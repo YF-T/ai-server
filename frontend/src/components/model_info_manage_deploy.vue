@@ -3,30 +3,30 @@
       <div class="deployblock">
           <div class="infoline">
             <label>部署</label>
-            <button @click="pagechange(4)"><span>添加服务</span></button>
+            <button class="add" @click="pagechange(4)"><span>添加服务</span></button>
           </div>
           <span style="white-space:pre"></span><span class="line"></span>
           <table>
             <tr>
               <th>名称</th>
-              <th>类型</th>
               <th>开始时间</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
             <tr v-if="store.state.count===0">
               <td>名称</td>
-              <td>类型</td>
               <td>开始时间</td>
               <td>状态</td>
               <td>操作</td>
             </tr>
-            <tr v-else v-for="item in weblist" :key="item">
-              <td>{{item.deployment}}</td>
-              <td>{{item.status}}</td>
-              <td>{{item.time}}</td>
-              <td>???</td>
-              <td>???</td>
+            <tr v-else v-for="item in weblist" :key="item" class="itemone">
+              <td @click="transdata(item.deployment)">{{item.deployment}}</td>
+              <td @click="transdata(item.deployment)">{{item.time}}</td>
+              <td @click="transdata(item.deployment)">{{item.status}}</td>
+              <td>
+                <button class="oper" v-if="item.status==='running'" @click="stopweb(item.deployment)"><span>暂停</span></button>
+                <button class="oper" v-else @click="startweb(item.deployment)"><span>启动</span></button>
+              </td>
             </tr>
           </table>
       </div>
@@ -53,6 +53,64 @@ export default defineComponent({
     }
   },
   methods:{
+    startweb(name:string){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append('deployment',name);
+      var path = 'http://127.0.0.1:5000/setdeploymentstatusrunning';
+      axios
+      .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+      .then(res=> {
+          if(res.data.status === 'success'){
+            this.infoshow();
+          }
+          else if(res.data.status==='deployment not found'){
+            alert("部署不存在");
+          }
+          else{
+            if(res.data.status==="user not found"){
+              alert("用户不存在");
+            }
+            else if(res.data.status === 'invalid password'){
+              alert("密码错误！")
+            }
+          }
+        }
+        );
+    },
+    stopweb(name:string){
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append('deployment',name);
+      var path = 'http://127.0.0.1:5000/setdeploymentstatuspause';
+      axios
+      .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+      .then(res=> {
+          if(res.data.status === 'success'){
+            this.infoshow();
+          }
+          else if(res.data.status==='deployment not found'){
+            alert("部署不存在");
+          }
+          else{
+            if(res.data.status==="user not found"){
+              alert("用户不存在");
+            }
+            else if(res.data.status === 'invalid password'){
+              alert("密码错误！")
+            }
+          }
+        }
+        );
+    },
+    transdata(name:string){
+      this.store.commit('savewebname',name);
+      this.$router.push('/deploy')    
+    },
     pagechange(index:number){
       this.$emit('pagechange',index);
     },
@@ -105,6 +163,7 @@ export default defineComponent({
 table{
   width: 100%;
   background: white;
+  text-align: center;
 }
 
 table th{
@@ -124,7 +183,7 @@ label {
   flex:4;
 }
 
-button{
+button[class='add']{
   flex:1;
   position: relative;
   top:8px;
@@ -140,13 +199,38 @@ button{
             inset 2px 2px 4px rgba(255, 255, 255, 0.5),2px 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-button:hover{
+button[class='add']:hover{
   box-shadow: inset -2px -2px 8px rgba(255, 255, 255, 1),inset -2px -2px 12px rgba(255, 255, 255, 0.5),
             inset 2px 2px 4px rgba(255, 255, 255, 0.5),inset 2px 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-button:hover:span{
+button[class='add']:hover:span{
   display: inline-block;
   transform: scale(0.98);
+}
+
+button[class='oper']{
+  width: 60%;
+  padding: 16px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  cursor: pointer;
+  background-color: white; 
+  color: black; 
+  border: 2px solid #90EE90;
+}
+
+button[class='oper']:hover {
+    background-color: #87CEFA;
+    color: white;
+}
+
+.itemone{
+  cursor: pointer;
 }
 </style>

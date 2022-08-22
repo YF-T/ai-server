@@ -91,13 +91,19 @@
             <label>输出</label>
             <span style="white-space:pre"></span><span class="line"></span>
             <!-- {% for %} -->
-            <div class="codeline" v-if="outputshowindex===0">
+            <div class="codeline" v-show="outputshowindex===0">
               <span style="font-size:3em">暂无结果显示</span>
             </div>
 
-            <div class="codeline" v-else>
+            <div class="codeline" v-show="outputshowindex===1">
               <span class="codeshow"> {</span>
               <span class="codeshow" v-for="(value,key) in output" :key="key"> " {{key}} " : {{value}} , </span>
+              <span class="codeshow"> }</span>
+            </div>
+
+            <div class="codeline" v-show="outputshowindex===2">
+              <span class="codeshow"> {</span>
+              <span class="codeshow">{{output}}</span>
               <span class="codeshow"> }</span>
             </div>
             <!-- {% endfor %} -->
@@ -183,10 +189,14 @@ export default defineComponent({
         .then(res=> {
           if(res.data.status=='success'){
             this.output=res.data.output;
-            this.outputshowindex = 1;
+            if(res.data.return_type=='dict')
+              this.outputshowindex = 1;
+            else if(res.data.return_type == 'str')
+              this.outputshowindex = 2;
             console.log(res.data.output);
           }
           else{
+            this.outputshowindex = 0;
             if(res.data.status== 'user not found' )
               alert("用户不存在");
             else if(res.data.status=='invalid password' )
@@ -227,7 +237,7 @@ export default defineComponent({
       }
       let index = this.fileName.lastIndexOf('.');
       let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
-      if (fileType!='txt'&&fileType!="csv"){
+      if (fileType!='txt'&&fileType!="csv"&&fileType!="jpg"){
         return alert("不支持当前文件类型")
       }
       let param=new FormData();
@@ -244,9 +254,13 @@ export default defineComponent({
           console.log("333333333333333")
           if(res.data.status=='success'){
             this.output=res.data.output;
-            this.outputshowindex = 1;
+            if(res.data.return_type=='dict')
+              this.outputshowindex = 1;
+            else if(res.data.return_type == 'str')
+              this.outputshowindex = 2;
           }
           else{
+            this.outputshowindex = 0;
             if(res.data.status== 'user not found' )
               alert("用户不存在");
             else if(res.data.status=='invalid password' )
@@ -282,9 +296,13 @@ export default defineComponent({
         .then(res=> {
           if(res.data.status=='success'){
             this.output=res.data.output;
-            this.outputshowindex = 1;
+            if(res.data.return_type=='dict')
+              this.outputshowindex = 1;
+            else if(res.data.return_type == 'str')
+              this.outputshowindex = 2;
           }
           else{
+            this.outputshowindex = 0;
             if(res.data.status== 'user not found' )
               alert("用户不存在");
             else if(res.data.status=='invalid password' )

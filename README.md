@@ -324,7 +324,7 @@
 > Raises:
 >   本函数不应该报错
 
-#### /settaskstatuspause (post)
+#### /setdeploymentstatuspause (post)
 
 > 暂停部署的服务
 >
