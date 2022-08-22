@@ -9,7 +9,7 @@ pysqlite3
 #Model 有pypmml应该就有Model，暂时不确定
 pypmml
 #cv2: 替换为opencv-python
-opencv-python
+# opencv-python
 #base64
 pybase64
 numpy
@@ -28,3 +28,4 @@ Flask-Cors
 CORS
 #MyThread 不确认是否为内置
 #re 内置
+lxml

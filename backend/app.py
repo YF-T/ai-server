@@ -127,6 +127,7 @@ def upload():
     file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
     file_path='./model/' + file_name
     file.save(file_path)
+    print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
     if valid:#模型有效
@@ -477,12 +478,20 @@ def testmodel_test():
                     
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
+     return_type : str output的类型：dict output为dict
+                                    str output为str
+                                    else output为其他类型
      '''
     
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt',
+    # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
+    # 获取用户输入变量的信息
+    #预处理需要，先提到前面
+    status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
+    print('in')
+    if request.form['filetype'] in ('none','jpg', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
@@ -490,27 +499,40 @@ def testmodel_test():
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
-            print(type(request.files.get('input')))
+            #print("in jpg")
+            #print(type(request.files.get('input')))
             file = request.files.get('input')
-            filepath = ('./inputfile/' + user + '_' + modelname 
-                        + '_' + file.filename.replace(" ", ""))
-            file.save(filepath)
-            input = prepare.prepare(None, file, request.form['filetype'], filepath, None)
+            '''if file is None:
+                print("haha")'''
+            #print('file name',file.filename)
+            filepath = (os.path.dirname(__file__)+'/input_file/' + user + '_' + modelname
+                        + '_'+file.filename.replace(" ", ""))
+            #print(filepath)
+            file_path_name=user + '_' + modelname+ '_'+file.filename.replace(" ", "")
+            file.save(os.path.dirname(__file__)+'/input_file/' +file_path_name)
+            #print('haha')
+            #多输入
+            input={}
+            for i_variate in inputvariables:
+                input_tmp = prepare.prepare(i_variate, file, request.form['filetype'], filepath, None)
+                input.update(input_tmp)
     else:
+        print('else')
         filetype = json.loads(request.form['filetype'])
         input = json.loads(request.form['input'])
         for variable in filetype:
             if filetype[variable] in ('jpgbase64', 'mp4base64'):
                 input[variable] = prepare.prepare(None, input[variable],
                                                    filetype[variable], None, None)
-    # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
-    # 获取用户输入变量的信息
-    status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
+
+
     if not status:
         return jsonify({'status': inputvariables})
     # 检查input是否符合输入变量的要求
     for variable in inputvariables:
         # 若input中没有需要的变量
+        #print("variable[0]",variable[0])
+        #print(input)
         if variable[0] not in input:
             return jsonify({'status': 'invalid input'})
 
@@ -524,11 +546,20 @@ def testmodel_test():
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
     print(output)
-    print(dict(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
+
+    type_output=str(type(output))
+    return_type='else'
+    #if type_output==''
+    if type_output== "<class 'str'>":
+        return_type='str'
+    if type_output== "<class 'dict'>":
+        return_type='dict'
+    #print(return_type)
     return jsonify({'status': 'success', 
-                    'output': output})
+                    'output': output,
+                    'return_type':return_type})
 
 @app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
 def testmodel_quickresponse(deployment: str):
@@ -706,6 +737,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         sess = ort.InferenceSession(address)  # 加载模型
         for input in data:
             output = sess.run(None, input)
+            output=str(output)
             # 储存output为文件 先用pickle，不行再改
             f_save = open(file_path, 'ab')
             pickle.dump(output, f_save)
@@ -739,6 +771,7 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
     elif suffix == 'onnx':
         sess = ort.InferenceSession(address)  # 加载模型
         output = sess.run(None, input)
+        output=str(output)
         # 注意：run函数的第二个参数必须为dict或者list
         return output
     else:
@@ -747,4 +780,4 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
 
 if __name__ == '__main__':
     database.init()
-    app.run()
+    app.run(debug = True)

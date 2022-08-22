@@ -178,7 +178,7 @@ def getmodelinfo(modelpath : str):
             "predict_variate":predict_variate_list}
 
 
-def checkmodel(user : str, password : str, modeltype:str, modelname : str):
+def checkmodel(user: str, password: str, modeltype: str, modelname: str):
     '''
     Args:
         user: 用户名
@@ -191,8 +191,8 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
         error_info:str 在不合法时返回报错，合法时为空字符串
     '''
 
-    valid=False
-    error_info='model is invalid'
+    valid = False
+    error_info = 'model is invalid'
     model = re.search(r'....$', modelname)
     file_path = "./model/" + modelname
     if (modeltype == "pmml") or (modeltype == "PMML"):
