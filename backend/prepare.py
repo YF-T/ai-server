@@ -90,6 +90,7 @@ def reshape_onnx_test(img, model_input):
 def process_text_to_json(fileaddress: str):
     f = open(fileaddress)
     string = f.read()
+    f.close()
     json_dict = json.loads(string)
     return json_dict
 # 传入文件路径，传出转化后的dict，可以直接被模型使用

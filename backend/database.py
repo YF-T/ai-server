@@ -501,17 +501,22 @@ def getdeployment(deployment : str):
     # 连接数据库
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('''SELECT user, modelname FROM deployments 
+    c.execute('''SELECT user, modelname, status FROM deployments 
                     WHERE deployment = ?''' , 
                     (deployment, ))
-    user, modelname = c.fetchone()
+    answer = c.fetchone()
+    if not bool(answer)
+        return 'model not found', None, None, None
+    user, modelname, status = answer
+    if status == 'pause':
+        return 'model pause', None, None, None
     print(user)
     c.execute('''SELECT password FROM users
                     WHERE user = ?''' , 
                     (user, ))
     password = c.fetchone()[0]
     conn.close()
-    return user, password, modelname
+    return 'success', user, password, modelname
 
 def createdeployment(user : str, password : str, modelname : str, 
                      deployment : str, time : str):
