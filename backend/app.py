@@ -486,7 +486,8 @@ def testmodel_test():
         else:
             print(type(request.files.get('input')))
             file = request.files.get('input')
-            filepath = './textfile/' + user + '_' + modelname + '.txt'
+            filepath = ('./inputfile/' + user + '_' + modelname 
+                        + '_'file.filename.replace(" ", ""))
             file.save(filepath)
             input = prepare.prepare(None, file, request.form['filetype'], filepath, None)
     else:
@@ -627,8 +628,8 @@ def testmodel_delayresponse(deployment: str):
     #成功建立新线程
     return jsonify({'status': 'success'})
 
-@app.route('/get_result_delayresponse',methods=["GET", "POST"])
-def get_result(user: str, password: str, taskid:str):
+@app.route('/get_result_delayresponse/<deployment>/<taskid>',methods=["GET", "POST"])
+def get_result(deployment: str, taskid:str):
     '''
     功能：查询等待返回的结果
     Args:
