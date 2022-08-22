@@ -24,6 +24,7 @@ onnxruntime
 Flask
 #request
 requests
+Flask-Cors
 CORS
 #MyThread 不确认是否为内置
 #re 内置

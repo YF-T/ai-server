@@ -1,5 +1,3 @@
-from msilib.schema import File
-from pyexpat import model
 import cv2
 import base64
 import numpy as np
@@ -8,12 +6,8 @@ import json
 import os
 from flask import jsonify
 import zipfile
-import onnx
-import onnxruntime as ort
 
 
-
-#脚本
 #jpg和mp4的model_input_type为单个输入变量的tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)示例代码在181行
 
 #传入jpg路径
@@ -55,8 +49,15 @@ def process_base64_to_img(base64_str: str, model_input_type):
     res = {model_input_type[0]: res}
     return res
 
+def img_to_base64(img_array):
+    # 传入图片为RGB格式numpy矩阵，传出的base64也是通过RGB的编码
+    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)  # RGB2BGR，用于cv2编码
+    encode_image = cv2.imencode(".jpg", img_array)[1]  # 用cv2压缩/编码，转为一维数组
+    byte_data = encode_image.tobytes()  # 转换为二进制
+    base64_str = base64.b64encode(byte_data).decode("ascii")  # 转换为base64
+    return base64_str
+
 def resize_img(img, model_input):
-    import re
     # 修改图片大小
     #读取所需维数及其元组个数
     shape=model_input[3]
@@ -116,7 +117,7 @@ def process_base64_mp4(file, model_input_type):
 
 # 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
 # 为了创建文件夹方便，希望最好能传入当前任务的id
-def process_base64_to_csv(file: File, id: int):
+def process_base64_to_csv(file, id: int):
     path = './output/zip/' + str(id)
     os.mkDir(path)
     if not file.endswith(".zip"):
@@ -138,7 +139,7 @@ def process_base64_to_csv(file: File, id: int):
 
 
 # 预处理总函数
-def prepare(model_input_type, file: File, filetype, fileaddress: str, id: 0):
+def prepare(model_input_type, file, filetype, fileaddress: str, id: 0):
     if filetype=="jpgbase64":
         #base64格式的jpg文件
         return process_base64_to_img(file,model_input_type)
@@ -163,17 +164,14 @@ def prepare(model_input_type, file: File, filetype, fileaddress: str, id: 0):
         #传入mp4的地址
 
     elif filetype=="zip":
-        pass
+        return process_base64_to_csv(file, id)
 
-def img_to_base64(img_array):
-    # 传入图片为RGB格式numpy矩阵，传出的base64也是通过RGB的编码
-    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)  # RGB2BGR，用于cv2编码
-    encode_image = cv2.imencode(".jpg", img_array)[1]  # 用cv2压缩/编码，转为一维数组
-    byte_data = encode_image.tobytes()  # 转换为二进制
-    base64_str = base64.b64encode(byte_data).decode("ascii")  # 转换为base64
-    return base64_str
+    else:
+        return jsonify({'invalid type'})
 
-if __name__ == '__main__':
+
+
+# if __name__ == '__main__':
 
     '''cv2_img = cv2.imread('./example/t1.jpg')
     print(type(cv2_img))
