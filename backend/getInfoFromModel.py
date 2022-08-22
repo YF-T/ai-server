@@ -1,3 +1,16 @@
+import sys
+import onnx
+import onnxruntime
+import re
+from xml.etree import ElementTree as ET
+import check_pmml_xsd.pmml_441
+import check_pmml_xsd.pmml_44
+import check_pmml_xsd.pmml_43
+import check_pmml_xsd.pmml_42
+import check_pmml_xsd.pmml_41
+import check_pmml_xsd.pmml_40
+import check_pmml_xsd.pmml_32
+
 
 def getmodelinfo(modelpath : str):
     '''
@@ -16,7 +29,6 @@ def getmodelinfo(modelpath : str):
                 ）
             predict_variate:list 预测变量 结构同输入变量
     '''
-    import re
     #返回数据
     model_type=''
     algorithm=''
@@ -121,8 +133,6 @@ def getmodelinfo(modelpath : str):
                 predict_variate_list.append(tmp_tup)
 
     if model.group() == "onnx":
-        import onnx
-        import onnxruntime
         model_type = "ONNX"
         engine = "ONNX Runtime"
         onnx_session = onnxruntime.InferenceSession(file_path)
@@ -180,17 +190,7 @@ def checkmodel(user : str, password : str, modeltype:str, modelname : str):
         legal:bool值，True表示模型合法，False表示模型不合法。若模型不合法，getmodelinfo函数返回值可能为空
         error_info:str 在不合法时返回报错，合法时为空字符串
     '''
-    import sys
-    import onnx
-    import re
-    from xml.etree import ElementTree as ET
-    import check_pmml_xsd.pmml_441
-    import check_pmml_xsd.pmml_44
-    import check_pmml_xsd.pmml_43
-    import check_pmml_xsd.pmml_42
-    import check_pmml_xsd.pmml_41
-    import check_pmml_xsd.pmml_40
-    import check_pmml_xsd.pmml_32
+
     valid=False
     error_info='model is invalid'
     model = re.search(r'....$', modelname)
