@@ -3,12 +3,13 @@
         <div class="args">
           <div class="inputblock">
             <label>输入变量</label>
-            <span style="white-space:pre">   </span><span class="line"></span>
+            <span style="white-space:pre"></span><span class="line"></span>
             <table>
               <tr>
                 <th width="30%">字段</th>
                 <th width="15%">类型</th>
-                <th width="20%">维数</th>
+                <th width="20%" v-if="modeltype==='onnx'">维数</th>
+                <th width="20%" v-else>测量</th>
                 <th width="35%">取值</th>
               </tr>
               <!-- {% for %} -->
@@ -27,11 +28,11 @@
             <span style="white-space:pre">   </span><span class="line"></span>
             <table>
               <tr>
-                <th>字段</th>
-                <th>类型</th>
-                <th v-if="modeltype==='pmml'">维数</th>
-                <th v-else>测量</th>
-                <th>取值</th>
+                <th width="30%">字段</th>
+                <th width="20%">类型</th>
+                <th width="20%" v-if="modeltype==='onnx'">维数</th>
+                <th width="20%" v-else>测量</th>
+                <th width="30%">取值</th>
               </tr>
               <tr v-for="outputone in outputlist" :key="outputone">
                 <td>{{outputone.name}}</td>

@@ -16,6 +16,10 @@ import prepare
 
 import getInfoFromModel
 
+import importlib
+import user_prepare
+import pandas as pd
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -117,8 +121,8 @@ def upload():
     #print("获取上传文件的名称为[%s]\n" % file_name)
     #保存文件
     file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
-    file_path=os.path.dirname(__file__) + '/model/' + file_name
-    file.save(os.path.dirname(__file__) + '/model/' + file_name)
+    file_path='./model/' + file_name
+    file.save(file_path)
     print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
@@ -470,7 +474,7 @@ def testmodel_test():
                     
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
-     output_type : str output的类型：dict output为dict
+     return_type : str output的类型：dict output为dict
                                     str output为str
                                     else output为其他类型
      '''
@@ -576,7 +580,11 @@ def testmodel_quickresponse(deployment: str):
      '''
     user, password, modelname = database.getdeployment(deployment)
     #从前端接收文件 具体代码需要修改
-    file = request.form['file']
+    try: 
+        file = request.form['file']
+        assert file != None
+    except: 
+        file = request.files.get('file')
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
     prepare_py = request.form['prepare_py'].replace('@@', '\n')
@@ -588,15 +596,12 @@ def testmodel_quickresponse(deployment: str):
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
-
-    import user_prepare
-    data = user_prepare.prepare(input,file)
+        
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
-        print('success1')
         import user_prepare
         print('success2')
-        data = user_prepare.prepare(input, file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
+        data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
         return jsonify({'status': 'preprocess failed'})
 
@@ -645,13 +650,17 @@ def testmodel_delayresponse(deployment: str):
     名称：等待返回预测结果
     功能、说明基本同testmodel_quickresponse，使用多线程
     '''
-    user, password, modelname = database.getdeployment(deployment)
+    status, user, password, modelname = database.getdeployment(deployment)
+    if status != 'success':
+        return jsonify({'status': status})
     # 从前端接收文件 具体代码需要修改
-    file = request.files.get('file')
-    if file is None:
+    try: 
         file = request.form['file']
+        assert file != None
+    except: 
+        file = request.files.get('file')
     # 从前端接收用户的python代码 #伪
-    prepare_py = request.form['prepare_py']
+    prepare_py = request.form['prepare_py'].replace('@@', '\n')
     f1 = open("user_prepare.py", 'w', encoding='UTF-8')
     f1.write(prepare_py)
     f1.close()
@@ -663,7 +672,7 @@ def testmodel_delayresponse(deployment: str):
 
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
-        import user_prepare
+        importlib.reload(user_prepare)
         data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
         return jsonify({'status': 'preprocess failed'})
@@ -675,13 +684,15 @@ def testmodel_delayresponse(deployment: str):
 
     # 多线程
     #创建id
-    state, id = database.createtask()
+    state, id = database.createtask(user, password, modelname, deployment)
     if state == False:
         return jsonify({'status': id})
+    print(data, type(data))
     task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success',
+                    'taskid': id})
 
 @app.route('/get_result_delayresponse/<deployment>/<taskid>',methods=["GET", "POST"])
 def get_result(deployment: str, taskid:str):
@@ -712,13 +723,14 @@ def get_result(deployment: str, taskid:str):
         while True:
             try:
                 res = pickle.load(f_read)
-                output.append(res)
+                if isinstance(out, pd.DataFrame):
+                    output = res.to_dict('records')
             except:
                 break
         f_read.close()
         return jsonify({'status':"success",
                         'output':output,
-                        'file':None})
+                        'file': None})
 
 def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str,data):
     '''
@@ -736,7 +748,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
     file_path='./output/'+id+'.pkl'
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
-        output = model.predict(input)
+        output = model.predict(data)
         # pmml模型下dataframe的输出结果仍为dataframe
         # 储存output为文件 先用pickle，不行再改
         f_save = open(file_path, 'ab')
