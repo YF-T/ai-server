@@ -548,9 +548,9 @@ def createdeployment(user : str, password : str, modelname : str,
     if not c.fetchone() is None:
         conn.close()
         return 'duplication'
-    c.execute('INSERT INTO deployments VALUES (?,?,?,?,?,?,?,?,?)', 
+    c.execute('INSERT INTO deployments VALUES (?,?,?,?,?,?,?,?,?,?,?)', 
                     (user, modelname, deployment, 'running', time,
-                     0, 0.0, 0.0, 0.0))
+                     0, 0.0, 0.0, 0.0, None, None))
     conn.commit()
     conn.close()
     return 'success'
@@ -687,7 +687,8 @@ def getmodeldeployment(user : str, password : str, modelname : str):
     return True, deployments
     
 def setdeploymentperformance(deployment : str, times : int, averagecost : float, 
-                             maxcost : float, mincost : float):
+                             maxcost : float, mincost : float, 
+                             firstvisit : str, lastvisit : str):
     '''
     写入部署性能
      
@@ -697,6 +698,8 @@ def setdeploymentperformance(deployment : str, times : int, averagecost : float,
      averagecost - 平均执行时间
      maxcost - 最大执行时间
      mincost - 最小执行时间
+     firstvisit - 最初访问时间点，初始值为None
+     lastvisit - 最近访问时间点，初始值为None
      
     Returns:
      'success' : 设置成功
@@ -709,9 +712,11 @@ def setdeploymentperformance(deployment : str, times : int, averagecost : float,
     conn = sqlite3.connect(database)
     c = conn.cursor()
     c.execute('''UPDATE deployments SET times = ?, averagecost = ?,
-                    maxcost = ?, mincost = ? 
+                    maxcost = ?, mincost = ?, 
+                    firstvisit = ?, lastvisit = ?
                     WHERE deployment = ?''' , 
-                    (times, averagecost, maxcost, mincost, deployment))
+                    (times, averagecost, maxcost, mincost, 
+                     firstvisit, lastvisit, deployment))
     c.execute('''SELECT status FROM deployments 
                     WHERE deployment = ?''' , 
                     (deployment, ))
@@ -735,7 +740,8 @@ def getdeploymentperformance(deployment : str):
      多值返回
      第一个变量为一个布尔变量，False为访问失败，True为访问成功
      成功则第二个变量为一个四元组，从左往右依次是
-            (执行次数，平均响应时间，最大响应时间，最小响应时间)
+            (执行次数，平均响应时间，最大响应时间，最小响应时间，
+                首次访问时间点——初始值为None，最近一次访问时间点——初始值为None)
      失败则为错误信息，'deployment not found' : 任务id不存在
      
     Raises:
@@ -743,7 +749,8 @@ def getdeploymentperformance(deployment : str):
     '''
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('''SELECT times, averagecost, maxcost, mincost FROM deployments 
+    c.execute('''SELECT times, averagecost, maxcost,
+                    mincost, firstvisit, lastvisit FROM deployments 
                     WHERE deployment = ?''' , 
                     (deployment, ))
     row = c.fetchone()
@@ -827,7 +834,8 @@ def init():
                         (user TEXT, modelname TEXT, 
                         deployment TEXT, status TEXT, time TEXT, 
                         times INTEGER, averagecost REAL, 
-                        maxcost REAL, mincost REAL);''')
+                        maxcost REAL, mincost REAL, 
+                        firstvisit TEXT, lastvisit TEXT);''')
         # 提交，关闭数据库
         conn.commit()
         conn.close()
