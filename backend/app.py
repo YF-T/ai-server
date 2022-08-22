@@ -1,3 +1,4 @@
+# -- coding:UTF-8 --
 import threading
 
 from flask import Flask, jsonify, request
@@ -19,6 +20,7 @@ import getInfoFromModel
 import importlib
 import pandas as pd
 import time
+import traceback
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -543,6 +545,7 @@ def testmodel_quickresponse(deployment: str):
      output : dict - 输出结果，格式服从前端要求
      '''
     start_time = time.time()
+
     status, user, password, modelname = database.getdeployment(deployment)
     if status != 'success':
         return jsonify({'status': status})
@@ -555,10 +558,18 @@ def testmodel_quickresponse(deployment: str):
         file = request.files.get('file')
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
-    prepare_py = request.form['prepare_py'].replace('@@', '\n')
-    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
-    f1.write(prepare_py)
-    f1.close()
+    try: 
+        prepare_py = request.form['prepare_py'].replace('@@', '\n')
+        assert prepare_py != None
+        f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+        f1.write(prepare_py)
+        f1.close()
+    except:
+        try: 
+            prepare_py = request.files.get('prepare_py')
+            prepare_py.save("./user_prepare.py")
+        except:
+            return jsonify({'status': 'invalid prepare_py'})
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
@@ -571,7 +582,9 @@ def testmodel_quickresponse(deployment: str):
         data = user_prepare.prepare(input, file)
         #待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status': 'preprocess failed'})
+        error = traceback.format_exc()
+        return jsonify({'status': 'preprocess failed', 
+                        'error': error})
 
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
@@ -584,16 +597,16 @@ def testmodel_quickresponse(deployment: str):
     # 更新部署相关信息，以备查询
     end_time = time.time()
     last_timecost = end_time - start_time
-    deployment_info = database.getdeploymentperformance(deployment)
+    status, deployment_info = database.getdeploymentperformance(deployment)
     run_times = deployment_info[0] + 1  # 执行次数
     average_cost = (deployment_info[0] * deployment_info[1] + last_timecost) / run_times  # 平均响应时间
     if last_timecost > deployment_info[2]:  # 最大响应时间
         maxcost = last_timecost
     if last_timecost < deployment_info[3] or deployment_info[3] == 0:  # 最小响应时间
         mincost = last_timecost
-    lastvisit = time.strftime('%Y-%m-%d %H:%M:%S', start_time)  # 直接更新最近访问时间点
+    lastvisit = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))  # 直接更新最近访问时间点
     if not deployment_info[4] == None:  # 判断是否为最初访问
-        firstvisit = lastvisit
+        firstvisit = deploymentinfo[4]
     else:
         firstvisit = lastvisit
     database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
@@ -642,16 +655,25 @@ def testmodel_delayresponse(deployment: str):
     if status != 'success':
         return jsonify({'status': status})
     # 从前端接收文件 具体代码需要修改
+    filetype = None
     try: 
         file = request.form['file']
         assert file != None
     except: 
         file = request.files.get('file')
-    # 从前端接收用户的python代码 #伪
-    prepare_py = request.form['prepare_py'].replace('@@', '\n')
-    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
-    f1.write(prepare_py)
-    f1.close()
+    # 预处理文件
+    try: 
+        prepare_py = request.form['prepare_py'].replace('@@', '\n')
+        assert prepare_py != None
+        f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+        f1.write(prepare_py)
+        f1.close()
+    except:
+        try: 
+            prepare_py = request.files.get('prepare_py')
+            prepare_py.save("./user_prepare.py")
+        except:
+            return jsonify({'status': 'invalid prepare_py'})
     # 判断输入参数是否合法，此处的input不等于待使用的input
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
@@ -663,7 +685,9 @@ def testmodel_delayresponse(deployment: str):
         importlib.reload(user_prepare)
         data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status': 'preprocess failed'})
+        error = traceback.format_exc()
+        return jsonify({'status': 'preprocess failed', 
+                        'error': error})
 
     # 提取待测试模型地址
     address = find_model(user, password, modelname)
@@ -675,7 +699,6 @@ def testmodel_delayresponse(deployment: str):
     state, id = database.createtask(user, password, modelname, deployment)
     if state == False:
         return jsonify({'status': id})
-    print(data, type(data))
     task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
