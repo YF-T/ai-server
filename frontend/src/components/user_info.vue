@@ -1,5 +1,6 @@
 <template>
   <div class="user_info_show">
+    <button v-show="$route.path!='/'&&$route.path!='/model_manage'&&$route.path!='/newmodel'" @click="changeroute">返回上一个页面</button>
     <div class="contain">
       <span>AI-server</span>
       <span>AI-server</span>
@@ -26,9 +27,16 @@ export default defineComponent({
     }
   },
   methods:{
+    changeroute(){
+      if(this.$route.path == "/model_info_manage")
+        this.$router.push('/model_manage')
+      else
+        this.$router.push("/model_info_manage")
+    },
     colorchange(){
       this.ifday = -this.ifday;
       this.$emit("colorchange",this.ifday);
+      console.log(this.$route.path);
     }
   },
 });
@@ -42,6 +50,12 @@ export default defineComponent({
   color: white;
   line-height: 60px;
   display: flex;
+  text-align: center;
+}
+
+button{
+  flex:1;
+  border-radius: 7px;
 }
 .contain{
   flex: 1;

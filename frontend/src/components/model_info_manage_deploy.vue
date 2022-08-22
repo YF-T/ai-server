@@ -21,7 +21,7 @@
               <td>状态</td>
               <td>操作</td>
             </tr>
-            <tr v-else v-for="item in weblist" :key="item">
+            <tr v-else v-for="item in weblist" :key="item" @click="transdata(item.deployment)" class="itemone">
               <td>{{item.deployment}}</td>
               <td>{{item.status}}</td>
               <td>{{item.time}}</td>
@@ -53,6 +53,10 @@ export default defineComponent({
     }
   },
   methods:{
+    transdata(name:string){
+      this.store.commit('savewebname',name);
+      this.$router.push('/deploy/info')    
+    },
     pagechange(index:number){
       this.$emit('pagechange',index);
     },
@@ -148,5 +152,9 @@ button:hover{
 button:hover:span{
   display: inline-block;
   transform: scale(0.98);
+}
+
+.itemone{
+  cursor: pointer;
 }
 </style>
