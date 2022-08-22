@@ -1,17 +1,5 @@
 <template>
   <div>
-    <div class="details">
-      <div>
-        <span class="caption">端点:</span><el-tag>{{ endpointType }}</el-tag
-        ><span class="endpoint">{{ endpoint }}</span>
-      </div>
-      <div>
-        <span class="caption">部署令牌: </span
-        ><el-icon color="#e32461" @click="copyToken" class="copy_token"
-          ><CopyDocument
-        /></el-icon>
-      </div>
-    </div>
     <div class="cards">
       <el-card style="card" class="card" shadow="never">
         <template #header>
@@ -20,13 +8,7 @@
             <el-link type="primary" @click="openDialog">生成代码</el-link>
           </div>
         </template>
-        <el-form
-          :model="form"
-          label-position="top"
-          :rules="rules"
-          ref="formRef"
-          class="form"
-        >
+        <el-form :model="form" label-position="top" ref="formRef" class="form">
           <el-form-item label="Python 预处理代码" prop="preparationCode">
             <CodeEditor
               language="python"
@@ -51,7 +33,7 @@
             />
           </el-form-item>
           <el-form-item v-else="requestChoice == 'File'" prop="requestFile">
-            <input type="file" @change="chooseUploadFile" id="fileInput"/>
+            <input type="file" @change="chooseUploadFile" id="fileInput" />
           </el-form-item>
           <el-form-item>
             <el-button-group>
@@ -73,18 +55,20 @@
     </div>
 
     <el-dialog v-model="dialogVisible" title="生成 CURL 代码">
-      <CodeViewer :code="curlCode" language="shell"></CodeViewer>
-      <small>代码已复制到剪贴板</small>
-      <el-button
-        type="primary"
-        @click="
-          () => {
-            dialogVisible = false
-          }
-        "
-      >
-        关闭
-      </el-button>
+      <div class="dialog">
+        <CodeViewer :code="curlCode" language="shell"></CodeViewer>
+        <small>代码已复制到剪贴板</small>
+        <el-button
+          type="primary"
+          @click="
+            () => {
+              dialogVisible = false
+            }
+          "
+        >
+          关闭
+        </el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -94,18 +78,13 @@ import {
   ElLink,
   ElForm,
   ElFormItem,
-  ElInput,
   ElButton,
   ElButtonGroup,
   ElRadio,
   ElRadioGroup,
   ElDialog,
-  ElUpload,
-  ElTag,
-  ElIcon,
 } from 'element-plus'
-import { CopyDocument } from '@element-plus/icons-vue'
-import { reactive, ref, onMounted, nextTick } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import type { FormRules, FormInstance } from 'element-plus'
 import CodeViewer from '../components/CodeViewer.vue'
 import CodeEditor from '../components/CodeEditor.vue'
@@ -121,11 +100,6 @@ type RequestChoice = 'JSON' | 'File'
 
 const requestChoice = ref<RequestChoice>('JSON')
 const formRef = ref<FormInstance>()
-const rules = reactive<FormRules>({
-  preparationCode: [
-    { required: false, message: '请填写函数名', trigger: 'blur' },
-  ],
-})
 const store = useStore()
 
 const chooseUploadFile = (e: any) => {
@@ -137,22 +111,26 @@ const chooseUploadFile = (e: any) => {
 }
 
 const submit = () => {
-  if (!formRef.value) return
-
-  formRef.value.validate((valid, fields) => {
-    if (valid) {
-      var path = 'http://127.0.0.1:5000/testmodel_quickresponse'
-      const param = new FormData()
-      param.append('file', form.requestJSON || form.requestFile || '')
-      param.append('prepare_py', form.preparationCode)
-      request(path, param).then((res: any) => {
-        response.value = res.output
-      })
-      console.log('valid!')
-    } else {
-      console.log('error', fields)
+  if (form.requestJSON.length == 0 || form.requestFile == null) {
+    alert('未提交请求！')
+    return
+  }
+  const path = `http://127.0.0.1:5000/testmodel_quickresponse/${store.state.webname}`
+  const param = new FormData()
+  param.append('file', form.requestJSON || form.requestFile || '')
+  param.append('prepare_py', form.preparationCode)
+  request(path, param).then((res: any) => {
+    if (res.status == 'success') {
+      response.value = res.output
+    } else if (res.status == 'runtime error') {
+      alert('运行时错误')
+    } else if (res.status == 'model not found') {
+      alert('模型不存在')
+    } else if (res.status == 'preprocess failed') {
+      alert('预处理失败，请检查语法')
     }
   })
+  
 }
 
 const clear = () => {
@@ -167,14 +145,8 @@ const dialogVisible = ref(false)
 
 const endpoint = ref('https://ddddd')
 
-const token = 'token'
-
 const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(token)
-}
-const copyToken = () => {
-  copyToClipboard(token)
-  alert('copied')
+  navigator.clipboard.writeText(text)
 }
 
 const responseEditorRef = ref()
@@ -200,11 +172,10 @@ const openDialog = () => {
 
 const endpointType = ref('POST')
 
-const curlCode = `curl -k -X '${endpointType.value}' \
-${endpoint.value} \
--H 'Authorization: Bearer ${token}' \
--H 'Cache-Control: no-cache' \
--H 'Content-Type: application/json' \
+const curlCode = `curl -k -X '${endpointType.value}' \\
+${endpoint.value} \\
+-H 'Cache-Control: no-cache' \\
+-H 'Content-Type: application/json' \\
 -d ${form.requestJSON}`
 
 const handleUpdate = (key: keyof typeof form) => (value: string) => {
@@ -246,5 +217,12 @@ const handleUpdate = (key: keyof typeof form) => (value: string) => {
   display: flex;
   flex-direction: column;
   flex-gap: 10px;
+}
+
+.dialog {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 </style>

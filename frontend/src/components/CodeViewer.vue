@@ -20,7 +20,7 @@ const highlighted = highlight(code, prismLanguage, language)
 }
 
 .codeviewer {
-  width: 100%;
+  width: auto;
   overflow-x: scroll;
 }
 

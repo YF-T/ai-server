@@ -1,3 +1,4 @@
+# -- coding:UTF-8 --
 import threading
 
 from flask import Flask, jsonify, request
@@ -573,7 +574,7 @@ def testmodel_quickresponse(deployment: str):
     
     start_time = time.time()
 
-    user, password, modelname = database.getdeployment(deployment)
+    status, user, password, modelname = database.getdeployment(deployment)
     #从前端接收文件 具体代码需要修改
     try: 
         file = request.form['file']
