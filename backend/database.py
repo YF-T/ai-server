@@ -497,7 +497,6 @@ def getdeployment(deployment : str):
     TODO
     '''
     assert isinstance(deployment, str)
-    print(deployment)
     # 连接数据库
     conn = sqlite3.connect(database)
     c = conn.cursor()
@@ -510,7 +509,6 @@ def getdeployment(deployment : str):
     user, modelname, status = answer
     if status == 'pause':
         return 'model pause', None, None, None
-    print(user)
     c.execute('''SELECT password FROM users
                     WHERE user = ?''' , 
                     (user, ))

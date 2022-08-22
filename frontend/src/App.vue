@@ -2,6 +2,23 @@
    <div :class="ifday===1? 'day' : 'night'">
     <user_info @colorchange="recolor"/>
     <router-view/>
+    <footer>
+      <span id="title">本网页仅为大作业所用，最终解释权归作者团队所有</span>
+      <div class="footer">
+        <div class="shape">
+          <span>电子邮箱</span><br/>
+          <span>待填写</span>
+        </div>
+        <div class="shape">
+          <span>联系电话</span><br/>
+          <span>待填写</span>
+        </div>
+        <div class="shape">
+          <span>github网址</span><br/>
+          <span>github待填写</span>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -160,7 +177,8 @@ export default defineComponent({
     }
   }
   },
-})</script>
+})
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -174,5 +192,52 @@ body{
 }
 .night{
   filter:invert(1);
+}
+
+footer{
+  height:180px;
+  width: 100%;
+  text-align: center;
+  background: black;
+}
+
+.footer{
+  height:150px;
+  display: flex;
+  justify-content: space-around;
+  align-items:center;
+  width: 100%;
+}
+
+.shape {
+  width: 200px;
+  height: 100px;
+  font-size:20px;
+  line-height: 50px;
+  color:black;
+  background: white;
+  position: relative;
+  -moz-border-radius:  10px;
+  -webkit-border-radius: 10px;
+  border-radius:  10px;
+}
+.shape:before {
+   content:"";
+   position: absolute;
+   right: 100%;
+   top: 26px;
+   width: 0;
+   height: 0;
+   border-top: 13px solid transparent;
+   border-right: 26px solid white;
+   border-bottom: 13px solid transparent;
+}
+
+span[id='title']{
+  position: relative;
+  top:10px;
+  font-size: 20px;
+  color:white;
+  font-weight: bold;
 }
 </style>
