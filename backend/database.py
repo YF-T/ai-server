@@ -505,7 +505,7 @@ def getdeployment(deployment : str):
                     WHERE deployment = ?''' , 
                     (deployment, ))
     answer = c.fetchone()
-    if not bool(answer)
+    if not bool(answer):
         return 'model not found', None, None, None
     user, modelname, status = answer
     if status == 'pause':
