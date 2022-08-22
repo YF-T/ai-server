@@ -731,5 +731,5 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
 
 
 if __name__ == '__main__':
-    database.init()
-    app.run()
+    database.restart()
+    app.run(debug = True)
