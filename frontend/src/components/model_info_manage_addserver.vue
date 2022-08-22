@@ -87,7 +87,7 @@ export default defineComponent({
             .then(res=> {
               if(res.data.status==='success'){
                 this.store.commit('savewebname',this.name);
-                this.$router.push('/deploy/info')
+                this.$router.push('/deploy')
               }
               else{
                 if(res.data.status==='duplication'){

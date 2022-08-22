@@ -55,7 +55,7 @@ export default defineComponent({
   methods:{
     transdata(name:string){
       this.store.commit('savewebname',name);
-      this.$router.push('/deploy/info')    
+      this.$router.push('/deploy')    
     },
     pagechange(index:number){
       this.$emit('pagechange',index);
