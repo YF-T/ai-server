@@ -13,12 +13,12 @@ import os
 
 import database
 import prepare
-
+import user_prepare
 import getInfoFromModel
 
 import importlib
-import user_prepare
 import pandas as pd
+import time
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -162,11 +162,9 @@ def upload():
 def getusermodel():
     '''
     获取用户模型信息
-
     Parameters:
      user : str - 用户名
      password : str - 密码
-
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
@@ -177,7 +175,6 @@ def getusermodel():
                     'modelname' : str - 模型名
                     'modeltype' : str - 模型类型
                     'time' : str - 模型日期
-
     Raises:
      本函数不应该报错
     '''
@@ -200,18 +197,15 @@ def getusermodel():
 def deletemodel():
     '''
     删除模型
-
     Parameters:
      user : str - 用户名
      password : str - 密码
      modelname : str - 模型名
-
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
                     'model not found' : 找不到该名称模型
-
     Raises:
      本函数不应该报错
     '''
@@ -228,12 +222,10 @@ def deletemodel():
 def getmodeldeployment():
     '''
     查看部署的服务
-
     Parameters:
      user : str - 用户名
      password : str - 密码
      modelname : str - 模型名
-
     Returns:
      status : str - 'success' : 设置成功
                     'user not found' : 用户不存在
@@ -356,34 +348,6 @@ def setdeploymentstatuspause():
     status = database.setdeploymentstatus(user, password, modelname, deployment, 'pause')
     # 返回成功/报错
     return jsonify({'status' : status})
-
-@app.route('/fake_getmodelinfo',methods=['POST',"GET"])
-def fake_getmodelinfo():
-    user = request.form['user']
-    password = request.form['password']
-    modelname = request.form['modelname']
-    return jsonify({'status' : 'success',
-                    'modelname' : 'test',
-                    'time' : '2022-08-10 16:00:00',
-                    'modeltype' : 'pmml',
-                    'algorithm' : 'randomforest',
-                    'description' : '测试用模型',
-                    'engine' : 'pypmml',
-                    'input' : [{'name' : 'input1',
-                                'type' : 'int',
-                                'range' : '0,1,2,3',
-                                'dimension' : '5*5', 
-                                'optype' : None},
-                               {'name' : 'input2',
-                                'type' : 'int',
-                                'range' : None,
-                                'dimension' : None, 
-                                'optype' : 'don\'t know'},],
-                    'output' : [{'name' : 'output1',
-                                 'type' : 'int',
-                                 'range' : None,
-                                 'dimension' : None, 
-                                 'optype' : None},],})
 
 @app.route('/getmodelinfo',methods=["POST","GET"])
 def getmodelinfo():
@@ -578,8 +542,12 @@ def testmodel_quickresponse(deployment: str):
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''
-    user, password, modelname = database.getdeployment(deployment)
+    start_time = time.time()
+    status, user, password, modelname = database.getdeployment(deployment)
+    if status != 'success':
+        return jsonify({'status': status})
     #从前端接收文件 具体代码需要修改
+    filetype = None
     try: 
         file = request.form['file']
         assert file != None
@@ -599,9 +567,9 @@ def testmodel_quickresponse(deployment: str):
         
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
-        import user_prepare
-        print('success2')
-        data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
+        importlib.reload(user_prepare)
+        data = user_prepare.prepare(input, file)
+        #待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
         return jsonify({'status': 'preprocess failed'})
 
@@ -612,6 +580,24 @@ def testmodel_quickresponse(deployment: str):
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     output = naive_test_model(address, data)
+
+    # 更新部署相关信息，以备查询
+    end_time = time.time()
+    last_timecost = end_time - start_time
+    deployment_info = database.getdeploymentperformance(deployment)
+    run_times = deployment_info[0] + 1  # 执行次数
+    average_cost = (deployment_info[0] * deployment_info[1] + last_timecost) / run_times  # 平均响应时间
+    if last_timecost > deployment_info[2]:  # 最大响应时间
+        maxcost = last_timecost
+    if last_timecost < deployment_info[3] or deployment_info[3] == 0:  # 最小响应时间
+        mincost = last_timecost
+    lastvisit = time.strftime('%Y-%m-%d %H:%M:%S', start_time)  # 直接更新最近访问时间点
+    if not deployment_info[4] == None:  # 判断是否为最初访问
+        firstvisit = lastvisit
+    else:
+        firstvisit = lastvisit
+    database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
+
     if output is None:
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
@@ -627,10 +613,12 @@ def get_deployment_info(deployment: str):
      averagecost - 平均执行时间
      maxcost - 最大执行时间
      mincost - 最小执行时间
+     firstvisit - 最初访问时间点，初始值为None
+     lastvisit - 最近访问时间点，初始值为None
 
      Returns:
      参考database.getdeploymentperformance的参数返回：
-     成功则返回一个四元组，从左往右依次是
+     成功则返回一个六元组，从左往右依次是
             (执行次数，平均响应时间，最大响应时间，最小响应时间，
                 首次访问时间点——初始值为None，最近一次访问时间点——初始值为None)
      失败则为错误信息，'deployment not found' : 任务id不存在
@@ -708,7 +696,11 @@ def get_result(deployment: str, taskid:str):
         output： 成功为返回结果，失败为None
         file: 成功为pkl文件，失败为None
     '''
-    user, password, modelname = database.getdeployment(deployment)
+    status, user, password, modelname = database.getdeployment(deployment)
+    if status != 'success':
+        return jsonify({'status': status,
+                        'output': None,
+                        'file': None})
     #调用database查询任务id对应的文件
     #path具体是啥。。（应该是taskfile的存储路径，可以直接使用）
     state, path = database.gettaskfile(user, password, taskid)
@@ -723,7 +715,7 @@ def get_result(deployment: str, taskid:str):
         while True:
             try:
                 res = pickle.load(f_read)
-                if isinstance(out, pd.DataFrame):
+                if isinstance(res, pd.DataFrame):
                     output = res.to_dict('records')
             except:
                 break
@@ -804,4 +796,4 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
 
 if __name__ == '__main__':
     database.init()
-    app.run(debug = True)
+    app.run()

@@ -143,11 +143,8 @@ const submit = () => {
     if (valid) {
       var path = 'http://127.0.0.1:5000/testmodel_quickresponse'
       const param = new FormData()
-      param.append('user', store.state.username)
-      param.append('password', store.state.password)
-      param.append('modelname', store.state.modelname)
-      param.append('input', form.requestJSON || form.requestFile || '')
-
+      param.append('file', form.requestJSON || form.requestFile || '')
+      param.append('prepare_py', form.preparationCode)
       request(path, param).then((res: any) => {
         response.value = res.output
       })
