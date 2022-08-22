@@ -7,14 +7,18 @@ from flask_cors import CORS
 
 from myThread import MyThread
 from threading import Thread
+# 以上两行是否并不使用？能否删除？
 import pickle
 
 from pypmml import Model
 import onnxruntime as ort
 
 import json
+import os
 
 import prepare
+
+import getInfoFromModel
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -97,8 +101,6 @@ def upload():
                                                                 'invalid password' : 密码错误
                                                                 'duplication' : 部署名重复
     '''
-    import os
-    import getInfoFromModel
     #print("in")
     print(type(request.files.get('file')))
     file = request.files.get('file')
@@ -190,8 +192,8 @@ def getusermodel():
     modeltitle = ['modelname', 'modeltype', 'time']
     answer = list(map(lambda x : dict(zip(modeltitle, x)), answer))
     # 返回值
-    return jsonify({'status' : 'success',
-                    'model' : answer})
+    return jsonify({'status': 'success',
+                    'model': answer})
 
 @app.route('/deletemodel',methods=["DELETE", "POST"])
 def deletemodel():
@@ -219,7 +221,7 @@ def deletemodel():
     # 执行删除
     status = database.deletemodel(user, password, modelname)
     # 返回状态
-    return jsonify({'status' : status})
+    return jsonify({'status': status})
 
 @app.route('/getmodeldeployment',methods=["GET", "POST"])
 def getmodeldeployment():
@@ -577,7 +579,6 @@ def testmodel_quickresponse(deployment: str):
         return jsonify({'status': address})
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
-    # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, data)
     if output is None:
         return jsonify({'status': 'runtime error'})
@@ -705,7 +706,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         pass
 
 
-# 以下函数基本只适用于测试界面
+# 以下函数只适用于测试界面
 def find_model(user: str, password: str, modelname: str):
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
@@ -716,13 +717,15 @@ def find_model(user: str, password: str, modelname: str):
 
 def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于测试界面快速返回
     suffix = address[-4:]
-    if suffix == 'pmml':  # 模型为pmml格式
+    # 模型为pmml
+    if suffix == 'pmml':
         model = Model.fromFile(address)
         output = model.predict(input)
         if not output is None:
             output = dict(output)
         return output
-    elif suffix == 'onnx':  # 模型为onnx格式
+    # 模型为onnx
+    elif suffix == 'onnx':
         sess = ort.InferenceSession(address)  # 加载模型
         output = sess.run(None, input)
         # 注意：run函数的第二个参数必须为dict或者list
