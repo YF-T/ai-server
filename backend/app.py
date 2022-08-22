@@ -100,7 +100,7 @@ def upload():
     import os
     import getInfoFromModel
     #print("in")
-    
+    print(type(request.files.get('file')))
     file = request.files.get('file')
     if file is None:  #接受失败
         #print("err file")
@@ -484,6 +484,7 @@ def testmodel_test():
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
+            print(type(request.files.get('input')))
             file = request.files.get('input')
             filepath = './textfile/' + user + '_' + modelname + '.txt'
             file.save(filepath)
@@ -494,7 +495,7 @@ def testmodel_test():
         for variable in filetype:
             if filetype[variable] in ('jpgbase64', 'mp4base64'):
                 input[variable] = prepare.prepare(None, input[variable],
-                                                   filetype[variable], None)
+                                                   filetype[variable], None, None)
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
@@ -515,6 +516,8 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    print(output)
+    print(dict(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
@@ -546,8 +549,7 @@ def testmodel_quickresponse(deployment: str):
     file = request.form['file']
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
-    prepare_py = request.form['prepare_py']
-    print(file, prepare)
+    prepare_py = request.form['prepare_py'].replace('@@', '\n')
     f1 = open("user_prepare.py", 'w', encoding='UTF-8')
     f1.write(prepare_py)
     f1.close()
@@ -557,9 +559,13 @@ def testmodel_quickresponse(deployment: str):
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
 
+    import user_prepare
+    data = user_prepare.prepare(input,file)
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
+        print('success1')
         import user_prepare
+        print('success2')
         data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
         return jsonify({'status': 'preprocess failed'})

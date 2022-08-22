@@ -4,7 +4,7 @@
           <div class="inputtest">
             <div class="infoline">
               <label>输入</label>
-              <button class='inputtype' @click="input(2)"><span>单文件输入</span></button>
+              <button class='inputtype' @click="input(2)"><span>文件输入</span></button>
               <button class='inputtype' @click="input(1)"><span>表单输入</span></button>
               <button class='inputtype' @click="input(0)"><span>JSON输入</span></button>
             </div>
@@ -22,7 +22,7 @@
           
               <div class="footer">
                 <input type="file" id="fileInput" @change="chooseUploadFile" style="display: none;">
-                <label for="fileInput" v-if="fileName" style="color: #11A8FF; cursor: pointer">选择文件</label>
+                <label class="jsonsubmit" for="fileInput" v-if="fileName" style="font-size:20px;width:200px;cursor: pointer"><span>重新选择文件</span></label>
                 <button class='jsonsubmit' @click="uploadOk"><span>提交</span></button>
               </div>
             </div>
@@ -30,11 +30,11 @@
               <!-- 需要知道变量名和变量类型，变量数量-->
               <!-- {% for %} -->
               <div v-for="(inputone,i) in inputlist" :key="inputone">
-                <label class="argsname">{{inputone.name}}:</label>
+                <label class="argsname">{{inputnamelist[i]}}:</label>
                 <label class="radiolabel">输入方式选择：</label>
                   <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' />文本框输入</label>
                   <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='0' />文件输入</label><br/>
-                <input type="file" v-if="nofileshow[i]==='0'"/>
+                <input type="file" v-if="nofileshow[i]==='0'" />
                 <div class="parent" v-else>
                   <div class="dummy" name='point'></div>
                   <textarea class="textarea" v-on:input="test(i)" v-model="valuelist[i]"></textarea>
@@ -91,9 +91,14 @@
             <label>输出</label>
             <span style="white-space:pre"></span><span class="line"></span>
             <!-- {% for %} -->
-            <div class="codeline">
-              <span class="order"> 1 </span>
-              <span class="codeshow"> {} </span>
+            <div class="codeline" v-if="outputshowindex===0">
+              <span style="font-size:3em">暂无结果显示</span>
+            </div>
+
+            <div class="codeline" v-else>
+              <span class="codeshow"> {</span>
+              <span class="codeshow" v-for="(value,key) in output" :key="key"> " {{key}} " : {{value}} , </span>
+              <span class="codeshow"> }</span>
             </div>
             <!-- {% endfor %} -->
           </div>
@@ -106,7 +111,7 @@ import { defineComponent } from 'vue';
 import { gsap } from "gsap";
 import { useStore } from 'vuex';
 import axios from 'axios';
-import { file } from '@babel/types';
+
 
 export default defineComponent({
   name: 'model_info_test',
@@ -123,24 +128,78 @@ export default defineComponent({
   data(){
     return {
       inputlist:[],
-      inputcontentlist:[],
       output:'',
       store: useStore(),
       valuelist:[],
+      // filelist:[],
       nofileshow:[],
       inputtypeindex:1,
       fileName: '',
       batchFile: '',
       jsoninput:'',
+      inputnamelist:new Array(),
+      outputshowindex: 0,
     }
   },
   methods:{
+    MapTOJson(m:any){
+       var str = '{\n';
+      var i = 1;
+      m.forEach(function (item:any, key:string, mapObj:any) {
+        if(mapObj.size == i){
+          str += '"'+ key+'":'+ item +"\n";
+        }else{
+          str += '"'+ key+'":'+ item + ',\n';
+        }
+        i++;
+      });
+      str +='}';
+      return str;
+    },
     worduploaddata(){
       let param=new FormData();
       param.append('user',this.store.state.username);
       param.append('password',this.store.state.password);
       param.append('modelname',this.store.state.modelname);
       param.append("filetype",'none');
+
+      let inputcontent = new Map();
+      for (let index = 0; index < this.inputlist.length; index++){
+        if(this.nofileshow[index]==0){
+          alert("暂不支持输入文件");
+          return
+        }
+        else{
+          inputcontent.set(this.inputnamelist[index],this.valuelist[index]);
+        }
+      }
+      var content = this.MapTOJson(inputcontent);
+      console.log(content);
+      param.append("input",content);
+      console.log("wai")
+      var path = 'http://127.0.0.1:5000/testmodel_test';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          if(res.data.status=='success'){
+            this.output=res.data.output;
+            this.outputshowindex = 1;
+            console.log(res.data.output);
+          }
+          else{
+            if(res.data.status== 'user not found' )
+              alert("用户不存在");
+            else if(res.data.status=='invalid password' )
+              alert("密码错误");
+            else if(res.data.status=='invalid input')
+              alert("输入不合法");
+            else if(res.data.status== 'model not found' )
+              alert("未找到模型");
+            else if(res.data.status=='runtime error')
+              alert("模型运行出错")
+          }
+        });
+      
     },
     chooseUploadFile (e:any) {
       const file = e.target.files.item(0)
@@ -157,8 +216,6 @@ export default defineComponent({
     fileDrop (e:any) {
       e.preventDefault()
       const file = e.dataTransfer.files[0] // 获取到第一个上传的文件对象
-      console.log(file)
-      console.log('拖拽释放鼠标时')
       if (!file) return
       this.batchFile = file
       this.fileName = file.name
@@ -168,15 +225,40 @@ export default defineComponent({
       if (this.batchFile === '') {
         return alert('请选择要上传的文件')
       }
-      // let index = this.fileName.lastIndexOf('.');
-      // let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
-      // console.log(fileType);
-      // let param=new FormData();
-      // param.append('user',this.store.state.username);
-      // param.append('password',this.store.state.password);
-      // param.append('modelname',this.store.state.modelname);
-      // param.append("filetype",fileType);
-      // param.append('upfile', this.batchFile);
+      let index = this.fileName.lastIndexOf('.');
+      let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
+      if (fileType!='txt'&&fileType!="csv"){
+        return alert("不支持当前文件类型")
+      }
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append("filetype",fileType);
+      param.append('input', this.batchFile);
+      console.log("22222222222222")
+      var path = 'http://127.0.0.1:5000/testmodel_test';
+      axios
+        .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+        .then(res=> {
+          console.log("333333333333333")
+          if(res.data.status=='success'){
+            this.output=res.data.output;
+            this.outputshowindex = 1;
+          }
+          else{
+            if(res.data.status== 'user not found' )
+              alert("用户不存在");
+            else if(res.data.status=='invalid password' )
+              alert("密码错误");
+            else if(res.data.status=='invalid input')
+              alert("输入不合法");
+            else if(res.data.status== 'model not found' )
+              alert("未找到模型");
+            else if(res.data.status=='runtime error')
+              alert("模型运行出错")
+          }
+        });
       //todo
       // ajax
     },
@@ -195,13 +277,12 @@ export default defineComponent({
       param.append("filetype",'none');
       param.append("input",this.jsoninput);
       var path = 'http://127.0.0.1:5000/testmodel_test';
-      console.log("good");
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then(res=> {
-          console.log(res.data.status);
           if(res.data.status=='success'){
             this.output=res.data.output;
+            this.outputshowindex = 1;
           }
           else{
             if(res.data.status== 'user not found' )
@@ -224,7 +305,13 @@ export default defineComponent({
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then(res=> {
+          console.log("参数名称");
           if(res.data.status==='success'){
+            console.log("test");
+            for (let index = 0; index < res.data.input.length; index++){
+              this.inputnamelist[index] = res.data.input[index].name;
+              console.log(this.inputnamelist[index]);
+            }
             this.inputlist = res.data.input;
           }
         });
@@ -372,12 +459,12 @@ textarea{
   display:block;
   margin: 20px;
   height: 400px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: white;
   text-align:left;
   border: 4px solid rgb(179, 191, 231);
   border-radius:10px;
-
 }
 
 .infoline {
@@ -428,8 +515,8 @@ input {
 }
 
 div[class='codeline']{
-  display: flex;
-  height: 1em;
+  position: relative;
+  left:20px;
 }
 
 span[class='order']{
@@ -442,7 +529,7 @@ span[class='order']{
 
 span[class='codeshow']{
   display: block;
-  margin: 10px 0px;
+  margin: 10px 20px 10px 0px;
   line-height: 1em;
 }
 
@@ -585,6 +672,8 @@ div[class="content"]{
 div[class="footer"]{
   display: flex;
   justify-content: center;
+  flex-direction: column;
+  text-align: center;
 }
 .upfile{
   font-size: 20px;
