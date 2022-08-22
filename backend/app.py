@@ -474,7 +474,7 @@ def testmodel_test():
                     
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
-     output_type : str output的类型：dict output为dict
+     return_type : str output的类型：dict output为dict
                                     str output为str
                                     else output为其他类型
      '''
