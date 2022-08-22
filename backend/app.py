@@ -474,6 +474,9 @@ def testmodel_test():
                     
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
+     output_type : str output的类型：dict output为dict
+                                    str output为str
+                                    else output为其他类型
      '''
     
     user = request.form['user']
@@ -483,7 +486,7 @@ def testmodel_test():
     # 获取用户输入变量的信息
     #预处理需要，先提到前面
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
-    #print('in')
+    print('in')
     if request.form['filetype'] in ('none','jpg', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
@@ -498,6 +501,8 @@ def testmodel_test():
             '''if file is None:
                 print("haha")'''
             #print('file name',file.filename)
+            filepath = (os.path.dirname(__file__)+'/input_file/' + user + '_' + modelname
+                        + '_'+file.filename.replace(" ", ""))
             #print(filepath)
             file_path_name=user + '_' + modelname+ '_'+file.filename.replace(" ", "")
             file.save(os.path.dirname(__file__)+'/input_file/' +file_path_name)
@@ -537,12 +542,20 @@ def testmodel_test():
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
     print(output)
-    #print("haha")
-    #print(dict(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
+
+    type_output=str(type(output))
+    return_type='else'
+    #if type_output==''
+    if type_output== "<class 'str'>":
+        return_type='str'
+    if type_output== "<class 'dict'>":
+        return_type='dict'
+    #print(return_type)
     return jsonify({'status': 'success', 
-                    'output': output})
+                    'output': output,
+                    'return_type':return_type})
 
 @app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
 def testmodel_quickresponse(deployment: str):
