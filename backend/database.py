@@ -342,7 +342,7 @@ def deletemodel(user : str, password : str, modelname : str):
     conn.close()
     return 'success'
     
-def createtask(user : str, password : str, modelname : str):
+def createtask(user : str, password : str, modelname : str, deployment : str):
     '''
     创建一个新的任务词条，返回任务id
      
@@ -377,7 +377,7 @@ def createtask(user : str, password : str, modelname : str):
                     (delayresponsetaskid + 1, user))
     taskid = user + '_task_' + str(delayresponsetaskid)
     c.execute('INSERT INTO delayresponsetasks VALUES (?,?,?,?,?)', 
-                    (user, taskid, modelname, 'running', 'None'))
+                    (user, taskid, modelname, deployment, 'None'))
     conn.commit()
     conn.close()
     return True, taskid

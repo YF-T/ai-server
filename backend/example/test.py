@@ -55,7 +55,14 @@ if __name__ == '__main__':
     else:
         c=haha.admin()
         print(c)'''
-    f_save = open('file.pkl', 'ab')
+    dict1={'a':"haha"}
+    dict2={'b':"hihi"}
+    dict1.update(dict2)
+    print(dict1)
+    dict3 = {'c': "xixi"}
+    dict1.update(dict3)
+    print(dict1)
+    '''f_save = open('file.pkl', 'ab')
     dict={'a':"haha"}
     pickle.dump(dict, f_save)
     f_save.close()
@@ -70,7 +77,7 @@ if __name__ == '__main__':
             print(a)
         except:
             break
-    f_read.close()
+    f_read.close()'''
 
 
 
