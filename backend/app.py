@@ -100,7 +100,7 @@ def upload():
     import os
     import getInfoFromModel
     #print("in")
-    
+    print(type(request.files.get('file')))
     file = request.files.get('file')
     if file is None:  #接受失败
         #print("err file")
@@ -476,7 +476,6 @@ def testmodel_test():
     user = request.form['user']
     password = request.form['password']
     modelname = request.form['modelname']
-    print(user,password,modelname)
     if request.form['filetype'] in ('none', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
@@ -485,21 +484,21 @@ def testmodel_test():
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
+            print(type(request.files.get('input')))
             file = request.files.get('input')
             filepath = './textfile/' + user + '_' + modelname + '.txt'
             file.save(filepath)
-            input = prepare.prepare(None, file, request.form['filetype'], filepath)
+            input = prepare.prepare(None, file, request.form['filetype'], filepath, None)
     else:
         filetype = json.loads(request.form['filetype'])
         input = json.loads(request.form['input'])
         for variable in filetype:
             if filetype[variable] in ('jpgbase64', 'mp4base64'):
                 input[variable] = prepare.prepare(None, input[variable],
-                                                   filetype[variable], None)
+                                                   filetype[variable], None, None)
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     # 获取用户输入变量的信息
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
-    print(status,inputvariables)
     if not status:
         return jsonify({'status': inputvariables})
     # 检查input是否符合输入变量的要求
@@ -517,13 +516,15 @@ def testmodel_test():
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
+    print(output)
+    print(dict(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
-                    'output': dict(output)})
+                    'output': output})
 
 @app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
-def testmodel_quickresponse(deployment : str):
+def testmodel_quickresponse(deployment: str):
     '''
     名称：快速返回预测结果
     功能：接受传入的模型设定参数，使用模型进行测试，并返回测试结果（不使用多线程）
@@ -531,13 +532,7 @@ def testmodel_quickresponse(deployment : str):
      file : dict - 模型需要的变量
              或 str - 传输jpg的base64编码
              或 file - txt的文件
-     filetype : str - 'none' : 正常输入(json)
-                      'jpgbase64' : 图片
-                      'csv' : csv
-                      'txt' : txt
-                      'mp4base64'
-                      'mp4'
-                      'zip'
+     prepare_py : str - 用户函数
 
     Returns:
      status : str - 'success' : 成功
@@ -551,10 +546,10 @@ def testmodel_quickresponse(deployment : str):
      '''
     user, password, modelname = database.getdeployment(deployment)
     #从前端接收文件 具体代码需要修改
-    file=request.form['file']
+    file = request.form['file']
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
-    prepare_py = request.form['prepare_py']
+    prepare_py = request.form['prepare_py'].replace('@@', '\n')
     f1 = open("user_prepare.py", 'w', encoding='UTF-8')
     f1.write(prepare_py)
     f1.close()
@@ -564,12 +559,16 @@ def testmodel_quickresponse(deployment : str):
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
 
+    import user_prepare
+    data = user_prepare.prepare(input,file)
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
+        print('success1')
         import user_prepare
+        print('success2')
         data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status':'prepare invalid'})
+        return jsonify({'status': 'preprocess failed'})
 
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
@@ -579,17 +578,22 @@ def testmodel_quickresponse(deployment : str):
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, data)
-    return output
+    if output is None:
+        return jsonify({'status': 'runtime error'})
+    return jsonify({'status': 'success', 
+                    'output': output})
 
 @app.route('/testmodel_delayresponse/<deployment>',methods=["GET","POST"])
-def testmodel_delayresponse(deployment : str):
+def testmodel_delayresponse(deployment: str):
     '''
     名称：等待返回预测结果
     功能、说明基本同testmodel_quickresponse，使用多线程
     '''
     user, password, modelname = database.getdeployment(deployment)
     # 从前端接收文件 具体代码需要修改
-    file = request.form['modelname']
+    file = request.files.get('file')
+    if file is None:
+        file = request.form['file']
     # 从前端接收用户的python代码 #伪
     prepare_py = request.form['prepare_py']
     f1 = open("user_prepare.py", 'w', encoding='UTF-8')
@@ -606,7 +610,7 @@ def testmodel_delayresponse(deployment : str):
         import user_prepare
         data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status': 'prepare invalid'})
+        return jsonify({'status': 'preprocess failed'})
 
     # 提取待测试模型地址
     address = find_model(user, password, modelname)
@@ -618,12 +622,12 @@ def testmodel_delayresponse(deployment : str):
     state, id = database.createtask()
     if state == False:
         return jsonify({'status': id})
-    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id,data))
+    task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
-    return jsonify({'status': "success"})
+    return jsonify({'status': 'success'})
 
-@app.route('/get_result_delayresponse',methods=["GET","POST"])
+@app.route('/get_result_delayresponse',methods=["GET", "POST"])
 def get_result(user: str, password: str, taskid:str):
     '''
     功能：查询等待返回的结果
@@ -639,13 +643,13 @@ def get_result(user: str, password: str, taskid:str):
     '''
     user, password, modelname = database.getdeployment(deployment)
     #调用database查询任务id对应的文件
-    #path具体是啥。。
-    state,path=database.gettaskfile(user,password,taskid)
+    #path具体是啥。。（应该是taskfile的存储路径，可以直接使用）
+    state, path = database.gettaskfile(user, password, taskid)
     #目前用一个list储存所有的output
     if state == False:
         return jsonify({'status': path,
-                        'output':None,
-                        'file':None})
+                        'output': None,
+                        'file': None})
     else:
         f_read = open(path, 'rb')
         output=[]
@@ -714,6 +718,8 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
         output = model.predict(input)
+        if not output is None:
+            output = dict(output)
         return output
     elif suffix == 'onnx':  # 模型为onnx格式
         sess = ort.InferenceSession(address)  # 加载模型
@@ -726,4 +732,4 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
 
 if __name__ == '__main__':
     database.init()
-    app.run(debug=True)
+    app.run()

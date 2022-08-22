@@ -1,3 +1,5 @@
+# 用requirements.txt搭建镜像会出错，原因未知
+# 可能是因为没有更新pip，也可能是因为国内无法访问国外的库，需要用国内镜像
 threading
 sqlite3
 os
@@ -17,4 +19,3 @@ Flask
 request
 CORS
 MyThread
-threading
