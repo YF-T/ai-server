@@ -1,28 +1,28 @@
 <template>
-<div>
-  <div id="main">
-  <div></div>
-  <div id="name">
-  <label class="mname">名称:</label><input type='text' v-model="modelname" />
+  <div>
+    <div id="main">
+      <div></div>
+      <div id="name">
+        <label class="mname">名称:</label><input type='text' v-model="modelname" />
+      </div>
+      <div></div>
+      <div></div>
+      <div id = "button" class="mname" @click="importance">导入</div>
+      <div id="type">
+        <label class="mname">类型: </label>
+        <select v-model="modeltype">
+          <option value ="pmml">pmml</option>
+          <option value ="onnx">onnx</option>
+        </select>
+      </div>
+      <div id="myfile">
+        <input id="inputfile" type="file" ref="fileId" @change="getFile">
+      </div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="back" @click="back">返回</div>
   </div>
-  <div></div>
-  <div></div>
-  <div id = "button" class="mname" @click="importance">导入</div>
-  <div id="type">
-  <label class="mname">类型: </label>
-  <select v-model="modeltype">
-    <option value ="pmml">pmml</option>
-    <option value ="onnx">onnx</option>
-  </select>
-  </div>
-  <div id="myfile">
-    <input id="inputfile" type="file" ref="fileId" @change="getFile">
-  </div>
-  <div></div>
-  <div></div>
-  </div>
-  <div class="back" @click="back">返回</div>
-</div>
 </template>
 
 <script lang="ts">
@@ -50,14 +50,14 @@ export default defineComponent({
   },
   methods:{
     getFile(){
-     //获取file内容
-    let files:any = this.$refs.fileId;
-    this.file = files.files[0];
-    //this.filename = this.file.name;
-    console.log(files.files);
-    console.log(this.file);
+      //获取file内容
+      let files:any = this.$refs.fileId;
+      this.file = files.files[0];
+      //this.filename = this.file.name;
+      console.log(files.files);
+      console.log(this.file);
 
-   },
+    },
     back(){
       this.$router.push('/model_manage');
     },
@@ -66,6 +66,7 @@ export default defineComponent({
       param.append('user',this.store.state.username);
       param.append('password',this.store.state.password);
       param.append('modeltype',this.modeltype);
+      param.append('modelname',this.modelname);
       param.append('file',this.file);
       param.append('time',current);
       param.append('description',this.op);
@@ -75,19 +76,29 @@ export default defineComponent({
             console.log(response.data);
             if (response.data.status === false)
             {
-              alert("对不起，您的模型上传失败了！");
+              if(response.data.errortype === 'can\'t save model')
+              {alert("对不起，您的模型上传失败了！原因是模型存入数据库过程出错");}
+              else if(response.data.errortype === 'model is invalid')
+              {alert("对不起，您的模型上传失败了！原因是模型无效");}
+              else if(response.data.errortype === '’can\'t get model‘')
+              {alert("对不起，您的模型上传失败了！原因是接收不到模型");}
+
             }
+            else
+            {
+              let data = {
+                modelname:this.modelname,
+                modeltype:this.modeltype,
+                time:this.time,
+                op:"???"
+              }
+              this.store.commit('savemodelname',this.modelname);
+              this.store.commit('savedetail',data);
+              this.$router.push('/model_info_manage');
+            }
+
           });
 
-      let data = {
-        modelname:this.modelname,
-        modeltype:this.modeltype,
-        time:this.time,
-        op:"???"
-      }
-      this.store.commit('savemodelname',this.modelname);
-      this.store.commit('savedetail',data);
-      this.$router.push('/model_info_manage');
     }
   }
 
