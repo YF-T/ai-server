@@ -6,6 +6,7 @@ export default createStore({
         username: "未登录",
         password: "",
         modelname:'test2',
+        webname:'',
         details:[]
     },
     mutations:{
@@ -18,6 +19,10 @@ export default createStore({
         },
         savemodelname(state,modelname){
             state.modelname=modelname;
+        },
+        savewebname(state,webname){
+            state.webname = webname;
+            console.log(webname);
         },
         savedetail(state,data){
             state.details.push(data)

@@ -51,7 +51,7 @@ export default defineComponent({
       param.append('user', this.store.state.username);
       param.append('password', this.store.state.password);
       var path = 'http://127.0.0.1:5000/getusermodel ';
-      axios.get(path, {params: param})
+      axios.post(path, param)
           .then(response => {
             console.log(response);
             this.data = response.data.model
@@ -86,7 +86,7 @@ button{
 .body{
   height:400px;
   width:830px;
-  overflow-y: scroll;
+  overflow-y: auto;
   margin:auto;
 }
 
