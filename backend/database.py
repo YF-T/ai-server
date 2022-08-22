@@ -505,7 +505,7 @@ def getdeployment(deployment : str):
                     WHERE deployment = ?''' , 
                     (deployment, ))
     answer = c.fetchone()
-    if not bool(answer)
+    if not bool(answer):
         return 'model not found', None, None, None
     user, modelname, status = answer
     if status == 'pause':
@@ -743,7 +743,7 @@ def getdeploymentperformance(deployment: str):
     Returns:
      多值返回
      第一个变量为一个布尔变量，False为访问失败，True为访问成功
-     成功则第二个变量为一个四元组，从左往右依次是
+     成功则第二个变量为一个六元组，从左往右依次是
             (执行次数，平均响应时间，最大响应时间，最小响应时间，
                 首次访问时间点——初始值为None，最近一次访问时间点——初始值为None)
      失败则为错误信息，'deployment not found' : 任务id不存在
