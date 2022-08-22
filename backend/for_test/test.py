@@ -16,13 +16,13 @@ response = requests.post('http://127.0.0.1:5000/testmodel_quickresponse/ttt', fi
 print('输出：')
 print(response.content.decode('utf-8'))
 '''
-curl -X POST -F file={"""sepal length (cm)""":1.0,"""sepal width (cm)""":1.0,"""petal length (cm)""":1.0,"""petal width (cm)""":1.0} -F prepare_py="import json @@def prepare(model_input_type,file):@@    print(file)@@    return json.loads(file)" http://127.0.0.1:5000/testmodel_quickresponse/ttt
+curl -X POST -F file={"""sepal length (cm)""":1.0,"""sepal width (cm)""":1.0,"""petal length (cm)""":1.0,"""petal width (cm)""":1.0} -F prepare_py="import json @@def prepare(model_input_type,file):@@    print(file)@@    return json.loads(file)" http://127.0.0.1:5000/testmodel_quickresponse/qqq
 
 curl -X POST -H '{"Content-Type":"application/x-www-form-urlencoded"}' -F 'file=10' -F 'prepare_py=20' http://127.0.0.1:5000/testmodel_quickresponse/ttt
 
 curl -X POST -F user="tyf" -F password="123456" http://127.0.0.1:5000/login
 
-curl -X POST -F file=@"./input.txt" -F prepare_py="import json @@def prepare(model_input_type,file):@@    string = file.read()@@    return json.loads(string)" http://127.0.0.1:5000/testmodel_quickresponse/vvv
+curl -X POST -F file=@"./input.txt" -F prepare_py="import json @@def prepare(model_input_type,file):@@    string = file.read()@@    return json.loads(string)" http://127.0.0.1:5000/testmodel_quickresponse/qqq
 
 def process_text_to_json(fileaddress: str):
     
