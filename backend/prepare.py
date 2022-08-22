@@ -142,10 +142,10 @@ def process_base64_to_csv(file, id: int):
 def prepare(model_input_type, file, filetype, fileaddress: str, id: 0):
     if filetype=="jpgbase64":
         #base64格式的jpg文件
-        return process_base64_to_img(fileaddress,model_input_type)
+        return process_base64_to_img(file,model_input_type)
 
     elif filetype=="jpg":
-        return process_img_path(file, model_input_type)
+        return process_img_path(fileaddress, model_input_type)
         # 传入jpg的地址
 
     elif filetype=="csv":
