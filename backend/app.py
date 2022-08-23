@@ -124,6 +124,7 @@ def upload():
     print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
+    err_info=str(err_info)
     if valid: # 模型有效
         # 从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
