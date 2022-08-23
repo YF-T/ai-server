@@ -136,12 +136,12 @@ nav{
   line-height: 100px;
 	color: white;
 	font-weight: bold;
+  font-size: 24px;
 }
 
 .item li a[class="active"]{
   background:white;
   color:black;
-  
 }
 
 .item li a[class="no"]:hover{
