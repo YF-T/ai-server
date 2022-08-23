@@ -4,6 +4,7 @@
 /temp
 /backend/model
 /backend/output
+/backend/input_file
 /backend/__pycache__
 
 # local env files
