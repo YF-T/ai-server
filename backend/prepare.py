@@ -51,6 +51,9 @@ def process_img_path(path, input_type):
 
 # 传入base64格式输入
 def process_base64_to_img(base64_str: str, input_type):
+    s = base64_str.find('/9j')
+    if s != 0:
+        base64_str = base64_str[s:]
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     byte_data = base64.b64decode(base64_str)  # 将base64转换为二进制
     encode_image = np.asarray(bytearray(byte_data), dtype="uint8")  # 二进制转换为一维数组
