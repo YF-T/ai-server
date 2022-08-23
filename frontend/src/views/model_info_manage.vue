@@ -77,7 +77,6 @@ export default defineComponent({
     },
     modelinfoshow(){
       let param=new FormData();
-      console.log(this.store.state.username,this.store.state.password,this.store.state.modelname)
       param.append('user',this.store.state.username);
       param.append('password',this.store.state.password);
       param.append('modelname',this.store.state.modelname);
@@ -85,7 +84,6 @@ export default defineComponent({
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then((res: any) => {
-          console.log(res.data.status);
           if(res.data.status==='success'){
             this.modelname = res.data.modelname;
             this.modification_time = res.data.time;

@@ -56,7 +56,6 @@ export default defineComponent({
       var path = 'http://127.0.0.1:5000/getusermodel ';
       axios.post(path, param)
           .then(response => {
-            console.log(response);
             this.data = response.data.model
           });
     }

@@ -163,7 +163,7 @@ export default defineComponent({
         }
     },
     MapTOJson(m:any){
-       var str = '{\n';
+      var str = '{\n';
       var i = 1;
       m.forEach(function (item:any, key:string, mapObj:any) {
         if(mapObj.size == i){
@@ -198,11 +198,8 @@ export default defineComponent({
       }
       var content = this.MapTOJson(inputcontent);
       var filetype = this.MapTOJson(filetypecontent);
-      console.log(content);
-      console.log(filetype);
       param.append("input",content);
       param.append("filetype",filetype);
-      console.log("wai")
       var path = 'http://127.0.0.1:5000/testmodel_test';
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
@@ -213,7 +210,6 @@ export default defineComponent({
               this.outputshowindex = 1;
             else if(res.data.return_type == 'str')
               this.outputshowindex = 2;
-            console.log(res.data.output);
           }
           else{
             this.outputshowindex = 0;
@@ -267,12 +263,10 @@ export default defineComponent({
       param.append('modelname',this.store.state.modelname);
       param.append("filetype",fileType);
       param.append('input', this.batchFile);
-      console.log("22222222222222")
       var path = 'http://127.0.0.1:5000/testmodel_test';
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then(res=> {
-          console.log("333333333333333")
           if(res.data.status=='success'){
             this.output=res.data.output;
             if(res.data.return_type=='dict')
@@ -344,12 +338,9 @@ export default defineComponent({
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then(res=> {
-          console.log("参数名称");
           if(res.data.status==='success'){
-            console.log("test");
             for (let index = 0; index < res.data.input.length; index++){
               this.inputnamelist[index] = res.data.input[index].name;
-              console.log(this.inputnamelist[index]);
             }
             this.inputlist = res.data.input;
           }

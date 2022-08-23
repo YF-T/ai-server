@@ -67,7 +67,6 @@ export default defineComponent({
 
           if(res.data.status === 'success'){
             this.infoshow();
-            console.log("deletesuccess");
           }
           else if(res.data.status==='deployment not found'){
             alert("部署不存在");
@@ -175,7 +174,6 @@ export default defineComponent({
       axios
         .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
         .then(res=> {
-          console.log(res.data.status);
           if(res.data.status==='success'){
             this.weblist = res.data.deployment;
           }

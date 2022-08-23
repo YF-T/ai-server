@@ -23,7 +23,6 @@ export default createStore({
         },
         savewebname(state, webname) {
             state.webname = webname;
-            console.log(webname);
         },
 
         savetasks(state, tasks) {

@@ -39,7 +39,6 @@ export default defineComponent({
       .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
       .then(res=> {
           if(res.data.status === 'success'){
-            console.log("deletesuccess");
             this.$emit('itemdelete');
           }
           else if(res.data.status==='model not found'){

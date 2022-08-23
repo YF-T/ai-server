@@ -70,9 +70,6 @@ export default defineComponent({
       let files:any = this.$refs.fileId;
       this.file = files.files[0];
       //this.filename = this.file.name;
-      console.log(files.files);
-      console.log(this.file);
-
     },
     back(){
       this.$router.push('/model_manage');
@@ -89,7 +86,6 @@ export default defineComponent({
       var path = 'http://127.0.0.1:5000/upload';
       axios.post(path,param)
           .then(response=>{
-            console.log(response.data);
             if (response.data.status === false)
             {
               if(response.data.errortype === 'can\'t save model')

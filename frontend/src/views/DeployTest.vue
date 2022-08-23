@@ -46,7 +46,7 @@
             <span>响应</span>
           </div>
         </template>
-        <CodeViewer :code="response" :language="'javascript'" />
+        <CodeViewer :code="response" language="javascript"></CodeViewer>
       </el-card>
     </div>
 
@@ -103,11 +103,11 @@ const input = ref()
 
 const getFile = () => {
   //获取file内容
-  console.log('getFile', input.value)
+  // console.log('getFile', input.value)
   if (input.value) {
     form.requestFile = input.value.files[0]
     //this.filename = this.file.name;
-    console.log(form.requestFile)
+    // console.log(form.requestFile)
   }
 }
 
@@ -122,9 +122,13 @@ const submit = () => {
   param.append('prepare_py', form.preparationCode)
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
-      console.log(response)
-      response = res.data.output
-      console.log(response)
+      var str = '{\n';
+      var i = 1;
+      for(var key in res.data.output){
+        str += '"'+ key+'":"'+ res.data.output[key] + '",\n';
+      }
+      str +='}';
+      response.value = str;
     } else if (res.data.status == 'runtime error') {
       alert('运行时错误')
     } else if (res.data.status == 'model not found') {
@@ -143,7 +147,7 @@ const clear = () => {
   form.requestFile = null
 }
 
-var response = '{"a": 1}'
+const response = ref('{"a": 1}')
 
 const dialogVisible = ref(false)
 
@@ -155,10 +159,10 @@ const copyToClipboard = (text: string) => {
 
 const responseEditorRef = ref()
 onMounted(() => {
-  console.log(responseEditorRef)
+  // console.log(responseEditorRef)
   if (responseEditorRef.value) {
     const responseEditor = responseEditorRef.value.editor
-    console.log(responseEditor)
+    // console.log(responseEditor)
     const messageContribution = responseEditor.getContribution(
       'editor.contrib.messageController'
     )
@@ -171,7 +175,7 @@ onMounted(() => {
 const openDialog = () => {
   dialogVisible.value = true
   copyToClipboard(curlCode)
-  console.log(dialogVisible.value)
+  // console.log(dialogVisible.value)
 }
 
 const endpointType = ref('POST')

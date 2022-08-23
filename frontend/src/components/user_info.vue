@@ -38,7 +38,6 @@ export default defineComponent({
     colorchange(){
       this.ifday = -this.ifday;
       this.$emit("colorchange",this.ifday);
-      console.log(this.$route.path);
     }
   },
 });

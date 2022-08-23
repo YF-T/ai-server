@@ -101,7 +101,7 @@ def upload():
                                                                 'duplication' : 部署名重复
     '''
 
-    print(type(request.files.get('file')))
+    # print(type(request.files.get('file')))
     file = request.files.get('file')
     if file is None:  #接受失败
         return {
@@ -121,7 +121,7 @@ def upload():
     file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
     file_path='./model/' + file_name
     file.save(file_path)
-    print(file_path)
+    # print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
     err_info=str(err_info)
@@ -507,12 +507,12 @@ def testmodel_test():
     # 获取用户输入变量的信息
     #预处理需要，先提到前面
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
-    print('in')
+    # print('in')
     if request.form['filetype'] in ('none','jpg', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
-            print(input,request.form["input"])
+            # print(input,request.form["input"])
         else:
             file = request.files.get('input')
             '''if file is None:
@@ -529,7 +529,7 @@ def testmodel_test():
                 input_tmp = prepare.prepare(i_variate, file, request.form['filetype'], filepath, None)
                 input.update(input_tmp)
     else:
-        print('else')        
+        # print('else')        
         input = json.loads(request.form['input'])
         filetype = json.loads(request.form['filetype'])
         for variable in inputvariables:
@@ -661,7 +661,7 @@ def testmodel_quickresponse(deployment: str):
     else:
         firstvisit = lastvisit
     database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
-
+    print(type(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
