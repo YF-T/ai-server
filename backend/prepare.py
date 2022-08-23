@@ -10,29 +10,33 @@ import time
 
 
 def readimg(input_type, filepath, file):
-    return process_img_path(path, input_type[0])
+    return process_img_path(filepath, input_type[0])
 def readmp4(input_type, filepath, file):
-    return process_mp4(path, input_type[0])
+    return process_mp4(filepath, input_type[0])
 def readtxt(input_type, filepath, file):
     return process_text_to_json(filepath)
 def readcsv(input_type, filepath, file):
     return file
-def readzip(input_type, filepath, file)
+def readzip(input_type, filepath, file):
     return process_base64_to_csv(file, hash(file) + hash(time.time()))
 '''
 处理jpg能调用的函数：
     process_img_path(path, input_type)#path为jpg的存储地址，input_type为单个输入变量信息，为tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)
     process_base64_to_img(base64_str, input_type)#base64_str为jpg的base64编码，input_type为单个输入变量信息，为tuple 五元组
+
 处理MP4能调用的函数：
     process_mp4(path, input_type)#path为mp4的存储地址，input_type为单个输入变量信息，为tuple 五元组
+
 处理txt能调用的函数：
     process_text_to_json(fileaddress: str)#fileaddress为txt的存储地址
+
 处理zip能调用的函数：
 def process_base64_to_csv(file, id: int)# 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
                                         #为了创建文件夹方便，希望最好能传入当前任务的id
 '''
 
-#传入jpg路径
+# 处理图片
+# 传入jpg路径
 def process_img_path(path, input_type):
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     img_array =cv2.imread(path)
@@ -45,8 +49,7 @@ def process_img_path(path, input_type):
     res = {input_type[0]: res}
     return res
 
-
-#处理图片 base64格式输入
+# 传入base64格式输入
 def process_base64_to_img(base64_str: str, input_type):
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     byte_data = base64.b64decode(base64_str)  # 将base64转换为二进制
@@ -59,6 +62,17 @@ def process_base64_to_img(base64_str: str, input_type):
     #根据模型需要的输入调节
     res = res.astype('float32')
     res = {input_type[0]: res}
+    return res
+
+#传入编码好的jpg
+def process_img(img_array, model_input_type):
+    #处理img文件
+    if img_array.shape[2] > 1:
+        # print(img_array.shape[2])
+        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
+    res = resize_img(img_array,model_input_type)
+    res = res.astype('float32')
+    res={model_input_type[0]:res}
     return res
 
 def resize_img(img, model_input):
@@ -78,11 +92,12 @@ def resize_img(img, model_input):
         #print(type(shape_list))
         n=1
         for i in shape_list:
-            n=n*int(i)
+            n=n * int(i)
         img=img.ravel()
         img=img[0:n]
         img=img.reshape(shape_list)
         return img
+
 
 # 处理文本
 def process_text_to_json(fileaddress: str):
@@ -104,17 +119,6 @@ def process_mp4(path, input_type):
         if rval:
             #用户自定义处理
             res = process_img(frame, input_type)
-    return res
-
-    #传入编码好的jpg
-def process_img(img_array, model_input_type):
-    #处理img文件
-    if img_array.shape[2] > 1:
-        # print(img_array.shape[2])
-        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
-    res = resize_img(img_array,model_input_type)
-    res = res.astype('float32')
-    res={model_input_type[0]:res}
     return res
 
 def process_base64_mp4(file, model_input_type):
