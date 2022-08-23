@@ -49,7 +49,5 @@ const chooseUploadFile = (e: any) => {
   // 清空，防止上传后再上传没有反应
   e.target.value = ''
 }
-
-
 </script>
 <style scoped></style>

@@ -67,9 +67,11 @@ export default defineComponent({
 <style scoped>
 button{
   align-content: center;
-  background-image: linear-gradient( 135deg, skyblue 10%, violet 100%);
-  height:50px;
-  width:80px;
+  background-image: linear-gradient( 135deg, white 10%, skyblue 100%);
+  height:80px;
+  width:120px;
+  margin-bottom: 20px;
+  font-size: 20px;
 }
 #thead{
   float:left;
