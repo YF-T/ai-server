@@ -14,7 +14,7 @@ def prepare(input_type, file):
         # 如果您传入的是jpg
         # data = default_prepare.readimg(input_type[0], filepath, file)
         # 如果您传入的是mp4
-        #data = default_prepare.readmp4(input_type[0], filepath, file)
+        # data = default_prepare.readmp4(input_type[0], filepath, file)
         # 如果您传入的是txt
         # data = default_prepare.readtxt(input_type, filepath, file)
         # 如果您传入的是csv
