@@ -62,6 +62,11 @@ if __name__ == '__main__':
     dict3 = {'c': "xixi"}
     dict1.update(dict3)
     print(dict1)
+    data = {}
+    for input_i in input_type:
+        data_tmp = default_prepare.readmp4(input_type[0], filepath, file)
+        data.update(data_tmp)
+    print(data)
     '''f_save = open('file.pkl', 'ab')
     dict={'a':"haha"}
     pickle.dump(dict, f_save)

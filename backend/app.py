@@ -286,6 +286,64 @@ def createdeployment():
     # 返回成功/报错
     return jsonify({'status' : status})
 
+@app.route('/deletedeployment',methods=["POST","DELETE"])
+def deletedeployment():
+    '''
+    删除部署的服务
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     deployment : str - 部署名
+
+    Returns:
+     status : str - 'success' : 设置成功
+                    'user not found' : 用户不存在
+                    'invalid password' : 密码错误
+                    'deployment not found' : 任务id不存在
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    user = request.form['user']
+    password = request.form['password']
+    deployment = request.form['deployment']
+    # 删除部署
+    status = database.deletedeployment(user, password, deployment)
+    # 返回成功/报错
+    return jsonify({'status' : status})
+    
+@app.route('/getdeploymenttask',methods=["POST","GET"])
+def getdeploymenttask():
+    '''
+    获取部署的服务的所有批处理id
+
+    Parameters:
+     user : str - 用户名
+     password : str - 密码
+     deployment : str - 部署名
+
+    Returns:
+     status : str - 'success' : 查询成功
+                    'deployment not found' : 部署不存在
+     成功才有以下属性：
+     taskid : list - 所有taskid组成的列表，如['id1', 'id2']
+
+    Raises:
+     本函数不应该报错
+    '''
+    # 解析数据包
+    deployment = request.form['deployment']
+    # 获取部署的taskid
+    status, answer = database.getdeploymenttask(deployment)
+    # 返回成功/报错
+    if status:
+        return jsonify({'status' : 'success', 
+                        'taskid' : answer})
+    else:
+        return jsonify({'status' : answer})
+
 @app.route('/setdeploymentstatusrunning',methods=["POST"])
 def setdeploymentstatusrunning():
     '''
@@ -476,10 +534,11 @@ def testmodel_test():
         print('else')
         filetype = json.loads(request.form['filetype'])
         input = json.loads(request.form['input'])
-        for variable in filetype:
-            if filetype[variable] in ('jpgbase64', 'mp4base64'):
-                input[variable] = prepare.prepare(None, input[variable],
-                                                   filetype[variable], None, None)
+        for variable in inputvariables:
+            if variable[0] not in input:
+                return jsonify({'status': 'invalid input'})
+            if filetype[variable[0]] == 'jpgbase64':
+                input.update(prepare.process_base64_to_img(input[variable], variable))
 
 
     if not status:
@@ -533,7 +592,7 @@ def testmodel_quickresponse(deployment: str):
                     'prepare invalid' :用户自定义预处理
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
-                    'model not found' : 找不到模型
+                    'deployment not found' : 找不到模型
 
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
