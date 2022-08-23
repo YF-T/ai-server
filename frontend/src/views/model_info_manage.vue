@@ -29,7 +29,7 @@
     <!-- 面板一 -->
     <model_info_overview v-show="index===1"/>
     <!-- 面板二 -->
-    <model_info_test @pagechange="mainpagechange" v-show="index===2"/>
+    <model_info_test v-show="index===2"/>
     <!-- 面板三 -->
     <model_info_deploy @pagechange="mainpagechange" v-show="index===3" :key="index===3?1:2"/>
     <!-- 面板四 -->

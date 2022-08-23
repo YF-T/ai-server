@@ -3,14 +3,14 @@
   <h1 id="title">模型管理</h1>
   <label>搜索(依据模型名称)  </label><input type='text' v-model="filter"/>
   <br/><br/>
-  <div class="body">
-  <div class = "center">
+  <div class = "headtitle">
     <div id="thead" v-for="th in title">{{th}} </div>
   </div>
   <br/>
+  <div class="body">
   <div class = "center" v-for = "item in data" v-show = "show(item.modelname)">
 <!--  <div class = "center" v-for = "item in this.store.state.details" v-show = "show(item.modelname)">-->
-      <model_manage_item :modelname="item.modelname" :modeltype="item.modeltype" :time="item.time" :op="`???`"></model_manage_item>
+      <model_manage_item :modelname="item.modelname" :modeltype="item.modeltype" :time="item.time" @itemdelete="newmodeldata"></model_manage_item>
   </div>
   </div>
   <br/>
@@ -38,6 +38,9 @@ export default defineComponent({
     }
   },
   methods:{
+    newmodeldata(){
+      this.showdata();
+    },
     lead(){
       this.$router.push('/newmodel')
     },
@@ -87,6 +90,7 @@ button{
 .center{
   width:810px;
   /*position:absolute;*/
+  display: block;
   margin-bottom: 10px;
   margin-top: 10px;
 }
@@ -96,5 +100,8 @@ button{
   overflow-y: auto;
   margin:auto;
 }
-
+div [class = "headtitle"]{
+  margin:auto;
+  width:830px;
+}
 </style>
