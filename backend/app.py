@@ -1,26 +1,23 @@
 # -- coding:UTF-8 --
 import threading
+import json
+import os
+import importlib
+import pandas as pd
+import time
+import traceback
+import pickle
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-import pickle
-
 from pypmml import Model
 import onnxruntime as ort
-
-import json
-import os
 
 import database
 import prepare
 import user_prepare
 import getInfoFromModel
-
-import importlib
-import pandas as pd
-import time
-import traceback
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -103,11 +100,10 @@ def upload():
                                                                 'invalid password' : 密码错误
                                                                 'duplication' : 部署名重复
     '''
-    #print("in")
+
     print(type(request.files.get('file')))
     file = request.files.get('file')
     if file is None:  #接受失败
-        #print("err file")
         return {
             'status': False,
             'errortype':"can't get model",
@@ -128,10 +124,9 @@ def upload():
     print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
-    if valid:#模型有效
-        #从模型中读取信息
+    if valid: # 模型有效
+        # 从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
-        #print(dict)
         #储存模型
         #需要把route改成文件名 第6项 filepath改
         '''print('user',user)
@@ -455,6 +450,7 @@ def getmodelinfo():
     variabletitle = ['name', 'type', 'range', 'dimension', 'optype']
     input = list(map(lambda x : dict(zip(variabletitle, x)), input))
     output = list(map(lambda x : dict(zip(variabletitle, x)), output))
+    
     # 返回值
     infotitle = ['modelname', 'modeltype', 'time', 'algorithm', 'engine', 'description']
     answer = dict(zip(infotitle, info))
@@ -519,8 +515,6 @@ def testmodel_test():
         elif request.form['filetype'] == 'jpgbase64':
             input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
-            #print("in jpg")
-            #print(type(request.files.get('input')))
             file = request.files.get('input')
             '''if file is None:
                 print("haha")'''
@@ -574,17 +568,17 @@ def testmodel_test():
     if output is None:
         return jsonify({'status': 'runtime error'})
 
-    type_output=str(type(output))
-    return_type='else'
-    #if type_output==''
-    if type_output== "<class 'str'>":
-        return_type='str'
-    if type_output== "<class 'dict'>":
-        return_type='dict'
+    type_output = str(type(output))
+    return_type = 'else'
+    if type_output == "<class 'str'>":
+        return_type = 'str'
+    if type_output == "<class 'dict'>":
+        return_type = 'dict'
     #print(return_type)
     return jsonify({'status': 'success', 
                     'output': output,
                     'return_type':return_type})
+
 
 @app.route('/testmodel_quickresponse/<deployment>',methods=["POST", "GET"])
 def testmodel_quickresponse(deployment: str):
@@ -758,8 +752,7 @@ def testmodel_delayresponse(deployment: str):
         return jsonify({'status': address})
 
     # 多线程
-    #创建id
-    state, id = database.createtask(user, password, modelname, deployment)
+    state, id = database.createtask(user, password, modelname, deployment)  # 创建id
     if state == False:
         return jsonify({'status': id})
     task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
@@ -769,7 +762,7 @@ def testmodel_delayresponse(deployment: str):
                     'taskid': id})
 
 @app.route('/get_result_delayresponse/<deployment>/<taskid>',methods=["GET", "POST"])
-def get_result(deployment: str, taskid:str):
+def get_result(deployment: str, taskid: str):
     '''
     功能：查询等待返回的结果
     Args:
@@ -852,8 +845,8 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
 
 
 # 以下函数只适用于测试界面
+# 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
 def find_model(user: str, password: str, modelname: str):
-    # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     status3, address = database.getmodelroute(user, password, modelname)
     if not status3:
         return address
