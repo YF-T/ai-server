@@ -497,21 +497,24 @@ def getdeployment(deployment : str):
     TODO
     '''
     assert isinstance(deployment, str)
-    print(deployment)
     # 连接数据库
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('''SELECT user, modelname FROM deployments 
+    c.execute('''SELECT user, modelname, status FROM deployments 
                     WHERE deployment = ?''' , 
                     (deployment, ))
-    user, modelname = c.fetchone()
-    print(user)
+    answer = c.fetchone()
+    if not bool(answer):
+        return 'model not found', None, None, None
+    user, modelname, status = answer
+    if status == 'pause':
+        return 'model pause', None, None, None
     c.execute('''SELECT password FROM users
                     WHERE user = ?''' , 
                     (user, ))
     password = c.fetchone()[0]
     conn.close()
-    return user, password, modelname
+    return 'success', user, password, modelname
 
 def createdeployment(user : str, password : str, modelname : str, 
                      deployment : str, time : str):
@@ -686,12 +689,11 @@ def getmodeldeployment(user : str, password : str, modelname : str):
     conn.close()
     return True, deployments
     
-def setdeploymentperformance(deployment : str, times : int, averagecost : float, 
-                             maxcost : float, mincost : float, 
-                             firstvisit : str, lastvisit : str):
+def setdeploymentperformance(deployment: str, times: int, averagecost: float, 
+                             maxcost: float, mincost: float, 
+                             firstvisit: str, lastvisit: str):
     '''
-    写入部署性能
-     
+    写入部署性能     
     Parameters:
      deployment - 部署名称
      times - 执行次数
@@ -729,7 +731,7 @@ def setdeploymentperformance(deployment : str, times : int, averagecost : float,
     conn.close()
     return answer
     
-def getdeploymentperformance(deployment : str):
+def getdeploymentperformance(deployment: str):
     '''
     查看部署性能
      
@@ -739,7 +741,7 @@ def getdeploymentperformance(deployment : str):
     Returns:
      多值返回
      第一个变量为一个布尔变量，False为访问失败，True为访问成功
-     成功则第二个变量为一个四元组，从左往右依次是
+     成功则第二个变量为一个六元组，从左往右依次是
             (执行次数，平均响应时间，最大响应时间，最小响应时间，
                 首次访问时间点——初始值为None，最近一次访问时间点——初始值为None)
      失败则为错误信息，'deployment not found' : 任务id不存在

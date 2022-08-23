@@ -37,15 +37,7 @@
               size="small"
               @click.prevent="toggle(scope.$index)"
             >
-              暂停
-            </el-button>
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click.prevent="deleteReplicate(scope.$index)"
-            >
-              删除
+              {{ replicates[scope.$index].status == '运行中' ? '暂停' : '运行' }}
             </el-button>
           </template>
         </el-table-column>
@@ -56,7 +48,7 @@
 
 <script lang="ts" setup>
 import { ElTable, ElTableColumn, ElCard, ElButton } from 'element-plus'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { request } from '../Util'
 import { useStore } from 'vuex'
 
@@ -84,17 +76,17 @@ const indicators: FunctionIndicator[] = [
 ]
 const store = useStore()
 
-const replicates = [
+const replicates = ref([
   {
     name: 'pmml',
     status: '运行中',
   },
-]
+])
 
-const count = computed(() => replicates.length)
+const count = computed(() => replicates.value.length)
 
 const toggle = (index: number) => {
-  const replicate = replicates[index]
+  const replicate = replicates.value[index]
   const deploymentName = replicate.name
 
   const param = new FormData()
@@ -123,9 +115,7 @@ const toggle = (index: number) => {
   
 }
 
-const deleteReplicate = (index: number) => {
 
-}
 </script>
 
 <style scoped>

@@ -1,13 +1,9 @@
+# -- coding:UTF-8 --
 import threading
-
-import database
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from myThread import MyThread
-from threading import Thread
-# 以上两行是否并不使用？能否删除？
 import pickle
 
 from pypmml import Model
@@ -16,9 +12,15 @@ import onnxruntime as ort
 import json
 import os
 
+import database
 import prepare
-
+import user_prepare
 import getInfoFromModel
+
+import importlib
+import pandas as pd
+import time
+import traceback
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -121,8 +123,8 @@ def upload():
     #print("获取上传文件的名称为[%s]\n" % file_name)
     #保存文件
     file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
-    file_path=os.path.dirname(__file__) + '/model/' + file_name
-    file.save(os.path.dirname(__file__) + '/model/' + file_name)
+    file_path='./model/' + file_name
+    file.save(file_path)
     print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
@@ -162,11 +164,9 @@ def upload():
 def getusermodel():
     '''
     获取用户模型信息
-
     Parameters:
      user : str - 用户名
      password : str - 密码
-
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
@@ -177,7 +177,6 @@ def getusermodel():
                     'modelname' : str - 模型名
                     'modeltype' : str - 模型类型
                     'time' : str - 模型日期
-
     Raises:
      本函数不应该报错
     '''
@@ -200,18 +199,15 @@ def getusermodel():
 def deletemodel():
     '''
     删除模型
-
     Parameters:
      user : str - 用户名
      password : str - 密码
      modelname : str - 模型名
-
     Returns:
      status : str - 'success' : 成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
                     'model not found' : 找不到该名称模型
-
     Raises:
      本函数不应该报错
     '''
@@ -228,12 +224,10 @@ def deletemodel():
 def getmodeldeployment():
     '''
     查看部署的服务
-
     Parameters:
      user : str - 用户名
      password : str - 密码
      modelname : str - 模型名
-
     Returns:
      status : str - 'success' : 设置成功
                     'user not found' : 用户不存在
@@ -356,34 +350,6 @@ def setdeploymentstatuspause():
     status = database.setdeploymentstatus(user, password, modelname, deployment, 'pause')
     # 返回成功/报错
     return jsonify({'status' : status})
-
-@app.route('/fake_getmodelinfo',methods=['POST',"GET"])
-def fake_getmodelinfo():
-    user = request.form['user']
-    password = request.form['password']
-    modelname = request.form['modelname']
-    return jsonify({'status' : 'success',
-                    'modelname' : 'test',
-                    'time' : '2022-08-10 16:00:00',
-                    'modeltype' : 'pmml',
-                    'algorithm' : 'randomforest',
-                    'description' : '测试用模型',
-                    'engine' : 'pypmml',
-                    'input' : [{'name' : 'input1',
-                                'type' : 'int',
-                                'range' : '0,1,2,3',
-                                'dimension' : '5*5', 
-                                'optype' : None},
-                               {'name' : 'input2',
-                                'type' : 'int',
-                                'range' : None,
-                                'dimension' : None, 
-                                'optype' : 'don\'t know'},],
-                    'output' : [{'name' : 'output1',
-                                 'type' : 'int',
-                                 'range' : None,
-                                 'dimension' : None, 
-                                 'optype' : None},],})
 
 @app.route('/getmodelinfo',methods=["POST","GET"])
 def getmodelinfo():
@@ -578,31 +544,47 @@ def testmodel_quickresponse(deployment: str):
      若成功，返回：
      output : dict - 输出结果，格式服从前端要求
      '''
-    user, password, modelname = database.getdeployment(deployment)
+    start_time = time.time()
+
+    status, user, password, modelname = database.getdeployment(deployment)
+    if status != 'success':
+        return jsonify({'status': status})
     #从前端接收文件 具体代码需要修改
-    file = request.form['file']
+    filetype = None
+    try: 
+        file = request.form['file']
+        assert file != None
+    except: 
+        file = request.files.get('file')
     #预处理，用户自定义，任务2测试模型不需要
     #从前端接收用户的python代码
-    prepare_py = request.form['prepare_py'].replace('@@', '\n')
-    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
-    f1.write(prepare_py)
-    f1.close()
+    try: 
+        prepare_py = request.form['prepare_py'].replace('@@', '\n')
+        assert prepare_py != None
+        f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+        f1.write(prepare_py)
+        f1.close()
+    except:
+        try: 
+            prepare_py = request.files.get('prepare_py')
+            prepare_py.save("./user_prepare.py")
+        except:
+            return jsonify({'status': 'invalid prepare_py'})
     # 参考getmodelinfo函数，首先判断用户输入参数是否符合标准，不符合则返回报错
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
     if not status1 or not status2:
         return jsonify({'status': info if not status2 else input})
-
-    import user_prepare
-    data = user_prepare.prepare(input,file)
+        
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
-        print('success1')
-        import user_prepare
-        print('success2')
-        data = user_prepare.prepare(input,file)#待更新，目前input是模型的input标准，file是从前端读取的input数据
+        importlib.reload(user_prepare)
+        data = user_prepare.prepare(input, file)
+        #待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status': 'preprocess failed'})
+        error = traceback.format_exc()
+        return jsonify({'status': 'preprocess failed', 
+                        'error': error})
 
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
@@ -611,10 +593,57 @@ def testmodel_quickresponse(deployment: str):
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     output = naive_test_model(address, data)
+
+    # 更新部署相关信息，以备查询
+    end_time = time.time()
+    last_timecost = end_time - start_time
+    status, deployment_info = database.getdeploymentperformance(deployment)
+    run_times = deployment_info[0] + 1  # 执行次数
+    average_cost = (deployment_info[0] * deployment_info[1] + last_timecost) / run_times  # 平均响应时间
+    if last_timecost > deployment_info[2]:  # 最大响应时间
+        maxcost = last_timecost
+    if last_timecost < deployment_info[3] or deployment_info[3] == 0:  # 最小响应时间
+        mincost = last_timecost
+    lastvisit = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))  # 直接更新最近访问时间点
+    if not deployment_info[4] == None:  # 判断是否为最初访问
+        firstvisit = deploymentinfo[4]
+    else:
+        firstvisit = lastvisit
+    database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
+
     if output is None:
         return jsonify({'status': 'runtime error'})
     return jsonify({'status': 'success', 
                     'output': output})
+
+
+@app.route('/get_deployment_info/<deployment>', methods = ["GET", "POST"])
+def get_deployment_info(deployment: str):
+    '''
+    根据前端需求，返回当前部署的使用情况，包括：
+     deployment - 部署名称
+     times - 执行次数
+     averagecost - 平均执行时间
+     maxcost - 最大执行时间
+     mincost - 最小执行时间
+     firstvisit - 最初访问时间点，初始值为None
+     lastvisit - 最近访问时间点，初始值为None
+
+     Returns:
+     参考database.getdeploymentperformance的参数返回：
+     成功则返回一个六元组，从左往右依次是
+            (执行次数，平均响应时间，最大响应时间，最小响应时间，
+                首次访问时间点——初始值为None，最近一次访问时间点——初始值为None)
+     失败则为错误信息，'deployment not found' : 任务id不存在
+    '''
+    flag, output = database.getdeploymentperformance(deployment)
+    if flag:
+        return jsonify({'status': 'success', 
+                    'output': output})
+    else:  # 原则上不应该发生错误
+        return jsonify({'status': 'failed', 
+                    'output': output})
+
 
 @app.route('/testmodel_delayresponse/<deployment>',methods=["GET","POST"])
 def testmodel_delayresponse(deployment: str):
@@ -622,16 +651,29 @@ def testmodel_delayresponse(deployment: str):
     名称：等待返回预测结果
     功能、说明基本同testmodel_quickresponse，使用多线程
     '''
-    user, password, modelname = database.getdeployment(deployment)
+    status, user, password, modelname = database.getdeployment(deployment)
+    if status != 'success':
+        return jsonify({'status': status})
     # 从前端接收文件 具体代码需要修改
-    file = request.files.get('file')
-    if file is None:
+    filetype = None
+    try: 
         file = request.form['file']
-    # 从前端接收用户的python代码 #伪
-    prepare_py = request.form['prepare_py']
-    f1 = open("user_prepare.py", 'w', encoding='UTF-8')
-    f1.write(prepare_py)
-    f1.close()
+        assert file != None
+    except: 
+        file = request.files.get('file')
+    # 预处理文件
+    try: 
+        prepare_py = request.form['prepare_py'].replace('@@', '\n')
+        assert prepare_py != None
+        f1 = open("user_prepare.py", 'w', encoding='UTF-8')
+        f1.write(prepare_py)
+        f1.close()
+    except:
+        try: 
+            prepare_py = request.files.get('prepare_py')
+            prepare_py.save("./user_prepare.py")
+        except:
+            return jsonify({'status': 'invalid prepare_py'})
     # 判断输入参数是否合法，此处的input不等于待使用的input
     status1, input, output = database.getmodelvariables(user, password, modelname)
     status2, info = database.getmodelinfo(user, password, modelname)
@@ -640,10 +682,12 @@ def testmodel_delayresponse(deployment: str):
 
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
-        import user_prepare
+        importlib.reload(user_prepare)
         data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
     except:
-        return jsonify({'status': 'preprocess failed'})
+        error = traceback.format_exc()
+        return jsonify({'status': 'preprocess failed', 
+                        'error': error})
 
     # 提取待测试模型地址
     address = find_model(user, password, modelname)
@@ -652,13 +696,14 @@ def testmodel_delayresponse(deployment: str):
 
     # 多线程
     #创建id
-    state, id = database.createtask()
+    state, id = database.createtask(user, password, modelname, deployment)
     if state == False:
         return jsonify({'status': id})
     task=threading.Thread(target=multithread_delayresponse,args=(address, input, user, password, id, data))
     task.start()
     #成功建立新线程
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success',
+                    'taskid': id})
 
 @app.route('/get_result_delayresponse/<deployment>/<taskid>',methods=["GET", "POST"])
 def get_result(deployment: str, taskid:str):
@@ -674,7 +719,11 @@ def get_result(deployment: str, taskid:str):
         output： 成功为返回结果，失败为None
         file: 成功为pkl文件，失败为None
     '''
-    user, password, modelname = database.getdeployment(deployment)
+    status, user, password, modelname = database.getdeployment(deployment)
+    if status != 'success':
+        return jsonify({'status': status,
+                        'output': None,
+                        'file': None})
     #调用database查询任务id对应的文件
     #path具体是啥。。（应该是taskfile的存储路径，可以直接使用）
     state, path = database.gettaskfile(user, password, taskid)
@@ -689,13 +738,14 @@ def get_result(deployment: str, taskid:str):
         while True:
             try:
                 res = pickle.load(f_read)
-                output.append(res)
+                if isinstance(res, pd.DataFrame):
+                    output = res.to_dict('records')
             except:
                 break
         f_read.close()
         return jsonify({'status':"success",
                         'output':output,
-                        'file':None})
+                        'file': None})
 
 def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str,data):
     '''
@@ -713,7 +763,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
     file_path='./output/'+id+'.pkl'
     if suffix == 'pmml':  # 模型为pmml格式
         model = Model.fromFile(address)
-        output = model.predict(input)
+        output = model.predict(data)
         # pmml模型下dataframe的输出结果仍为dataframe
         # 储存output为文件 先用pickle，不行再改
         f_save = open(file_path, 'ab')
@@ -769,4 +819,4 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
 
 if __name__ == '__main__':
     database.init()
-    app.run(debug = True)
+    app.run()
