@@ -75,27 +75,25 @@ def process_img(img_array, model_input_type):
     res={model_input_type[0]:res}
     return res
 
+# 修改图片大小
 def resize_img(img, model_input):
-    # 修改图片大小
     #读取所需维数及其元组个数
-    shape=model_input[3]
-    type=model_input[2]
-    #print(shape)
-    #print(type(shape))
-    if shape ==None:
-        img=img.ravel()
+    shape = model_input[3]
+    type = model_input[2]
+    if shape == None:
+        img = img.ravel()
         return img[0]
     else:
         #读取总维数
-        shape_list=shape.split("*")
+        shape_list = shape.split("*")
         shape_list = np.array(shape_list).astype(dtype=int).tolist()
         #print(type(shape_list))
-        n=1
+        n = 1
         for i in shape_list:
-            n=n * int(i)
-        img=img.ravel()
-        img=img[0:n]
-        img=img.reshape(shape_list)
+            n = n * int(i)
+        img = img.ravel()
+        img = img[0:n]
+        img = img.reshape(shape_list)
         return img
 
 
@@ -130,7 +128,6 @@ def process_base64_mp4(file, model_input_type):
 
 
 # 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
-# 为了创建文件夹方便，希望最好能传入当前任务的id
 def process_base64_to_csv(file, id: int):
     path = './output/zip/' + str(id)
     os.mkDir(path)
@@ -197,5 +194,3 @@ def prepare(model_input_type, file, filetype, fileaddress: str, id: 0):
     # 符合模型维数
     res = res.reshape(1, 1, 28, 28)
     return res'''
-
-
