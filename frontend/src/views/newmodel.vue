@@ -3,7 +3,7 @@
     <div id="main">
       <div></div>
       <div id="name">
-        <label class="mname">名称：</label><input type='text' v-model="modelname" />
+        <label class="mname">名称：</label><input type='text' v-model="modelname"/>
       </div>
       <div></div>
       <div></div>
@@ -134,7 +134,6 @@ export default defineComponent({
   line-height:200px;
   font-size: xx-large;
   border: grey thick solid;
-
 }
 
 #main div:hover{
@@ -144,29 +143,36 @@ export default defineComponent({
 }
 
 #main div:active{
-  background-image: linear-gradient(white,lightpink);
+  background-image: linear-gradient(white,black);
 }
 
 .mname{
   display:inline-block;
-  font-size: xx-large;
+  font-size: x-large;
   color:rgb(179, 191, 231);
 }
 
 #inputfile{
-  font-size: xx-large;
+  font-size: x-large;
   margin-left: 80px;
   color:rgb(179, 191, 231);
 }
 
 select{
-  width:70px;
-  height:25px;
+  width:100px;
+  height:30px;
+  font-size: 20px;
+}
+
+input{
+/*   width: 120px;
+  height: 30px; */
+  font-size: 20px;
 }
 
 .back{
   height:53px;
-  font-size: xx-large;
+  font-size: x-large;
   color:rgb(179, 191, 231);
   background-image: radial-gradient(black,grey)
 }

@@ -124,6 +124,7 @@ def upload():
     print(file_path)
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
+    err_info=str(err_info)
     if valid: # 模型有效
         # 从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
@@ -512,18 +513,15 @@ def testmodel_test():
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
             print(input,request.form["input"])
-        elif request.form['filetype'] == 'jpgbase64':
-            input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
             file = request.files.get('input')
             '''if file is None:
                 print("haha")'''
             #print('file name',file.filename)
-            filepath = (os.path.dirname(__file__)+'/input_file/' + user + '_' + modelname
+            filepath = ('./input_file/' + user + '_' + modelname
                         + '_'+file.filename.replace(" ", ""))
             #print(filepath)
-            file_path_name=user + '_' + modelname+ '_'+file.filename.replace(" ", "")
-            file.save(os.path.dirname(__file__)+'/input_file/' +file_path_name)
+            file.save(filepath)
             #print('haha')
             #多输入
             input={}

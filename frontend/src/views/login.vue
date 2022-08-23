@@ -25,9 +25,9 @@
         <form onsubmit="return false">
           <label>注册界面</label><br/>
           <label>用户名: </label>
-          <input type='text' name = 'user' placeholder="请输入您的用户名" required v-model="username"/><br/><br/>
+          <input type='text' name = 'user' placeholder="请输入您的用户名" required v-model="username"/><br/>
           <label>密  码: </label>
-          <input type='password' name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/><br/>
+          <input type='password' name = 'password' placeholder="请输入您的密码" required v-model="password"/><br/>
           <button type="button" @click="changelogin(1)"><span>返回</span></button>
           <button type="submit" @click="reg"><span>注册</span></button>
         </form>

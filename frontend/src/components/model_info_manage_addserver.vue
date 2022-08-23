@@ -82,9 +82,9 @@ export default defineComponent({
           param.append('modelname',this.store.state.modelname);
           param.append('deployment',this.name);
           param.append('time',this.getvalue())
-          var path1 = 'http://127.0.0.1:5000/createdeployment';
+          var path = 'http://127.0.0.1:5000/createdeployment';
           axios
-            .post(path1,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+            .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
             .then(res=> {
               if(res.data.status==='success'){
                 this.store.commit('savewebname',this.name);
@@ -105,23 +105,6 @@ export default defineComponent({
                 }
               }
               });
-            var path2 = 'http://127.0.0.1:5000/setdeploymentstatusrunning';
-            axios
-            .post(path2,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
-            .then(res=> {
-                if(res.data.status==='deployment not found'){
-                  alert("部署不存在");
-                }
-                else{
-                  if(res.data.status==="user not found"){
-                    alert("用户不存在");
-                  }
-                  else if(res.data.status === 'invalid password'){
-                    alert("密码错误！")
-                  }
-                }
-              }
-              );
         }
     },
   }
