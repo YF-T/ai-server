@@ -88,7 +88,7 @@ export default defineComponent({
             .then(res=> {
               if(res.data.status==='success'){
                 this.store.commit('savewebname',this.name);
-                this.store.commit('savecorrecttime',this.getvalue);
+                this.store.commit('savecorrecttime',this.getvalue());
                 this.$router.push('/deploy')
               }
               else{

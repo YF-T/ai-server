@@ -1,30 +1,20 @@
 <template>
   <div class="main">
-    <el-card style="card" shadow="never">
-      <template #header>
-        <div class="card_header">
-          <span>指标</span>
-        </div>
-      </template>
-      <el-table :data="indicators" stripe style="width: 100%">
-        <el-table-column prop="accessCount" label="执行次数" />
-        <el-table-column prop="averageResponseTime" label="平均响应时间(ms)" />
-        <el-table-column prop="minimumResponseTime" label="最小响应时间(ms)" />
-        <el-table-column prop="maximumResponseTime" label="最大响应时间(ms)" />
-        <el-table-column prop="firstAccessDate" label="首次访问时间" />
-        <el-table-column prop="latestAccessDate" label="最新访问时间" />
+      <div>
+        <span class="title">指标</span>
+      <el-table :data="indicators" style="width: 1000px;" class="table">
+        <el-table-column prop="accessCount" label="执行次数" class="header"/>
+        <el-table-column prop="averageResponseTime" label="平均响应时间(ms)" class="header"/>
+        <el-table-column prop="minimumResponseTime" label="最小响应时间(ms)" class="header"/>
+        <el-table-column prop="maximumResponseTime" label="最大响应时间(ms)" class="header"/>
+        <el-table-column prop="firstAccessDate" label="首次访问时间" class="header"/>
+        <el-table-column prop="latestAccessDate" label="最新访问时间" class="header"/>
       </el-table>
-    </el-card>
-    <el-card style="card" shadow="never">
-      <template #header>
-        <div class="card_header">
-          <span class="fuben">副本</span>
-          <el-button :circle="true" size="small" class="count">{{
-            count
-          }}</el-button>
-        </div>
-      </template>
-      <el-table :data="replicates" stripe style="width: 100%">
+      </div>
+      
+    <div>
+      <span class="title">服务</span>
+      <el-table :data="replicates" stripe style="width: 600px;" class="table">
         <el-table-column prop="name" label="名称" />
         <el-table-column prop="status" label="状态" />
         <el-table-column prop="operation" label="操作">
@@ -42,7 +32,8 @@
           </template>
         </el-table-column>
       </el-table>
-    </el-card>
+    </div>
+      
   </div>
 </template>
 
@@ -128,10 +119,22 @@ const toggle = (index: number) => {
 </script>
 
 <style scoped>
+:root {
+  --el-text-color-regular: black;
+}
+.el-table thead {
+  color: black !important; 
+}
 .main {
-  background-color: #9cc2e6;
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20px;
+  margin-top: 20px;
+  margin-right: 20px;
+  margin-bottom: 20px;
 }
 .card_header {
   text-align: left;
@@ -145,6 +148,25 @@ const toggle = (index: number) => {
   margin-right: 1em;
 }
 
+.table {
+  flex-grow:1;
+  display:block;
+  margin: 20px;
+  height: 400px;
+  overflow: auto;
+  background: white;
+  text-align:left;
+  font-size: large;
+  color: black !important;
+  border: 4px solid rgb(179, 191, 231);
+  border-radius:10px;
+  --el-table-header-text-color: black;
+  --el-table-text-color: black;
+}
+.header {
+   font-size: large !important;
+  color: black !important;
+}
 .fuben:after {
   content: '   ';
 }
