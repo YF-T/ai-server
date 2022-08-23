@@ -42,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
         component: BatchTaskList,
       },
       {
-        path: '/deploy/tasks/:id', 
+        path: '/deploy/tasks/:id',
         name: 'taskDetail',
         component: TaskDetail,
       },
