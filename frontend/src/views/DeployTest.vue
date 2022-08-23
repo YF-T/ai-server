@@ -211,6 +211,19 @@ const handleUpdate = (key: keyof typeof form) => (value: string) => {
 .card {
   width: 50%;
   margin: 0.5em;
+    flex-grow:1;
+  display:block;
+  margin: 20px;
+  height: 400px;
+  overflow: auto;
+  background: white;
+  text-align:left;
+  border: 4px solid rgb(179, 191, 231);
+  border-radius:10px;
+}
+
+.el-table thead {
+  --el-table-header-text-color: black;
 }
 
 .form {
