@@ -54,8 +54,35 @@ export default defineComponent({
     }
   },
   methods:{
-    deleteweb(){
+    deleteweb(name:string){
+      console.log("delete")
+      let param=new FormData();
+      param.append('user',this.store.state.username);
+      param.append('password',this.store.state.password);
+      param.append('modelname',this.store.state.modelname);
+      param.append('deployment',name);
+      var path = 'http://127.0.0.1:5000/deletedeployment';
+      axios
+      .post(path,param,{headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+      .then(res=> {
 
+          if(res.data.status === 'success'){
+            this.infoshow();
+            console.log("deletesuccess");
+          }
+          else if(res.data.status==='deployment not found'){
+            alert("部署不存在");
+          }
+          else{
+            if(res.data.status==="user not found"){
+              alert("用户不存在");
+            }
+            else if(res.data.status === 'invalid password'){
+              alert("密码错误！")
+            }
+          }
+        }
+        );
     },
     getvalue(){
       var date = new Date();
