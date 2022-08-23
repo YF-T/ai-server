@@ -169,9 +169,9 @@ export default defineComponent({
       var i = 1;
       m.forEach(function (item:any, key:string, mapObj:any) {
         if(mapObj.size == i){
-          str += '"'+ key+'":'+ item +"\n";
+          str += '"'+ key+'":"'+ item +'"\n';
         }else{
-          str += '"'+ key+'":'+ item + ',\n';
+          str += '"'+ key+'":"'+ item + '",\n';
         }
         i++;
       });
@@ -190,12 +190,12 @@ export default defineComponent({
         if(this.nofileshow[index]==0){
           if(this.filebaselist[index]=='') return;
           inputcontent.set(this.inputnamelist[index],this.filebaselist[index]);
-          filetypecontent.set(this.inputnamelist[index],"'jpgbase64'");
+          filetypecontent.set(this.inputnamelist[index],"jpgbase64");
         }
         else{
           if(this.valuelist[index]=='') return;
           inputcontent.set(this.inputnamelist[index],this.valuelist[index]);
-          filetypecontent.set(this.inputnamelist[index],"'none'");
+          filetypecontent.set(this.inputnamelist[index],"none");
         }
       }
       var content = this.MapTOJson(inputcontent);
