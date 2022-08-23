@@ -10,9 +10,9 @@ import time
 
 
 def readimg(input_type, filepath, file):
-    return process_img_path(filepath, input_type[0])
+    return process_img_path(filepath, input_type)
 def readmp4(input_type, filepath, file):
-    return process_mp4(filepath, input_type[0])
+    return process_mp4(filepath, input_type)
 def readtxt(input_type, filepath, file):
     return process_text_to_json(filepath)
 def readcsv(input_type, filepath, file):
@@ -117,7 +117,7 @@ def process_mp4(path, input_type):
     while rval:  # 循环读取视频帧
         rval, frame = videoCapture.read()
         if rval:
-            #用户自定义处理
+            #delay response
             res = process_img(frame, input_type)
     return res
 

@@ -664,7 +664,7 @@ def testmodel_quickresponse(deployment: str):
         mincost = last_timecost
     lastvisit = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))  # 直接更新最近访问时间点
     if not deployment_info[4] == None:  # 判断是否为最初访问
-        firstvisit = deploymentinfo[4]
+        firstvisit = deployment_info[4]
     else:
         firstvisit = lastvisit
     database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
