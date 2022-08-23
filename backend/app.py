@@ -463,7 +463,7 @@ def getmodelinfo():
     answer['output'] = output
     return jsonify(answer)
 
-@app.route('/testmodel_test',methods=["POST"])
+@app.route('/testmodel_test',methods=["POST","GET"])
 def testmodel_test():
     '''
     名称：测试模型
@@ -538,8 +538,12 @@ def testmodel_test():
                 input.update(input_tmp)
     else:
         print('else')
-        filetype = json.loads(request.form['filetype'])
+        print(request.form['input'])
+        print(request.form['filetype'])
+        
+        print("------------------------------------------------------------")
         input = json.loads(request.form['input'])
+        filetype = json.loads(request.form['filetype'])
         for variable in inputvariables:
             if variable[0] not in input:
                 return jsonify({'status': 'invalid input'})

@@ -183,23 +183,27 @@ export default defineComponent({
       param.append('user',this.store.state.username);
       param.append('password',this.store.state.password);
       param.append('modelname',this.store.state.modelname);
-      param.append("filetype",'none');
-
+      
+      let filetypecontent = new Map();
       let inputcontent = new Map();
       for (let index = 0; index < this.inputlist.length; index++){
         if(this.nofileshow[index]==0){
           if(this.filebaselist[index]=='') return;
           inputcontent.set(this.inputnamelist[index],this.filebaselist[index]);
-          console.log(this.filebaselist[index]);
+          filetypecontent.set(this.inputnamelist[index],"'jpgbase64'");
         }
         else{
           if(this.valuelist[index]=='') return;
           inputcontent.set(this.inputnamelist[index],this.valuelist[index]);
+          filetypecontent.set(this.inputnamelist[index],"'none'");
         }
       }
       var content = this.MapTOJson(inputcontent);
+      var filetype = this.MapTOJson(filetypecontent);
       console.log(content);
+      console.log(filetype);
       param.append("input",content);
+      param.append("filetype",filetype);
       console.log("wai")
       var path = 'http://127.0.0.1:5000/testmodel_test';
       axios
