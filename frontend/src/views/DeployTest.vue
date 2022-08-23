@@ -112,7 +112,7 @@ const getFile = () => {
 }
 
 const submit = () => {
-  if (form.requestJSON.length == 0 || form.requestFile == null) {
+  if (form.requestJSON.length == 0 && form.requestFile == null) {
     alert('未提交请求！')
     return
   }
@@ -121,14 +121,18 @@ const submit = () => {
   param.append('file', form.requestJSON || form.requestFile || '')
   param.append('prepare_py', form.preparationCode)
   request(path, param).then((res: any) => {
-    if (res.status == 'success') {
-      response.value = res.output
-    } else if (res.status == 'runtime error') {
+    if (res.data.status == 'success') {
+      console.log(response)
+      response = res.data.output
+      console.log(response)
+    } else if (res.data.status == 'runtime error') {
       alert('运行时错误')
-    } else if (res.status == 'model not found') {
+    } else if (res.data.status == 'model not found') {
       alert('模型不存在')
-    } else if (res.status == 'preprocess failed') {
+    } else if (res.data.status == 'preprocess failed') {
       alert('预处理失败，请检查语法')
+    } else {
+      alert(res.data.status)
     }
   })
 }
@@ -139,7 +143,7 @@ const clear = () => {
   form.requestFile = null
 }
 
-const response = ref('{"a": 1}')
+var response = '{"a": 1}'
 
 const dialogVisible = ref(false)
 

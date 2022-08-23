@@ -649,8 +649,10 @@ def testmodel_quickresponse(deployment: str):
     status, deployment_info = database.getdeploymentperformance(deployment)
     run_times = deployment_info[0] + 1  # 执行次数
     average_cost = (deployment_info[0] * deployment_info[1] + last_timecost) / run_times  # 平均响应时间
+    maxcost = deployment_info[2]
     if last_timecost > deployment_info[2]:  # 最大响应时间
         maxcost = last_timecost
+    mincost = deployment_info[3]
     if last_timecost < deployment_info[3] or deployment_info[3] == 0:  # 最小响应时间
         mincost = last_timecost
     lastvisit = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))  # 直接更新最近访问时间点
