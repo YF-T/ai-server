@@ -343,8 +343,8 @@ def checkmodel(user: str, password: str, modeltype: str, modelname: str):
 
     return valid,error_info
 
-'''if __name__ == '__main__':
-    a,b=checkmodel('haha','haha','pmml',"randomForest.pmml")
+if __name__ == '__main__':
+    a,b=checkmodel('haha','haha','pmml',"xgb-iris.pmml")
     print(a)
-    print(b)'''
+    print(b)
 
