@@ -10,4 +10,7 @@ module.exports = defineConfig({
             require('unplugin-auto-import/webpack')({ /* options */ }),
         ],
     },
+    devServer: {
+        proxy: 'http://127.0.0.1:5000',
+    },
 })

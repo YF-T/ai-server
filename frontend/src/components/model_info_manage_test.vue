@@ -58,8 +58,6 @@
                   <span>Delete Item</span>
                 </button>
               </div>
-              <!-- <input type="reset" value="清空"/> -->
-              <!-- <input type="submit" @click="pagechange(2)"/> -->
               <div class="truckbuttonflex" @click="worduploaddata()">
                 <button type="submit" class="truck-button">
                     <span class="default">Complete Order</span>

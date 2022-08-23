@@ -89,7 +89,7 @@ import { request } from '../Util'
 import { useStore } from 'vuex'
 
 const form = reactive({
-  preparationCode: '',
+  preparationCode: "import json \nimport os \nimport prepare as default_prepare \ndef prepare(input_type, file): \nif isinstance(file, str): \n# 如果您传入的是字符串可以直接使用json.loads \nreturn json.loads(file) \nelse: \nfilepath = './input_file/' + file.filename \nfile.save(filepath) \ndata = None \n# todo # 如果您传入的是jpg \n# data = default_prepare.readimg(input_type[0], filepath, file) \n# 如果您传入的是mp4 \n# data = default_prepare.readmp4(input_type[0], filepath, file) \n# 如果您传入的是txt \n# data = default_prepare.readtxt(input_type, filepath, file)  \n# 如果您传入的是csv \n# data = default_prepare.readcsv(input_type, filepath, file) \n# 如果您传入的是zip \n# data = default_prepare.readzip(input_type, filepath, file) \nos.remove(filepath) \nreturn data",
   requestJSON: '',
   requestFile: null,
 })

@@ -20,7 +20,7 @@
       <ul class="item">
         <li><a @click="show('/deploy/')" :class="$route.path==='/deploy/' || $route.path==='/deploy'? 'active':'no'">概述</a></li>
         <li><a @click="show('/deploy/test')" :class="$route.path==='/deploy/test'? 'active':'no'">快速返回测试</a></li>
-        <li><a @click="show('/deploy/tasks')" :class="$route.path==='/deploy/tasks'? 'active':'no'">任务详细信息</a></li>
+        <li><a @click="show('/deploy/tasks')" :class="$route.path==='/deploy/tasks'? 'active':'no'">等待返回测试</a></li>
 	  </ul>
     </nav>
     <router-view/>
