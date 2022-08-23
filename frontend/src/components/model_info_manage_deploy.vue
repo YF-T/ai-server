@@ -55,7 +55,6 @@ export default defineComponent({
   },
   methods:{
     deleteweb(name:string){
-      console.log("delete")
       let param=new FormData();
       param.append('user',this.store.state.username);
       param.append('password',this.store.state.password);

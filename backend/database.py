@@ -336,7 +336,9 @@ def deletemodel(user : str, password : str, modelname : str):
                     (user, modelname))
     c.execute('DELETE FROM variables WHERE user = ? AND modelname = ?', 
                     (user, modelname))
-    c.execute('DELETE FROM immediatetasks WHERE user = ? AND modelname = ?', 
+    c.execute('DELETE FROM delayresponsetasks WHERE user = ? AND modelname = ?', 
+                    (user, modelname))
+    c.execute('DELETE FROM deployments WHERE user = ? AND modelname = ?', 
                     (user, modelname))
     conn.commit()
     conn.close()
