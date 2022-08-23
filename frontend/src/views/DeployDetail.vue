@@ -1,17 +1,13 @@
 <template>
   <div class="main">
-      <div>
-      <el-table :data="indicators" style="width: 1000px;" class="table">
-        <el-table-column prop="accessCount" label="执行次数" class="header"/>
-        <el-table-column prop="averageResponseTime" label="平均响应时间(ms)" class="header"/>
-        <el-table-column prop="minimumResponseTime" label="最小响应时间(ms)" class="header"/>
-        <el-table-column prop="maximumResponseTime" label="最大响应时间(ms)" class="header"/>
-        <el-table-column prop="firstAccessDate" label="首次访问时间" class="header"/>
-        <el-table-column prop="latestAccessDate" label="最新访问时间" class="header"/>
-      </el-table>
-      </div>
-      
-   
+    <el-table :data="indicators" style="width: 1000px;" class="table">
+      <el-table-column prop="accessCount" label="执行次数" class="header"/>
+      <el-table-column prop="averageResponseTime" label="平均响应时间(ms)" class="header"/>
+      <el-table-column prop="minimumResponseTime" label="最小响应时间(ms)" class="header"/>
+      <el-table-column prop="maximumResponseTime" label="最大响应时间(ms)" class="header"/>
+      <el-table-column prop="firstAccessDate" label="首次访问时间" class="header"/>
+      <el-table-column prop="latestAccessDate" label="最新访问时间" class="header"/>
+    </el-table>
   </div>
 </template>
 
@@ -64,9 +60,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-:root {
-  --el-text-color-regular: black;
-}
 .el-table thead {
   color: black !important; 
 }
@@ -76,32 +69,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 20px;
   margin-top: 20px;
-  margin-right: 20px;
   margin-bottom: 20px;
-}
-.card_header {
-  text-align: left;
-}
-
-.card {
-  width: 100%;
-  margin-top: 1em;
-  margin-bottom: 1em;
-  margin-left: 1em;
-  margin-right: 1em;
 }
 
 .table {
-  flex-grow:1;
   display:block;
   margin: 20px;
   height: 400px;
   overflow: auto;
   background: white;
-  text-align:left;
-  font-size: large;
+  text-align:center;
+  font-size: 20px;
   color: black !important;
   border: 4px solid rgb(179, 191, 231);
   border-radius:10px;
@@ -112,7 +91,5 @@ onMounted(() => {
    font-size: large !important;
   color: black !important;
 }
-.fuben:after {
-  content: '   ';
-}
+
 </style>
