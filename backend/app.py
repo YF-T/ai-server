@@ -540,10 +540,11 @@ def testmodel_test():
         print('else')
         filetype = json.loads(request.form['filetype'])
         input = json.loads(request.form['input'])
-        for variable in filetype:
-            if filetype[variable] in ('jpgbase64', 'mp4base64'):
-                input[variable] = prepare.prepare(None, input[variable],
-                                                   filetype[variable], None, None)
+        for variable in inputvariables:
+            if variable[0] not in input:
+                return jsonify({'status': 'invalid input'})
+            if filetype[variable[0]] == 'jpgbase64':
+                input.update(prepare.process_base64_to_img(input[variable], variable))
 
 
     if not status:
