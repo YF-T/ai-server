@@ -305,7 +305,7 @@ def deletedeployment():
      status : str - 'success' : 设置成功
                     'user not found' : 用户不存在
                     'invalid password' : 密码错误
-                    'duplication' : 部署名重复
+                    'deployment not found' : 任务id不存在
 
     Raises:
      本函数不应该报错
