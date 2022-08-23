@@ -1,3 +1,4 @@
+# -- coding:UTF-8 --
 import threading
 
 from flask import Flask, jsonify, request
@@ -544,6 +545,7 @@ def testmodel_quickresponse(deployment: str):
      output : dict - 输出结果，格式服从前端要求
      '''
     start_time = time.time()
+
     status, user, password, modelname = database.getdeployment(deployment)
     if status != 'success':
         return jsonify({'status': status})

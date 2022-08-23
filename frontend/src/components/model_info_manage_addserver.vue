@@ -6,14 +6,14 @@
       <form onsubmit="return false">
         <label class='servername' >部署服务名称</label>
         <input type="text" v-model="name" />
-        <label class='servername' >类型</label>
+        <!-- <label class='servername' >类型</label>
         <input type="text" v-model="webtype"/>
         <label class='servername'>开始时间</label>
         <input type="text" v-model="starttime"/>
         <label class='servername'>状态</label>
         <input type="text" v-model="state"/>
         <label class='servername'>操作</label>
-        <input type="text" v-model="operator"/>
+        <input type="text" v-model="operator"/> -->
         <div class="buttonspace">
           <button type="button" @click="pagechange(3)"><span>返回</span></button>
           <button type="submit" @click="uploaddata()"><span>确认</span></button>
@@ -37,10 +37,10 @@ export default defineComponent({
     return {
       store: useStore(),
       name:'',
-      webtype:'',
-      starttime:'',
-      state:'',
-      operator:'',
+      // webtype:'',
+      // starttime:'',
+      // state:'',
+      // operator:'',
     }
   },
   methods:{
@@ -70,11 +70,12 @@ export default defineComponent({
         this.$emit('pagechange',index);
     },
     uploaddata(){
-        if(this.name!='' &&
-        this.webtype!='' &&
-        this.starttime!='' &&
-        this.state!='' &&
-        this.operator!='' ){
+        // if(this.name!='' &&
+        // this.webtype!='' &&
+        // this.starttime!='' &&
+        // this.state!='' &&
+        // this.operator!='' ){
+        if(this.name!=''){
           let param=new FormData();
           param.append('user',this.store.state.username);
           param.append('password',this.store.state.password);
@@ -87,6 +88,7 @@ export default defineComponent({
             .then(res=> {
               if(res.data.status==='success'){
                 this.store.commit('savewebname',this.name);
+                this.store.commit('savecorrecttime',this.getvalue);
                 this.$router.push('/deploy')
               }
               else{

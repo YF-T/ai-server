@@ -26,6 +26,7 @@
               <td>
                 <button class="oper" v-if="item.status==='running'" @click="stopweb(item.deployment)"><span>暂停</span></button>
                 <button class="oper" v-else @click="startweb(item.deployment)"><span>启动</span></button>
+                <button class="oper" @click="deleteweb(item.deployment)"><span>删除</span></button>
               </td>
             </tr>
           </table>
@@ -53,6 +54,30 @@ export default defineComponent({
     }
   },
   methods:{
+    deleteweb(){
+
+    },
+    getvalue(){
+      var date = new Date();
+      //年 getFullYear()：四位数字返回年份
+      var year = date.getFullYear(); //getFullYear()代替getYear()
+      //月 getMonth()：0 ~ 11
+      var month = date.getMonth() + 1;
+      //日 getDate()：(1 ~ 31)
+      var day = date.getDate();
+      //时 getHours()：(0 ~ 23)
+      var hour = date.getHours();
+      //分 getMinutes()： (0 ~ 59)
+      var minute = date.getMinutes();
+      //秒 getSeconds()：(0 ~ 59)
+      var second = date.getSeconds();
+
+      var time = year + '-' + this.addZero(month) + '-' + this.addZero(day) + ' ' + this.addZero(hour) + ':' + this.addZero(minute) + ':' + this.addZero(second);
+      return time;
+    },
+    addZero(s:number) {
+        return s < 10 ? ('0' + s) : s;
+    },
     startweb(name:string){
       let param=new FormData();
       param.append('user',this.store.state.username);
@@ -109,6 +134,7 @@ export default defineComponent({
     },
     transdata(name:string){
       this.store.commit('savewebname',name);
+      this.store.commit('savecorrecttime',this.getvalue());
       this.$router.push('/deploy')    
     },
     pagechange(index:number){
@@ -210,8 +236,8 @@ button[class='add']:hover:span{
 }
 
 button[class='oper']{
-  width: 60%;
-  padding: 16px 20px;
+  width: 40%;
+  padding: 8px 10px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -232,5 +258,9 @@ button[class='oper']:hover {
 
 .itemone{
   cursor: pointer;
+}
+
+.itemone:hover{
+  background: #F5F7FA;
 }
 </style>

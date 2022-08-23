@@ -581,12 +581,12 @@ span[class='codeshow']{
 }
 
 .inputtype{
-  flex:4;
+  flex:3.5;
   position: relative;
   top:8px;
   border: none;
   display: inline-block;
-  padding: 10px 30px;
+  padding: 10px 15px;
   margin: 0px 20px;
   text-transform: uppercase;
   font-weight: 500;
@@ -604,6 +604,7 @@ span[class='codeshow']{
 
 .inputtype:hover:span{
   display: inline-block;
+  font-size:30px;
   transform: scale(0.98);
 }
 
