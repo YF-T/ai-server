@@ -30,11 +30,6 @@ import { defineComponent } from 'vue';
 import { useStore } from 'vuex'
 import axios from "axios"
 
-let now = new Date()
-let m = now.getMinutes()
-let s = now.getSeconds()
-let current = now.getHours()+':'+ (m < 10 ?  '0'  + m: m) +':'+ (s < 10 ?  '0'  + s: s)
-
 export default defineComponent({
   name: "newmodel",
   components:{},
@@ -43,12 +38,33 @@ export default defineComponent({
       store:useStore(),
       modelname:'',
       modeltype:'pmml',
-      time:current,
       op:"???",
       file:''
     }
   },
   methods:{
+    getvalue(){
+      var date = new Date();
+      //年 getFullYear()：四位数字返回年份
+      var year = date.getFullYear(); //getFullYear()代替getYear()
+      //月 getMonth()：0 ~ 11
+      var month = date.getMonth() + 1;
+      //日 getDate()：(1 ~ 31)
+      var day = date.getDate();
+      //时 getHours()：(0 ~ 23)
+      var hour = date.getHours();
+      //分 getMinutes()： (0 ~ 59)
+      var minute = date.getMinutes();
+      //秒 getSeconds()：(0 ~ 59)
+      var second = date.getSeconds();
+
+      var time = year + '-' + this.addZero(month) + '-' + this.addZero(day) + ' ' + this.addZero(hour) + ':' + this.addZero(minute) + ':' + this.addZero(second);
+      return time;
+    },
+    //小于10的拼接上0字符串
+    addZero(s:number) {
+        return s < 10 ? ('0' + s) : s;
+    },
     getFile(){
       //获取file内容
       let files:any = this.$refs.fileId;
@@ -68,7 +84,7 @@ export default defineComponent({
       param.append('modeltype',this.modeltype);
       param.append('modelname',this.modelname);
       param.append('file',this.file);
-      param.append('time',current);
+      param.append('time',this.getvalue());
       param.append('description',this.op);
       var path = 'http://127.0.0.1:5000/upload';
       axios.post(path,param)
@@ -89,7 +105,7 @@ export default defineComponent({
               let data = {
                 modelname:this.modelname,
                 modeltype:this.modeltype,
-                time:this.time,
+                time:this.getvalue(),
                 op:"???"
               }
               this.store.commit('savemodelname',this.modelname);

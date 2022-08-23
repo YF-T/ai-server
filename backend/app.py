@@ -531,20 +531,13 @@ def testmodel_test():
                 input_tmp = prepare.prepare(i_variate, file, request.form['filetype'], filepath, None)
                 input.update(input_tmp)
     else:
-        print('else')
-        print(request.form['filetype'])
-        
-        print("------------------------------------------------------------")
+        print('else')        
         input = json.loads(request.form['input'])
         filetype = json.loads(request.form['filetype'])
-        print(inputvariables)
         for variable in inputvariables:
-            print("good")
-            print(variable)
             if variable[0] not in input:
                 return jsonify({'status': 'invalid input'})
             if filetype[variable[0]] == 'jpgbase64':
-                print(filetype[variable[0]])
                 input.update(prepare.process_base64_to_img(input[variable[0]], variable))
 
 
@@ -560,14 +553,12 @@ def testmodel_test():
 
     # 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
     address = find_model(user, password, modelname)
-    print(address)
     if address == 'model not found':
         return jsonify({'status': address})
 
     # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
     # 本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
-    print(output)
     if output is None:
         return jsonify({'status': 'runtime error'})
 
