@@ -40,17 +40,18 @@ export default defineComponent({
 <style scoped>
 p{
     text-align:center;
-    float:left;
+    float: left;
     width:200px;
     height:30px;
     font-size: large;
-    color:pink;
+    color: black;
     display:inline-block;
   }
 #bg{
+  margin-top: 0px;
   display: inline-block;
-  background-image: linear-gradient( 135deg, skyblue 10%, lightslategrey 100%);
-  outline:solid black thin;
+  background-color: white;
+  border: 4px solid rgb(179, 191, 231)
 }
 
 </style>

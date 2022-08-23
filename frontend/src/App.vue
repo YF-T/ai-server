@@ -6,16 +6,17 @@
       <span id="title">本网页仅为大作业所用，最终解释权归作者团队所有</span>
       <div class="footer">
         <div class="shape">
-          <span>电子邮箱</span><br/>
-          <span>待填写</span>
+          <span style="font-size:20px;font-weight: bold;line-height: 40px;">联系邮箱</span><br/>
+          <span style="font-size:16px;font-weight: bold;line-height: 20px;">tanyf20</span><br/>
+          <span style="font-size:16px;font-weight: bold;line-height: 20px;">@mails.tsinghua.edu.cn</span>
         </div>
         <div class="shape">
-          <span>联系电话</span><br/>
-          <span>待填写</span>
+          <span style="font-size:20px;font-weight: bold;line-height: 40px;">联系电话</span><br/>
+          <span style="font-size:18px;font-weight: bold;line-height: 50px;">13552750170</span>
         </div>
         <div class="shape">
-          <span>github网址</span><br/>
-          <span>github待填写</span>
+          <span style="font-size:20px;font-weight: bold;line-height: 40px;">github网址</span><br/>
+          <a href="https://github.com/YF-T/ai-server" target="_blank" style="text-decoration: none;"><span style="font-size:18px;font-weight: bold;line-height: 50px;">点击跳转到代码仓库</span></a>
         </div>
       </div>
     </footer>
@@ -213,7 +214,7 @@ footer{
   width: 200px;
   height: 100px;
   font-size:20px;
-  line-height: 50px;
+  
   color:black;
   background: white;
   position: relative;
@@ -239,5 +240,13 @@ span[id='title']{
   font-size: 20px;
   color:white;
   font-weight: bold;
+}
+
+a{
+  color:black;
+}
+
+a:hover{
+  color:blue;
 }
 </style>
