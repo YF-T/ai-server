@@ -1,7 +1,6 @@
 <template>
   <div class="main">
       <div>
-        <span class="title">指标</span>
       <el-table :data="indicators" style="width: 1000px;" class="table">
         <el-table-column prop="accessCount" label="执行次数" class="header"/>
         <el-table-column prop="averageResponseTime" label="平均响应时间(ms)" class="header"/>
@@ -12,28 +11,7 @@
       </el-table>
       </div>
       
-    <div>
-      <span class="title">服务</span>
-      <el-table :data="replicates" stripe style="width: 600px;" class="table">
-        <el-table-column prop="name" label="名称" />
-        <el-table-column prop="status" label="状态" />
-        <el-table-column prop="operation" label="操作">
-          <template #default="scope">
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click.prevent="toggle(scope.$index)"
-            >
-              {{
-                replicates[scope.$index].status == '运行中' ? '暂停' : '运行'
-              }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-      
+   
   </div>
 </template>
 
@@ -51,7 +29,7 @@ interface FunctionIndicator {
   firstAccessDate: string
   latestAccessDate: string
 }
-const indicators: FunctionIndicator[] = []
+const indicators = ref<FunctionIndicator[]>([])
 
 const store = useStore()
 
@@ -60,7 +38,9 @@ onMounted(() => {
   const path = `http://127.0.0.1:5000/get_deployment_info/${deployment}`
   const param = new FormData()
   request(path, param).then((res: any) => {
-    if (res.status == 'success') {
+    console.log(res)
+    console.log(res.data.output)
+    if (res.data.status == 'success') {
       const [
         accessCount,
         averageResponseTime,
@@ -68,54 +48,19 @@ onMounted(() => {
         minimumResponseTime,
         firstAccessDate,
         latestAccessDate,
-      ] = res.output
-      indicators.push({
+      ] = res.data.output
+      indicators.value.push({
         accessCount,
         averageResponseTime,
         maximumResponseTime,
         minimumResponseTime,
-        firstAccessDate,
-        latestAccessDate,
+        firstAccessDate: firstAccessDate || '2022-08-23',
+        latestAccessDate: latestAccessDate || '2022-08-23',
       })
     }
   })
 })
 
-const replicates = ref([
-  {
-    name: 'pmml',
-    status: '运行中',
-  },
-])
-
-const count = computed(() => replicates.value.length)
-
-const toggle = (index: number) => {
-  const replicate = replicates.value[index]
-  const deploymentName = replicate.name
-
-  const param = new FormData()
-  param.append('user', store.state.username)
-  param.append('password', store.state.password)
-  param.append('modelname', store.state.modelname)
-  param.append('deployment', deploymentName)
-
-  if (replicate.status == '运行中') {
-    const path = 'http://127.0.0.1:5000/setdeploymentstatuspause'
-    request(path, param).then((response: any) => {
-      if (response.status == 'success') {
-        replicate.status = '已暂停'
-      }
-    })
-  } else if (replicate.status == '已暂停') {
-    const path = 'http://127.0.0.1:5000/setdeploymentstatusrunning'
-    request(path, param).then((response: any) => {
-      if (response.status == 'success') {
-        replicate.status = '运行中'
-      }
-    })
-  }
-}
 </script>
 
 <style scoped>

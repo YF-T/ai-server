@@ -10,30 +10,26 @@
         </template>
         <el-form :model="form" label-position="top" ref="formRef" class="form">
           <el-form-item label="Python 预处理代码" prop="preparationCode">
-            <CodeEditor
-              language="python"
-              :width="800"
-              :height="300"
-              :value="form.preparationCode"
-              @update:value="handleUpdate('preparationCode')"
-            />
+            <el-input
+              type="textarea"
+              :rows="4"
+              v-model="form.preparationCode"
+            ></el-input>
           </el-form-item>
           <span style="text-align: left">请求内容</span>
           <el-radio-group v-model="requestChoice" class="ml-4">
             <el-radio label="JSON" size="small">JSON参数</el-radio>
             <el-radio label="File" size="small">文件</el-radio>
           </el-radio-group>
-          <el-form-item v-if="requestChoice == 'JSON'" prop="requestJSON">
-            <CodeEditor
-              language="javascript"
-              :width="800"
-              :height="300"
-              :value="form.requestJSON"
-              @update:value="handleUpdate('requestJSON')"
-            />
+          <el-form-item v-show="requestChoice == 'JSON'" prop="requestJSON">
+            <el-input
+              type="textarea"
+              :rows="4"
+              v-model="form.requestJSON"
+            ></el-input>
           </el-form-item>
-          <el-form-item v-else="requestChoice == 'File'" prop="requestFile">
-            <input type="file" @change="chooseUploadFile" id="fileInput" />
+          <el-form-item v-show="requestChoice == 'File'" prop="requestFile">
+            <input type="file" @change="getFile" id="fileInput" ref="input" />
           </el-form-item>
           <el-form-item>
             <el-button-group>
@@ -76,6 +72,7 @@
 import {
   ElCard,
   ElLink,
+  ElInput,
   ElForm,
   ElFormItem,
   ElButton,
@@ -102,12 +99,16 @@ const requestChoice = ref<RequestChoice>('JSON')
 const formRef = ref<FormInstance>()
 const store = useStore()
 
-const chooseUploadFile = (e: any) => {
-  const file = e.target.files.item(0).getAsFile()
-  if (!file) return
-  form.requestFile = file
-  // 清空，防止上传后再上传没有反应
-  e.target.value = ''
+const input = ref()
+
+const getFile = () => {
+  //获取file内容
+  console.log('getFile', input.value)
+  if (input.value) {
+    form.requestFile = input.value.files[0]
+    //this.filename = this.file.name;
+    console.log(form.requestFile)
+  }
 }
 
 const submit = () => {
@@ -130,7 +131,6 @@ const submit = () => {
       alert('预处理失败，请检查语法')
     }
   })
-  
 }
 
 const clear = () => {
@@ -177,10 +177,6 @@ ${endpoint.value} \\
 -H 'Cache-Control: no-cache' \\
 -H 'Content-Type: application/json' \\
 -d ${form.requestJSON}`
-
-const handleUpdate = (key: keyof typeof form) => (value: string) => {
-  form[key] = value
-}
 </script>
 <style scoped>
 .card_header {
@@ -211,15 +207,15 @@ const handleUpdate = (key: keyof typeof form) => (value: string) => {
 .card {
   width: 50%;
   margin: 0.5em;
-    flex-grow:1;
-  display:block;
+  flex-grow: 1;
+  display: block;
   margin: 20px;
-  height: 400px;
+
   overflow: auto;
   background: white;
-  text-align:left;
+  text-align: left;
   border: 4px solid rgb(179, 191, 231);
-  border-radius:10px;
+  border-radius: 10px;
 }
 
 .el-table thead {
