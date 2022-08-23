@@ -6,9 +6,19 @@ import json
 import os
 from flask import jsonify
 import zipfile
+import time
 
 
-
+def readimg(input_type, filepath, file):
+    return process_img_path(path, input_type[0])
+def readmp4(input_type, filepath, file):
+    return process_mp4(path, input_type[0])
+def readtxt(input_type, filepath, file):
+    return process_text_to_json(filepath)
+def readcsv(input_type, filepath, file):
+    return file
+def readzip(input_type, filepath, file)
+    return process_base64_to_csv(file, hash(file) + hash(time.time()))
 '''
 处理jpg能调用的函数：
     process_img_path(path, input_type)#path为jpg的存储地址，input_type为单个输入变量信息，为tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)
