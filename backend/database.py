@@ -405,7 +405,7 @@ def deletetask(user : str, password : str, taskid : str):
     assert isinstance(taskid, str)
     conn = sqlite3.connect(database)
     c = conn.cursor()
-    c.execute('SELECT status FROM delayresponsetasks WHERE user = ? AND id = ?', 
+    c.execute('SELECT user FROM delayresponsetasks WHERE user = ? AND id = ?', 
                     (user, taskid))
     row = c.fetchone()
     if row is None:
@@ -505,10 +505,10 @@ def getdeployment(deployment : str):
                     (deployment, ))
     answer = c.fetchone()
     if not bool(answer):
-        return 'model not found', None, None, None
+        return 'deployment not found', None, None, None
     user, modelname, status = answer
     if status == 'pause':
-        return 'model pause', None, None, None
+        return 'deployment pause', None, None, None
     c.execute('''SELECT password FROM users
                     WHERE user = ?''' , 
                     (user, ))
@@ -557,6 +557,76 @@ def createdeployment(user : str, password : str, modelname : str,
     conn.commit()
     conn.close()
     return 'success'
+
+def deletedeployment(user : str, password : str, deployment : str):
+    '''
+    删除部署
+     
+    Parameters:
+     uesr - 用户名
+     password - 密码
+     deployment - 部署名
+     
+    Returns:
+     'success' : 设置成功
+     'user not found' : 用户不存在
+     'invalid password' : 密码错误
+     'deployment not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
+    '''
+    if identify(user, password) != 'success':
+        return identify(user, password)
+    assert isinstance(deployment, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT status FROM deployments WHERE deployment = ?', 
+                    (deployment, ))
+    row = c.fetchone()
+    if row is None:
+        answer = 'deployment not found'
+    else:
+        answer = 'success'
+    c.execute('DELETE FROM deployments WHERE deployment = ?', 
+                    (deployment, ))
+    c.execute('DELETE FROM delayresponsetasks WHERE deployment = ?', 
+                    (deployment, ))
+    conn.commit()
+    conn.close()
+    return answer
+
+def getdeploymenttask(deployment : str):
+    '''
+    返回部署的所有任务id
+     
+    Parameters:
+     deployment - 部署名
+     
+    Returns:
+     多值返回
+     第一个变量为一个布尔变量，False为访问失败，True为访问成功
+     第二个变量：
+     成功则为一个列表，这个列表包含该用户的每一个taskid
+     失败则为一个字符串代表错误信息，'deployment not found' : 部署不存在
+     
+    Raises:
+     本函数不应该报错
+    '''
+    assert isinstance(deployment, str)
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    c.execute('SELECT status FROM deployments WHERE deployment = ?', 
+                    (deployment, ))
+    row = c.fetchone()
+    if row is None:
+        conn.close()
+        return False, 'deployment not found'
+    c.execute('SELECT id FROM delayresponsetasks WHERE deployment = ?', (deployment,))
+    answer = c.fetchall()
+    answer = list(map(lambda x : x[0], answer))
+    conn.close()
+    return True, answer
 
 def getdeploymentstatus(user : str, password : str, modelname : str, deployment : str):
     '''
@@ -818,14 +888,10 @@ def init():
                          ('lxt', -1, 'test', 'pmml', 
                          '2020-08-03 16:00:00', 'randomForest.pmml', 
                          'randomforest', 'pypmml', '测试模型')])
-        # 创建立即任务表
+        # 创建task表
         c.execute('''CREATE TABLE delayresponsetasks
                         (user TEXT, id TEXT, 
-                        modelname TEXT, status TEXT, file TEXT);''')
-        # 创建等待任务表
-        c.execute('''CREATE TABLE waittasks 
-                        (user TEXT, id NUMBER, 
-                        inputroute TEXT, outputroute TEXT);''')
+                        modelname TEXT, deployment TEXT, file TEXT);''')
         # 创建模型变量表
         c.execute('''CREATE TABLE variables 
                         (user TEXT, id NUMBER, modelname TEXT, 
