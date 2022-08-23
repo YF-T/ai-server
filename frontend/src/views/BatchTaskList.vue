@@ -19,7 +19,7 @@
 import { ElTable, ElButton } from 'element-plus'
 import { ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import { request } from './Util'
+import { request } from '../Util'
 const store = useStore()
 const deployment = store.state.webname
 const modelName = store.state.modelName
