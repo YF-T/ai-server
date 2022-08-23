@@ -66,7 +66,7 @@ export default defineComponent({
     addZero(s:number) {
         return s < 10 ? ('0' + s) : s;
     },
-    pagechange(index:number,button:number){
+    pagechange(index:number){
         this.$emit('pagechange',index);
     },
     uploaddata(){

@@ -3,13 +3,13 @@
     <div id="main">
       <div></div>
       <div id="name">
-        <label class="mname">名称:</label><input type='text' v-model="modelname" />
+        <label class="mname">名称：</label><input type='text' v-model="modelname" />
       </div>
       <div></div>
       <div></div>
       <div id = "button" class="mname" @click="importance">导入</div>
       <div id="type">
-        <label class="mname">类型: </label>
+        <label class="mname">类型：</label>
         <select v-model="modeltype">
           <option value ="pmml">pmml</option>
           <option value ="onnx">onnx</option>
@@ -134,13 +134,13 @@ export default defineComponent({
 .mname{
   display:inline-block;
   font-size: xx-large;
-  color:gold;
+  color:rgb(179, 191, 231);
 }
 
 #inputfile{
   font-size: xx-large;
   margin-left: 80px;
-  color:gold;
+  color:rgb(179, 191, 231);
 }
 
 select{
@@ -151,7 +151,7 @@ select{
 .back{
   height:53px;
   font-size: xx-large;
-  color:gold;
+  color:rgb(179, 191, 231);
   background-image: radial-gradient(black,grey)
 }
 </style>

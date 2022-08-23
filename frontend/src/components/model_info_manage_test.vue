@@ -34,16 +34,15 @@
                 <label class="radiolabel">输入方式选择：</label>
                   <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='1' />文本框输入</label>
                   <label class="radiolabel"><input v-model=nofileshow[i] type="radio" :name=inputone.name value='0' />文件输入</label><br/>
-                <input type="file" v-if="nofileshow[i]==='0'" />
+                <input type="file" v-if="nofileshow[i]==='0'" value="" accept="image/png, image/jpeg, image/gif, image/jpg" @change="uploadImg($event,i)"/>
                 <div class="parent" v-else>
                   <div class="dummy" name='point'></div>
                   <textarea class="textarea" v-on:input="test(i)" v-model="valuelist[i]"></textarea>
                 </div>
-                
               </div>
               <!-- {% endfor %} -->
               <!-- <input type="button" value="清空" onclick="argsform.reset()"/> -->
-              <div class="trashbutton">
+              <div class="trashbutton" @click="deletedata">
                 <button type="reset" class="button" onclick="argsform.reset()" >
                   <div class="trash">
                       <div class="top">
@@ -137,7 +136,7 @@ export default defineComponent({
       output:'',
       store: useStore(),
       valuelist:[],
-      // filelist:[],
+      filebaselist:new Array(),
       nofileshow:[],
       inputtypeindex:1,
       fileName: '',
@@ -148,6 +147,23 @@ export default defineComponent({
     }
   },
   methods:{
+    deletedata(){
+      this.filebaselist = new Array();
+    },
+    uploadImg:function(e:any,index:number){
+        var file = e.target.files[0]
+        if (!/\.(jpg|JPG)$/.test(e.target.value)) {
+            alert('目前只支持jpg文件');
+            return false;
+        }
+        var reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = (e) => {
+            if(e.target){
+              this.filebaselist[index] = e.target.result;
+            }
+        }
+    },
     MapTOJson(m:any){
        var str = '{\n';
       var i = 1;
@@ -167,21 +183,27 @@ export default defineComponent({
       param.append('user',this.store.state.username);
       param.append('password',this.store.state.password);
       param.append('modelname',this.store.state.modelname);
-      param.append("filetype",'none');
-
+      
+      let filetypecontent = new Map();
       let inputcontent = new Map();
       for (let index = 0; index < this.inputlist.length; index++){
         if(this.nofileshow[index]==0){
-          alert("暂不支持输入文件");
-          return
+          if(this.filebaselist[index]=='') return;
+          inputcontent.set(this.inputnamelist[index],this.filebaselist[index]);
+          filetypecontent.set(this.inputnamelist[index],"'jpgbase64'");
         }
         else{
+          if(this.valuelist[index]=='') return;
           inputcontent.set(this.inputnamelist[index],this.valuelist[index]);
+          filetypecontent.set(this.inputnamelist[index],"'none'");
         }
       }
       var content = this.MapTOJson(inputcontent);
+      var filetype = this.MapTOJson(filetypecontent);
       console.log(content);
+      console.log(filetype);
       param.append("input",content);
+      param.append("filetype",filetype);
       console.log("wai")
       var path = 'http://127.0.0.1:5000/testmodel_test';
       axios
@@ -208,7 +230,8 @@ export default defineComponent({
             else if(res.data.status=='runtime error')
               alert("模型运行出错")
           }
-        });
+        }
+        );
       
     },
     chooseUploadFile (e:any) {
