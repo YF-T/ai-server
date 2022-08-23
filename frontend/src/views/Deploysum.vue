@@ -3,18 +3,16 @@
     <div class="web_info_show">
       <table>
         <tr>
-          <th width = "40%">服务名称</th>
+          <th width = "30%">服务名称</th>
+          <th width = "30%">模型对象</th>
           <th width = "20%">修改时间</th>
-          <th width = "10%">类型</th>
-          <th width = "20%">算法</th>
-          <th width = "10%">引擎</th>
+          <th width = "20%">类别</th>
         </tr>
         <tr>
           <td>{{store.state.webname}}</td>
-          <td>{{1}}</td>
-          <td>{{1}}</td>
-          <td>{{1}}</td>
-          <td>{{1}}</td>
+          <td>{{store.state.modelname}}</td>
+          <td>{{store.state.correcttime}}</td>
+          <td>网络服务</td>
         </tr>
       </table>      
     </div>

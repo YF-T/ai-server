@@ -7,7 +7,8 @@ export default createStore({
         password: "",
         modelname:'test2',
         webname:'',
-        details:[]
+        details:[],
+        correcttime:'',
     },
     mutations:{
         // 保存当前菜单栏的路径
@@ -25,7 +26,10 @@ export default createStore({
             console.log(webname);
         },
         savedetail(state,data){
-            state.details.push(data)
+            state.details.push(data);
+        },
+        savecorrecttime(state,time){
+            state.correcttime = time;
         }
     }
 })

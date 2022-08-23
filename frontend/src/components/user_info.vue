@@ -1,6 +1,6 @@
 <template>
   <div class="user_info_show">
-    <button v-show="$route.path!='/'&&$route.path!='/model_manage'&&$route.path!='/newmodel'" @click="changeroute">返回上一个页面</button>
+    <button v-show="$route.path!='/'&&$route.path!='/newmodel'" @click="changeroute">返回上一个页面</button>
     <div class="contain">
       <span>AI-server</span>
       <span>AI-server</span>
@@ -30,6 +30,8 @@ export default defineComponent({
     changeroute(){
       if(this.$route.path == "/model_info_manage")
         this.$router.push('/model_manage')
+      else if(this.$route.path == "/model_manage")
+        this.$router.push("/")
       else
         this.$router.push("/model_info_manage")
     },
