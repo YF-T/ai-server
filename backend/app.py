@@ -512,18 +512,15 @@ def testmodel_test():
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
             print(input,request.form["input"])
-        elif request.form['filetype'] == 'jpgbase64':
-            input = prepare.prepare(None, request.form['input'], 'jpgbase64', None)
         else:
             file = request.files.get('input')
             '''if file is None:
                 print("haha")'''
             #print('file name',file.filename)
-            filepath = (os.path.dirname(__file__)+'/input_file/' + user + '_' + modelname
+            filepath = ('./input_file/' + user + '_' + modelname
                         + '_'+file.filename.replace(" ", ""))
             #print(filepath)
-            file_path_name=user + '_' + modelname+ '_'+file.filename.replace(" ", "")
-            file.save(os.path.dirname(__file__)+'/input_file/' +file_path_name)
+            file.save(filepath)
             #print('haha')
             #多输入
             input={}
