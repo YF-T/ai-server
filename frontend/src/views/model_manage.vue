@@ -1,7 +1,7 @@
 <template>
 <div>
   <h1 id="title">模型管理</h1>
-  <label>模型名称 : </label><input type='text' v-model="filter"/>
+  <label>模型名称：</label><input type='text' v-model="filter"/>
   <br/><br/>
   <div class="body">
   <div class = "center">
@@ -77,7 +77,11 @@ button{
 #thead{
   float:left;
   text-align:center;
+  vertical-align: middle !important;
+  font-size: 20px;
   width:200px;
+  height: 40px;
+  margin-bottom: 20px;
   border:solid black thin;
 }
 .center{
