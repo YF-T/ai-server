@@ -1,34 +1,38 @@
-
 import { createStore } from 'vuex';
 
 export default createStore({
-    state:{
+    state: {
         username: "未登录",
         password: "",
-        modelname:'test2',
-        webname:'',
-        details:[],
-        correcttime:'',
+        modelname: 'test2',
+        webname: '',
+        details: [],
+        tasks: [],
+        correcttime: '',
     },
-    mutations:{
+    mutations: {
         // 保存当前菜单栏的路径
-        saveusername(state,username){
+        saveusername(state, username) {
             state.username = username;
         },
-        savepassword(state,password){
+        savepassword(state, password) {
             state.password = password;
         },
-        savemodelname(state,modelname){
-            state.modelname=modelname;
+        savemodelname(state, modelname) {
+            state.modelname = modelname;
         },
-        savewebname(state,webname){
+        savewebname(state, webname) {
             state.webname = webname;
             console.log(webname);
         },
-        savedetail(state,data){
+
+        savetasks(state, tasks) {
+            state.tasks = tasks
+        },
+        savedetail(state, data) {
             state.details.push(data);
         },
-        savecorrecttime(state,time){
+        savecorrecttime(state, time) {
             state.correcttime = time;
         }
     }
