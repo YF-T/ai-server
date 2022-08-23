@@ -123,6 +123,7 @@ table{
   width: 100%;
   font-size:25px;
   background: white;
+  text-align: center;
 }
 
 table th{

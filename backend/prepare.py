@@ -8,34 +8,36 @@ from flask import jsonify
 import zipfile
 
 
-#jpg和mp4的model_input_type为单个输入变量的tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)示例代码在181行
+
+'''
+处理jpg能调用的函数：
+    process_img_path(path, input_type)#path为jpg的存储地址，input_type为单个输入变量信息，为tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)
+    process_base64_to_img(base64_str, input_type)#base64_str为jpg的base64编码，input_type为单个输入变量信息，为tuple 五元组
+处理MP4能调用的函数：
+    process_mp4(path, input_type)#path为mp4的存储地址，input_type为单个输入变量信息，为tuple 五元组
+处理txt能调用的函数：
+    process_text_to_json(fileaddress: str)#fileaddress为txt的存储地址
+处理zip能调用的函数：
+def process_base64_to_csv(file, id: int)# 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
+                                        #为了创建文件夹方便，希望最好能传入当前任务的id
+'''
 
 #传入jpg路径
-def process_img_path(path, model_input_type):
+def process_img_path(path, input_type):
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     img_array =cv2.imread(path)
     if img_array.shape[2]>1:
         #print(img_array.shape[2])
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)#转换为单通道
-    res=resize_img(img_array,model_input_type)
+    res=resize_img(img_array,input_type)
     #根据模型需要的输入调节
     res = res.astype('float32')
-    res = {model_input_type[0]: res}
+    res = {input_type[0]: res}
     return res
 
-#传入编码好的jpg
-def process_img(img_array, model_input_type):
-    #处理img文件
-    if img_array.shape[2] > 1:
-        # print(img_array.shape[2])
-        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
-    res = resize_img(img_array,model_input_type)
-    res = res.astype('float32')
-    res={model_input_type[0]:res}
-    return res
 
 #处理图片 base64格式输入
-def process_base64_to_img(base64_str: str, model_input_type):
+def process_base64_to_img(base64_str: str, input_type):
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     byte_data = base64.b64decode(base64_str)  # 将base64转换为二进制
     encode_image = np.asarray(bytearray(byte_data), dtype="uint8")  # 二进制转换为一维数组
@@ -43,19 +45,11 @@ def process_base64_to_img(base64_str: str, model_input_type):
     if img_array.shape[2] > 1:
         #print(img_array.shape[2])
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)#转换为单通道
-    res=resize_img(img_array,model_input_type)
+    res=resize_img(img_array,input_type)
     #根据模型需要的输入调节
     res = res.astype('float32')
-    res = {model_input_type[0]: res}
+    res = {input_type[0]: res}
     return res
-
-def img_to_base64(img_array):
-    # 传入图片为RGB格式numpy矩阵，传出的base64也是通过RGB的编码
-    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)  # RGB2BGR，用于cv2编码
-    encode_image = cv2.imencode(".jpg", img_array)[1]  # 用cv2压缩/编码，转为一维数组
-    byte_data = encode_image.tobytes()  # 转换为二进制
-    base64_str = base64.b64encode(byte_data).decode("ascii")  # 转换为base64
-    return base64_str
 
 def resize_img(img, model_input):
     # 修改图片大小
@@ -80,12 +74,6 @@ def resize_img(img, model_input):
         img=img.reshape(shape_list)
         return img
 
-def reshape_onnx_test(img, model_input):
-    res = cv2.resize(img, (28, 28), interpolation=cv2.INTER_CUBIC)
-    # 符合模型维数
-    res = res.reshape(1, 1, 28, 28)
-    return res
-
 # 处理文本
 def process_text_to_json(fileaddress: str):
     f = open(fileaddress)
@@ -97,15 +85,26 @@ def process_text_to_json(fileaddress: str):
 
 
 #处理视频
-def process_mp4(file, model_input_type):
-    videoCapture = cv2.VideoCapture(file)
+def process_mp4(path, input_type):
+    videoCapture = cv2.VideoCapture(path)
     rval = videoCapture.isOpened()
     res={"input":None}
     while rval:  # 循环读取视频帧
         rval, frame = videoCapture.read()
         if rval:
             #用户自定义处理
-            res = process_img(frame, model_input_type)
+            res = process_img(frame, input_type)
+    return res
+
+    #传入编码好的jpg
+def process_img(img_array, model_input_type):
+    #处理img文件
+    if img_array.shape[2] > 1:
+        # print(img_array.shape[2])
+        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
+    res = resize_img(img_array,model_input_type)
+    res = res.astype('float32')
+    res={model_input_type[0]:res}
     return res
 
 def process_base64_mp4(file, model_input_type):
@@ -171,28 +170,18 @@ def prepare(model_input_type, file, filetype, fileaddress: str, id: 0):
         return jsonify({'invalid type'})
 
 
-
-# if __name__ == '__main__':
-
-    '''cv2_img = cv2.imread('./example/t1.jpg')
-    print(type(cv2_img))
-    b=img_to_base64(cv2_img)'''
-    '''i=process_mp4('./example/t2.mp4',('Input3', 'tensor(float)', None, '1*1*28*28', None))
-
-    sess = ort.InferenceSession('./model/mnist-8.onnx')  # 加载模型
-    output = sess.run(None, i)
-    print(output)'''
-
-    #e=pd.DataFrame(i)
-    #i=i.reshape(4,)
-    #e=pd.DataFrame(i)
-    #print(e)
-
-''' 只是测试 要删
-def img_to_base64(img_array):
+'''def img_to_base64(img_array):
     # 传入图片为RGB格式numpy矩阵，传出的base64也是通过RGB的编码
     img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)  # RGB2BGR，用于cv2编码
     encode_image = cv2.imencode(".jpg", img_array)[1]  # 用cv2压缩/编码，转为一维数组
     byte_data = encode_image.tobytes()  # 转换为二进制
     base64_str = base64.b64encode(byte_data).decode("ascii")  # 转换为base64
     return base64_str'''
+
+'''def reshape_onnx_test(img, model_input):
+    res = cv2.resize(img, (28, 28), interpolation=cv2.INTER_CUBIC)
+    # 符合模型维数
+    res = res.reshape(1, 1, 28, 28)
+    return res'''
+
+
