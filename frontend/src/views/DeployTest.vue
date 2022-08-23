@@ -112,7 +112,7 @@ const getFile = () => {
 }
 
 const submit = () => {
-  if (form.requestJSON.length == 0 || form.requestFile == null) {
+  if (form.requestJSON.length == 0 && form.requestFile == null) {
     alert('未提交请求！')
     return
   }

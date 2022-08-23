@@ -28,7 +28,7 @@ let taskFile: Blob | null = null
 interface Task {
   taskid: string
 }
-const tasks = ref<Task[]>([{ taskid: '1' }])
+const tasks = ref<Task[]>([])
 
 const router = useRouter()
 
@@ -45,8 +45,9 @@ onMounted(() => {
   param.append('deployment', deployment)
   request(path, param).then((res: any) => {
     if (res.status == 'success') {
+      console.log(res.taskid)
       tasks.value = [...res.taskid.map((i: string) => ({ taskid: i }))]
-      store.commit('savetasks')
+      store.commit('savetasks', tasks)
     }
   })
 })
