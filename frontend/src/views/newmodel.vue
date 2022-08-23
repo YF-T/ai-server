@@ -134,7 +134,6 @@ export default defineComponent({
   line-height:200px;
   font-size: xx-large;
   border: grey thick solid;
-
 }
 
 #main div:hover{
@@ -149,12 +148,12 @@ export default defineComponent({
 
 .mname{
   display:inline-block;
-  font-size: xx-large;
+  font-size: x-large;
   color:rgb(179, 191, 231);
 }
 
 #inputfile{
-  font-size: xx-large;
+  font-size: x-large;
   margin-left: 80px;
   color:rgb(179, 191, 231);
 }
@@ -166,7 +165,7 @@ select{
 
 .back{
   height:53px;
-  font-size: xx-large;
+  font-size: x-large;
   color:rgb(179, 191, 231);
   background-image: radial-gradient(black,grey)
 }
