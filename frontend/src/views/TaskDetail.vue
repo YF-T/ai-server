@@ -6,7 +6,7 @@
       <p>任务 id: {{ taskId }}</p>
       <p>任务状态: {{ taskStatus }}</p>
       <p>任务结果：</p>
-      <CodeViewer :code="result" language="javascript" />
+      <CodeViewer :code="result" language="javascript" :key="result"/>
     </el-card>
   </div>
 </template>
