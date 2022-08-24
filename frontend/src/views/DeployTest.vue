@@ -123,8 +123,13 @@ const submit = () => {
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
       var str = '\n{\n';
-      for(var key in res.data.output){
-        str += '"'+ key+'":"'+ res.data.output[key] + '",\n';
+      var i = 1;
+      if (typeof res.data.output == 'string') {
+        str += res.data.output + '\n';
+      } else {
+        for(var key in res.data.output){
+          str += '"'+ key+'":"'+ res.data.output[key] + '",\n';
+        }
       }
       str +='}';
       response.value = str;

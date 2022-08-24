@@ -760,9 +760,6 @@ def get_result(deployment: str, taskid: str):
     '''
     功能：查询等待返回的结果
     Args:
-        user: 用户名
-        password: 密码
-        taskid: 任务id
 
     Returns:
         status：str 成功为success，失败为错误信息
