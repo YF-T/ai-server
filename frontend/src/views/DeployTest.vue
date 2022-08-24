@@ -151,12 +151,7 @@ const clear = () => {
   form.requestFile = null
 }
 
-const response = ref(`{
-"sepal length (cm)":1.0,
-"sepal width (cm)":1.0,
-"petal length (cm)":1.0,
-"petal width (cm)":1.0
-}`)
+const response = ref('提交请求后显示响应内容')
 
 const dialogVisible = ref(false)
 
@@ -168,6 +163,7 @@ const copyToClipboard = (text: string) => {
 
 const responseEditorRef = ref()
 onMounted(() => {
+  response.value = "提交请求后显示响应内容"
   // console.log(responseEditorRef)
   if (responseEditorRef.value) {
     const responseEditor = responseEditorRef.value.editor
