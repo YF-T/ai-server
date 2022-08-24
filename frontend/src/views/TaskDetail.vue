@@ -33,7 +33,20 @@ onMounted(() => {
   const param = new FormData()
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
-      result.value = res.data.output
+
+      var str = '\n';
+      res.data.output.forEach(element => {
+        str += '{\n'
+        for(var key in element){
+          str += '"'+ key+'":"'+ element[key] + '",\n';
+        }
+        str +='}';
+      });
+      result.value = str
+      console.log(str);
+    }
+    else{
+      console.log(res.data.status)
     }
   })
 })
