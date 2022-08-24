@@ -9,7 +9,12 @@
         </template>
       </el-table-column>
     </el-table>
-    <input type="file" @change="chooseUploadFile" id="fileInput" />
+    <div class="fileup">
+      <label>训练文件上传:</label><input type="file" @change="chooseUploadFile1" class="fileInput" />
+    </div>
+    <div class="fileup">
+      <label>预处理代码上传:</label><input type="file" @change="chooseUploadFile2" class="fileInput" />
+    </div>
     <el-button @click="update" class="upload">上传</el-button>
   </div>
 </template>
@@ -20,9 +25,10 @@ import { useStore } from 'vuex'
 import { request } from '../Util'
 import { useRouter } from 'vue-router'
 const store = useStore()
-const deployment = store.state.webname
-const modelName = store.state.modelName
-let taskFile: Blob | null = null
+const deployment = ref(store.state.webname)
+const modelName = ref(store.state.modelname)
+let taskFile1: Blob | null = null
+let taskFile2: Blob | null = null
 
 interface Task {
   taskid: string
@@ -42,6 +48,7 @@ onMounted(() => {
   param.append('user', store.state.user)
   param.append('password', store.state.password)
   param.append('deployment', deployment)
+  
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
       console.log(res.data.taskid)
@@ -52,9 +59,10 @@ onMounted(() => {
 })
 
 const update = () => {
-  const path = `http://127.0.0.1:5000/testmodel_delayresponse/${deployment}`
+  const path = `http://127.0.0.1:5000/testmodel_delayresponse/${deployment.value}`
   const param = new FormData()
-  param.append('file', taskFile || '')
+  param.append('file', taskFile1 || '')
+  param.append('prepare_py', taskFile2 || '')
   request(path, param).then((res: any) => {
     if (res.status == 'success') {
       tasks.value.push({ taskid: res.taskid })
@@ -68,14 +76,20 @@ const update = () => {
   })
 }
 
-const chooseUploadFile = (e: any) => {
+const chooseUploadFile1 = (e: any) => {
   const file = e.target.files.item(0).getAsFile()
   if (!file) return
-  taskFile = file
+  taskFile1 = file
   // 清空，防止上传后再上传没有反应
   e.target.value = ''
 }
-
+const chooseUploadFile2 = (e: any) => {
+  const file = e.target.files.item(0).getAsFile()
+  if (!file) return
+  taskFile2 = file
+  // 清空，防止上传后再上传没有反应
+  e.target.value = ''
+}
 </script>
 <style scoped>
 .main {
@@ -93,6 +107,21 @@ const chooseUploadFile = (e: any) => {
 }
 
 .upload {
-  margin-top: 10px;
+  margin-top: 40px;
+}
+
+div[class="fileup"]{
+  position: relative;
+  top:20px;
+  left:100px;
+  display: flex;
+  flex-direction: row;
+  line-height: 50px;
+  
+}
+
+input[class="fileInput"]{
+  display: block;
+  margin: 10px 20px;
 }
 </style>
