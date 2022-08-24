@@ -151,12 +151,7 @@ const clear = () => {
   form.requestFile = null
 }
 
-const response = ref(`{
-"sepal length (cm)":1.0,
-"sepal width (cm)":1.0,
-"petal length (cm)":1.0,
-"petal width (cm)":1.0
-}`)
+const response = ref(`{"a":1.0}`)
 
 const dialogVisible = ref(false)
 
