@@ -1,6 +1,6 @@
 <template>
   <pre :class="[languageClass]" class="codeviewer" >
-    <code>{{code}}</code>
+    <code v-html="highlighted"></code>
   </pre>
 </template>
 <script setup lang="ts">
