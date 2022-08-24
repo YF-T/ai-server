@@ -44,9 +44,9 @@ onMounted(() => {
   param.append('password', store.state.password)
   param.append('deployment', deployment)
   request(path, param).then((res: any) => {
-    if (res.status == 'success') {
-      console.log(res.taskid)
-      tasks.value = [...res.taskid.map((i: string) => ({ taskid: i }))]
+    if (res.data.status == 'success') {
+      console.log(res.data.taskid)
+      tasks.value = [...res.data.taskid.map((i: string) => ({ taskid: i }))]
       store.commit('savetasks', tasks)
     }
   })

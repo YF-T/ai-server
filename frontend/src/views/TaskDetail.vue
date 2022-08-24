@@ -25,6 +25,7 @@ const modelName = ref(store.state.modelName)
 const taskId= ref(route.params.id)
 const taskStatus = ref(task.status)
 const result = ref('')
+
 </script>
 <style scoped>
 .task_detail {

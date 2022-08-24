@@ -122,7 +122,7 @@ const submit = () => {
   param.append('prepare_py', form.preparationCode)
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
-      var str = '{\n';
+      var str = '\n{\n';
       var i = 1;
       for(var key in res.data.output){
         str += '"'+ key+'":"'+ res.data.output[key] + '",\n';
