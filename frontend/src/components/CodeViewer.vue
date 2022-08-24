@@ -1,5 +1,5 @@
 <template>
-  <pre :class="[languageClass]" class="codeviewer" >
+  <pre :class="[languageClass]" class="codeviewer" :key="code">
     <code v-html="highlighted"></code>
   </pre>
 </template>
