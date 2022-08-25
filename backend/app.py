@@ -101,7 +101,6 @@ def upload():
                                                                 'duplication' : 部署名重复
     '''
 
-    # print(type(request.files.get('file')))
     file = request.files.get('file')
     if file is None:  #接受失败
         return {
@@ -116,12 +115,12 @@ def upload():
     modeltype = request.form['modeltype']
     time = request.form['time']
     description = request.form['description']
-    #print("获取上传文件的名称为[%s]\n" % file_name)
+
     #保存文件
     file_name = user + '_' + modelname + '_' + file.filename.replace(" ", "")
     file_path='./model/' + file_name
     file.save(file_path)
-    # print(file_path)
+
     #检测模型有效性
     valid,err_info=getInfoFromModel.checkmodel("user",'password',modeltype,file_name)#先验证有效性再保存，这一步目前不验证用户密码
     err_info=str(err_info)
@@ -129,7 +128,6 @@ def upload():
         # 从模型中读取信息
         dict=getInfoFromModel.getmodelinfo(file_name)
         #储存模型
-        #需要把route改成文件名 第6项 filepath改
         '''print('user',user)
         print('password',password)
         print('modelname',modelname)
@@ -515,14 +513,10 @@ def testmodel_test():
             # print(input,request.form["input"])
         else:
             file = request.files.get('input')
-            '''if file is None:
-                print("haha")'''
-            #print('file name',file.filename)
             filepath = ('./input_file/' + user + '_' + modelname
                         + '_'+file.filename.replace(" ", ""))
             #print(filepath)
             file.save(filepath)
-            #print('haha')
             #多输入
             input={}
             for i_variate in inputvariables:
@@ -544,8 +538,6 @@ def testmodel_test():
     # 检查input是否符合输入变量的要求
     for variable in inputvariables:
         # 若input中没有需要的变量
-        #print("variable[0]",variable[0])
-        #print(input)
         if variable[0] not in input:
             return jsonify({'status': 'invalid input'})
 
@@ -554,8 +546,7 @@ def testmodel_test():
     if address == 'model not found':
         return jsonify({'status': address})
 
-    # 用传入参数训练模型，注意：pmml和onnx格式的训练代码不同，如果添加新格式需要再做处理
-    # 本模块（快速返回）暂时不使用多线程
+    # 预测部分，本模块（快速返回）暂时不使用多线程
     output = naive_test_model(address, input)
     if output is None:
         return jsonify({'status': 'runtime error'})
@@ -661,6 +652,7 @@ def testmodel_quickresponse(deployment: str):
     else:
         firstvisit = lastvisit
     database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
+    
     print(type(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
@@ -671,7 +663,7 @@ def testmodel_quickresponse(deployment: str):
 @app.route('/get_deployment_info/<deployment>', methods = ["GET", "POST"])
 def get_deployment_info(deployment: str):
     '''
-    根据前端需求，返回当前部署的使用情况，包括：
+    根据前端需求，返回当前部署的使用情况，内容包括：
      deployment - 部署名称
      times - 执行次数
      averagecost - 平均执行时间
@@ -705,8 +697,6 @@ def testmodel_delayresponse(deployment: str):
     status, user, password, modelname = database.getdeployment(deployment)
     if status != 'success':
         return jsonify({'status': status})
-    # 从前端接收文件 具体代码需要修改
-    filetype = None
     try: 
         file = request.form['file']
         assert file != None
@@ -734,7 +724,7 @@ def testmodel_delayresponse(deployment: str):
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
         importlib.reload(user_prepare)
-        data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
+        data = user_prepare.prepare(input, file)
     except:
         error = traceback.format_exc()
         return jsonify({'status': 'preprocess failed', 
@@ -772,7 +762,6 @@ def get_result(deployment: str, taskid: str):
                         'output': None,
                         'file': None})
     #调用database查询任务id对应的文件
-    #path具体是啥。。（应该是taskfile的存储路径，可以直接使用）
     state, path = database.gettaskfile(user, password, taskid)
     #目前用一个list储存所有的output
     if state == False:
@@ -793,6 +782,36 @@ def get_result(deployment: str, taskid: str):
         return jsonify({'status':"success",
                         'output':output,
                         'file': None})
+
+
+# 接口中函数调用
+# 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
+def find_model(user: str, password: str, modelname: str):
+    status3, address = database.getmodelroute(user, password, modelname)
+    if not status3:
+        return address
+    address = './model/' + address
+    return address
+
+def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于测试界面快速返回
+    suffix = address[-4:]
+    # 模型为pmml
+    if suffix == 'pmml':
+        model = Model.fromFile(address)
+        output = model.predict(input)
+        if not output is None:
+            output = dict(output)
+        return output
+    # 模型为onnx
+    elif suffix == 'onnx':
+        sess = ort.InferenceSession(address)  # 加载模型
+        output = sess.run(None, input)
+        output=str(output)
+        # 注意：run函数的第二个参数必须为dict或者list
+        return output
+    else:
+        pass
+
 
 def multithread_delayresponse(address: str, input: dict, user: str, password: str, id: str,data):
     '''
@@ -831,35 +850,6 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         # 将id和对应文件储存到数据库
         database.settaskfile(user, password, id, file_path)
         #return output
-    else:
-        pass
-
-
-# 以下函数只适用于测试界面
-# 提取待测试模型地址，若地址不存在，则报错"model not found"；存储在str类型变量address中
-def find_model(user: str, password: str, modelname: str):
-    status3, address = database.getmodelroute(user, password, modelname)
-    if not status3:
-        return address
-    address = './model/' + address
-    return address
-
-def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于测试界面快速返回
-    suffix = address[-4:]
-    # 模型为pmml
-    if suffix == 'pmml':
-        model = Model.fromFile(address)
-        output = model.predict(input)
-        if not output is None:
-            output = dict(output)
-        return output
-    # 模型为onnx
-    elif suffix == 'onnx':
-        sess = ort.InferenceSession(address)  # 加载模型
-        output = sess.run(None, input)
-        output=str(output)
-        # 注意：run函数的第二个参数必须为dict或者list
-        return output
     else:
         pass
 

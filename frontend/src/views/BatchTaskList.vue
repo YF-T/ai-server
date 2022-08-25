@@ -63,9 +63,11 @@ const update = () => {
   const param = new FormData()
   param.append('file', taskFile1 || '')
   param.append('prepare_py', taskFile2 || '')
+  console.log(taskFile1, taskFile2)
   request(path, param).then((res: any) => {
-    if (res.status == 'success') {
-      tasks.value.push({ taskid: res.taskid })
+    if (res.data.status == 'success') {
+      alert('已添加新任务')
+      tasks.value.push({ taskid: res.data.taskid })
     } else if (res.status == 'runtime error') {
       alert('运行时错误')
     } else if (res.status == 'model not found') {
@@ -77,14 +79,15 @@ const update = () => {
 }
 
 const chooseUploadFile1 = (e: any) => {
-  const file = e.target.files.item(0).getAsFile()
+  const file = e.target.files.item(0)
   if (!file) return
   taskFile1 = file
   // 清空，防止上传后再上传没有反应
   e.target.value = ''
 }
+
 const chooseUploadFile2 = (e: any) => {
-  const file = e.target.files.item(0).getAsFile()
+  const file = e.target.files.item(0)
   if (!file) return
   taskFile2 = file
   // 清空，防止上传后再上传没有反应
