@@ -21,18 +21,22 @@ def readzip(input_type, filepath, file):
     return process_base64_to_csv(file, hash(file) + hash(time.time()))
 '''
 处理jpg能调用的函数：
-    process_img_path(path, input_type)#path为jpg的存储地址，input_type为单个输入变量信息，为tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)
-    process_base64_to_img(base64_str, input_type)#base64_str为jpg的base64编码，input_type为单个输入变量信息，为tuple 五元组
+    process_img_path(path, input_type)
+        # path为jpg的存储地址，input_type为单个输入变量信息，为tuple 五元组，如('Input3', 'tensor(float)', None, '1*1*28*28', None)
+    process_base64_to_img(base64_str, input_type)
+        # base64_str为jpg的base64编码，input_type为单个输入变量信息，为tuple 五元组
 
 处理MP4能调用的函数：
-    process_mp4(path, input_type)#path为mp4的存储地址，input_type为单个输入变量信息，为tuple 五元组
+    process_mp4(path, input_type)
+        # path为mp4的存储地址，input_type为单个输入变量信息，为tuple 五元组
 
 处理txt能调用的函数：
-    process_text_to_json(fileaddress: str)#fileaddress为txt的存储地址
+    process_text_to_json(fileaddress: str)
+        # fileaddress为txt的存储地址
 
 处理zip能调用的函数：
-def process_base64_to_csv(file, id: int)# 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
-                                        #为了创建文件夹方便，希望最好能传入当前任务的id
+def process_base64_to_csv(file, id: int)
+    # 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
 '''
 
 # 处理图片
@@ -41,7 +45,6 @@ def process_img_path(path, input_type):
     # 传入为RGB格式下的base64，传出为RGB格式的numpy矩阵
     img_array =cv2.imread(path)
     if img_array.shape[2]>1:
-        #print(img_array.shape[2])
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)#转换为单通道
     res=resize_img(img_array,input_type)
     #根据模型需要的输入调节
@@ -59,8 +62,7 @@ def process_base64_to_img(base64_str: str, input_type):
     encode_image = np.asarray(bytearray(byte_data), dtype="uint8")  # 二进制转换为一维数组
     img_array = cv2.imdecode(encode_image, cv2.IMREAD_COLOR)  # 用cv2解码为三通道矩阵
     if img_array.shape[2] > 1:
-        #print(img_array.shape[2])
-        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)#转换为单通道
+        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
     res=resize_img(img_array,input_type)
     #根据模型需要的输入调节
     res = res.astype('float32')
@@ -71,7 +73,6 @@ def process_base64_to_img(base64_str: str, input_type):
 def process_img(img_array, model_input_type):
     #处理img文件
     if img_array.shape[2] > 1:
-        # print(img_array.shape[2])
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)  # 转换为单通道
     res = resize_img(img_array,model_input_type)
     res = res.astype('float32')
