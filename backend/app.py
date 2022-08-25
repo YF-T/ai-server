@@ -652,6 +652,7 @@ def testmodel_quickresponse(deployment: str):
     else:
         firstvisit = lastvisit
     database.setdeploymentperformance(deployment, run_times, average_cost, maxcost, mincost, firstvisit, lastvisit)
+    
     print(type(output))
     if output is None:
         return jsonify({'status': 'runtime error'})
@@ -696,8 +697,6 @@ def testmodel_delayresponse(deployment: str):
     status, user, password, modelname = database.getdeployment(deployment)
     if status != 'success':
         return jsonify({'status': status})
-    # 从前端接收文件 具体代码需要修改
-    filetype = None
     try: 
         file = request.form['file']
         assert file != None
@@ -725,7 +724,7 @@ def testmodel_delayresponse(deployment: str):
     # 检验用户的模型 语法是否有问题 获得输入 data
     try:
         importlib.reload(user_prepare)
-        data = user_prepare.prepare(input, file)  # 待更新，目前input是模型的input标准，file是从前端读取的input数据
+        data = user_prepare.prepare(input, file)
     except:
         error = traceback.format_exc()
         return jsonify({'status': 'preprocess failed', 
