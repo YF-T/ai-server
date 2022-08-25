@@ -788,9 +788,9 @@ def setdeploymentperformance(deployment: str, times: int, averagecost: float,
     Parameters:
      deployment - 部署名称
      times - 执行次数
-     averagecost - 平均执行时间
-     maxcost - 最大执行时间
-     mincost - 最小执行时间
+     averagecost - 平均响应时间
+     maxcost - 最大响应时间
+     mincost - 最小响应时间
      firstvisit - 最初访问时间点，初始值为None
      lastvisit - 最近访问时间点，初始值为None
      
