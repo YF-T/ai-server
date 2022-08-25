@@ -1,7 +1,6 @@
 <template>
   <div class="main">
     <h2>批量任务列表</h2>
-    <span>当前模型：{{ modelName }}</span>
     <el-table :data="tasks" style="width: 50%">
       <el-table-column prop="taskid" label="任务 ID" />
       <el-table-column prop="taskid" label="操作">

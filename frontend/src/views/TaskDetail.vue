@@ -1,10 +1,8 @@
 <template>
   <div class="task_detail">
     <h2>任务详情页面</h2>
-    <p>当前模型：{{ modelName }}</p>
     <el-card class="card">
       <p>任务 id: {{ taskId }}</p>
-      <p>任务状态: {{ taskStatus }}</p>
       <p>任务结果：</p>
       <CodeViewer :code="result" language="javascript" :key="result"/>
     </el-card>
@@ -38,11 +36,11 @@ const reback = () => {
 }
 
 onMounted(() => {
-  const path = `http://127.0.0.1:5000/get_result_delayresponse/${deployName}/${taskId}`
+  const path = `http://127.0.0.1:5000/get_result_delayresponse/${deployName.value}/${taskId.value}`
   const param = new FormData()
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
-
+      console.log(res.data.output);
       var str = '\n';
       res.data.output.forEach(element => {
         str += '{\n'
