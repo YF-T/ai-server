@@ -34,6 +34,7 @@ def register(user : str, password : str):
     conn.close()
     return status
 
+
 def identify(user : str, password : str):
     '''
     身份识别函数，识别用户是否存在/用户名与密码是否匹配
@@ -65,6 +66,7 @@ def identify(user : str, password : str):
     conn.close()
     return status
 
+
 def getusermodel(user : str, password : str):
     '''
     返回用户的所有模型
@@ -93,6 +95,7 @@ def getusermodel(user : str, password : str):
     answer = c.fetchall()
     conn.close()
     return True, answer
+
 
 def getmodelroute(user : str, password : str, modelname : str):
     '''
@@ -129,6 +132,7 @@ def getmodelroute(user : str, password : str, modelname : str):
         answer = row[0]
     conn.close()
     return bool(row), answer
+
 
 def getmodelvariables(user : str, password : str, modelname : str):
     '''
@@ -184,6 +188,7 @@ def getmodelvariables(user : str, password : str, modelname : str):
     conn.close()
     return True, input, output
 
+
 def getmodelinfo(user : str, password : str, modelname : str):
     '''
     找到模型对应的信息
@@ -222,6 +227,7 @@ def getmodelinfo(user : str, password : str, modelname : str):
         answer = row
     conn.close()
     return bool(row), answer
+
 
 def savemodel(user : str, password : str, modelname : str, modeltype : str, 
                 time : str, modelroute : str, description : str, 
@@ -301,6 +307,7 @@ def savemodel(user : str, password : str, modelname : str, modeltype : str,
     conn.close()
     return 'success'
 
+
 def deletemodel(user : str, password : str, modelname : str):
     '''
     删除模型
@@ -343,7 +350,8 @@ def deletemodel(user : str, password : str, modelname : str):
     conn.commit()
     conn.close()
     return 'success'
-    
+
+
 def createtask(user : str, password : str, modelname : str, deployment : str):
     '''
     创建一个新的任务词条，返回任务id
@@ -384,6 +392,7 @@ def createtask(user : str, password : str, modelname : str, deployment : str):
     conn.close()
     return True, taskid
 
+
 def deletetask(user : str, password : str, taskid : str):
     '''
     删除任务
@@ -420,7 +429,8 @@ def deletetask(user : str, password : str, taskid : str):
     conn.close()
     return answer
 
-def gettaskfile(user : str, password : str, taskid : str):
+
+def gettaskfile(user: str, password: str, taskid: str):
     '''
     查看任务返回值储存路径
      
@@ -455,6 +465,7 @@ def gettaskfile(user : str, password : str, taskid : str):
         answer = row[0]
     conn.close()
     return bool(row), answer
+
 
 def settaskfile(user : str, password : str, taskid : str, file : str):
     '''
@@ -494,6 +505,7 @@ def settaskfile(user : str, password : str, taskid : str, file : str):
     conn.close()
     return answer
     
+
 def getdeployment(deployment : str):
     '''
     TODO
@@ -517,6 +529,7 @@ def getdeployment(deployment : str):
     password = c.fetchone()[0]
     conn.close()
     return 'success', user, password, modelname
+
 
 def createdeployment(user : str, password : str, modelname : str, 
                      deployment : str, time : str):
@@ -560,6 +573,7 @@ def createdeployment(user : str, password : str, modelname : str,
     conn.close()
     return 'success'
 
+
 def deletedeployment(user : str, password : str, deployment : str):
     '''
     删除部署
@@ -598,6 +612,7 @@ def deletedeployment(user : str, password : str, deployment : str):
     conn.close()
     return answer
 
+
 def getdeploymenttask(deployment : str):
     '''
     返回部署的所有任务id
@@ -629,6 +644,7 @@ def getdeploymenttask(deployment : str):
     answer = list(map(lambda x : x[0], answer))
     conn.close()
     return True, answer
+
 
 def getdeploymentstatus(user : str, password : str, modelname : str, deployment : str):
     '''
@@ -669,6 +685,7 @@ def getdeploymentstatus(user : str, password : str, modelname : str, deployment 
         answer = row[0]
     conn.close()
     return bool(row), answer
+
 
 def setdeploymentstatus(user : str, password : str, modelname : str,
                         deployment : str, status : str):
@@ -714,7 +731,8 @@ def setdeploymentstatus(user : str, password : str, modelname : str,
     conn.commit()
     conn.close()
     return answer
-    
+
+
 def getmodeldeployment(user : str, password : str, modelname : str):
     '''
     返回一个模型的所有部署
@@ -760,7 +778,8 @@ def getmodeldeployment(user : str, password : str, modelname : str):
     deployments = c.fetchall()
     conn.close()
     return True, deployments
-    
+
+
 def setdeploymentperformance(deployment: str, times: int, averagecost: float, 
                              maxcost: float, mincost: float, 
                              firstvisit: str, lastvisit: str):
@@ -803,6 +822,7 @@ def setdeploymentperformance(deployment: str, times: int, averagecost: float,
     conn.close()
     return answer
     
+
 def getdeploymentperformance(deployment: str):
     '''
     查看部署性能
@@ -834,6 +854,7 @@ def getdeploymentperformance(deployment: str):
         answer = row
     conn.close()
     return bool(row), answer
+
 
 def init():
     '''
@@ -910,7 +931,8 @@ def init():
         conn.commit()
         conn.close()
         print('database has been created')
-                    
+
+
 def restart():
     '''
     重新创建数据库
