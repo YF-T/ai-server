@@ -10,10 +10,10 @@
       </el-table-column>
     </el-table>
     <div class="fileup">
-      <label>训练文件上传:</label><input type="file" @change="chooseUploadFile1" class="fileInput" />
+      <label for="zipfile"><span style="color: #11A8FF; cursor: pointer;">训练文件上传</span></label><input id="zipfile" type="file" @change="chooseUploadFile1" class="fileInput" style="display: none;"/>
     </div>
     <div class="fileup">
-      <label>预处理代码上传:</label><input type="file" @change="chooseUploadFile2" class="fileInput" />
+      <label for="pyfile"><span style="color: #11A8FF; cursor: pointer;">预处理代码上传</span></label><input id="pyfile" type="file" @change="chooseUploadFile2" class="fileInput" style="display: none;"/>
     </div>
     <el-button @click="update" class="upload">上传</el-button>
   </div>
@@ -50,6 +50,7 @@ onMounted(() => {
   param.append('deployment', deployment.value)
   
   request(path, param).then((res: any) => {
+    console.log(res.data.status);
     if (res.data.status == 'success') {
       console.log(res.data.taskid)
       tasks.value = [...res.data.taskid.map((i: string) => ({ taskid: i }))]
@@ -116,15 +117,12 @@ const chooseUploadFile2 = (e: any) => {
 div[class="fileup"]{
   position: relative;
   top:20px;
-  left:100px;
   display: flex;
   flex-direction: row;
   line-height: 50px;
-  
 }
 
-input[class="fileInput"]{
+div label{
   display: block;
-  margin: 10px 20px;
 }
 </style>
