@@ -61,18 +61,14 @@ def getmodelinfo(modelpath : str):
                 algorithm = model_type_contents
         except:
             algorithm = ""
-        #print(algorithm)
         # 匹配输入和预测变量
         input_variate_name = set()
         predict_variate_name = set()
         name_contents = re.search(r'<MiningSchema>[\s\S]*?</MiningSchema>', contents)  # 仅第一组不包括中间变量
         name_contents = name_contents.group()
-        # print(name_contents)
         pattern = re.compile(r"<MiningField\b.*>")
         name_info_list = pattern.findall(name_contents)
-        # print(name_info_list)
         for name_info in name_info_list:
-            # print('name_info:', type(name_info))
             usage = re.search(r'\busageType="(.*?)"', name_info)
             if usage!=None:
                 usage = usage.group(1)
@@ -205,7 +201,6 @@ def checkmodel(user: str, password: str, modeltype: str, modelname: str):
         #检验是否是合格的xml
         try:
             ET.parse(file_path)
-            #print("xml ok")
         except Exception as e:
             error_info =e
             valid=False
@@ -217,7 +212,6 @@ def checkmodel(user: str, password: str, modeltype: str, modelname: str):
                 contents = file_obj.read()
             version = re.search(r'<PMML.*?version="(.*?)"', contents)
             version=version.group(1)
-            #print("version",version)
         except Exception:
             error_info = "model is invalid:can't get version"
             valid = False
@@ -290,7 +284,6 @@ def checkmodel(user: str, password: str, modeltype: str, modelname: str):
         else:
             # 若version为4.2.1之类无法转成float的且不在枚举范围内的，4.4可验证4.1-4.4，3.2可验证3.0-3.2
             version=version[0]
-            #print("haha")
             if version=='4':
                 try:
                     model = check_pmml_xsd.pmml_44.parse(file_path, silence=True)
@@ -325,19 +318,16 @@ def checkmodel(user: str, password: str, modeltype: str, modelname: str):
         except:
             error_info=sys.exc_info()
             valid=False
-            #print(error_info)
         else:
             #检验有效性
             try:
                 onnx.checker.check_model(model)
             except onnx.checker.ValidationError as e:
                 error_info = error_info+e
-                #print(error_info)
                 valid=False
             else:
                 valid = True
                 error_info=''
-                #print("haha")
     else:#传入的modeltype有问题 仅能接受pmml、onnx和PMML ONNX 查看拼写是否正确
         valid=False
         error_info="model type error(only support pmml or onnx)"
