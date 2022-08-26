@@ -133,8 +133,8 @@ def process_base64_mp4(file, model_input_type):
 
 # 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
 def process_base64_to_csv(file, id: int):
-    path = './output/zip/' + str(id)
-    os.mkDir(path)
+    path = './input_file/zip/' + str(id)
+    os.makedirs(path)
     if not file.endswith(".zip"):
         return jsonify({'status': 'the file is not a zip'})
     # 若非zip文件则返回，原则上不应报错

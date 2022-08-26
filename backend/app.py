@@ -18,6 +18,7 @@ import database
 import prepare
 import user_prepare
 import getInfoFromModel
+import shutil
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -853,7 +854,28 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
     else:
         pass
 
+@app.route('/restart',methods=["POST"])
+def restart():
+    '''
+    存储清除接口，用于清空所有的存储
+    '''
+    password = request.form['password']
+    if password != '20220826':
+        return jsonify({'status':"invalid password"})
+    try:
+        for dirs in ['./input_file', 'model', 'output', 'textfile']:
+            shutil.rmtree(dirs)
+    except:
+        pass
+    for dirs in ['./input_file', 'model', 'output', 'textfile']:
+        if not os.path.exists(dirs):
+            os.makedirs(dirs)
+    database.restart()
+    return jsonify({'status':"success"})
 
 if __name__ == '__main__':
+    for dirs in ['./input_file', 'model', 'output', 'textfile']:
+        if not os.path.exists(dirs):
+            os.makedirs(dirs)
     database.init()
     app.run()
