@@ -506,25 +506,22 @@ def testmodel_test():
     # 获取用户输入变量的信息
     #预处理需要，先提到前面
     status, inputvariables, outputvariables = database.getmodelvariables(user, password, modelname)
-    # print('in')
+
     if request.form['filetype'] in ('none','jpg', 'jpgbase64', 'csv', 'txt',
                                     'mp4base64', 'mp4', 'zip'):
         if request.form['filetype'] == 'none':
             input = json.loads(request.form['input'])
-            # print(input,request.form["input"])
         else:
             file = request.files.get('input')
             filepath = ('./input_file/' + user + '_' + modelname
                         + '_'+file.filename.replace(" ", ""))
-            #print(filepath)
             file.save(filepath)
             #多输入
             input={}
             for i_variate in inputvariables:
                 input_tmp = prepare.prepare(i_variate, file, request.form['filetype'], filepath, None)
                 input.update(input_tmp)
-    else:
-        # print('else')        
+    else:       
         input = json.loads(request.form['input'])
         filetype = json.loads(request.form['filetype'])
         for variable in inputvariables:
@@ -558,7 +555,6 @@ def testmodel_test():
         return_type = 'str'
     if type_output == "<class 'dict'>":
         return_type = 'dict'
-    #print(return_type)
     return jsonify({'status': 'success', 
                     'output': output,
                     'return_type':return_type})
@@ -597,7 +593,7 @@ def testmodel_quickresponse(deployment: str):
         assert file != None
     except: 
         file = request.files.get('file')
-    #预处理，用户自定义，任务2测试模型不需要
+
     #从前端接收用户的python代码
     try: 
         prepare_py = request.form['prepare_py'].replace('@@', '\n')
@@ -764,7 +760,7 @@ def get_result(deployment: str, taskid: str):
                         'file': None})
     #调用database查询任务id对应的文件
     state, path = database.gettaskfile(user, password, taskid)
-    #目前用一个list储存所有的output
+    # 用一个list储存所有的output
     if state == False:
         return jsonify({'status': path,
                         'output': None,
@@ -793,8 +789,9 @@ def find_model(user: str, password: str, modelname: str):
         return address
     address = './model/' + address
     return address
-
-def naive_test_model(address: str, input: dict):  # 最基础形式，只适用于测试界面快速返回
+    
+# 最基础形式，只适用于测试界面快速返回
+def naive_test_model(address: str, input: dict):
     suffix = address[-4:]
     # 模型为pmml
     if suffix == 'pmml':
@@ -808,7 +805,6 @@ def naive_test_model(address: str, input: dict):  # 最基础形式，只适用�
         sess = ort.InferenceSession(address)  # 加载模型
         output = sess.run(None, input)
         output=str(output)
-        # 注意：run函数的第二个参数必须为dict或者list
         return output
     else:
         pass
@@ -832,7 +828,7 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         model = Model.fromFile(address)
         output = model.predict(data)
         # pmml模型下dataframe的输出结果仍为dataframe
-        # 储存output为文件 先用pickle，不行再改
+        # 储存output为文件
         f_save = open(file_path, 'ab')
         pickle.dump(output, f_save)
         f_save.close()
@@ -844,13 +840,12 @@ def multithread_delayresponse(address: str, input: dict, user: str, password: st
         for input in data:
             output = sess.run(None, input)
             output=str(output)
-            # 储存output为文件 先用pickle，不行再改
+            # 储存output为文件
             f_save = open(file_path, 'ab')
             pickle.dump(output, f_save)
             f_save.close()
         # 将id和对应文件储存到数据库
         database.settaskfile(user, password, id, file_path)
-        #return output
     else:
         pass
 
