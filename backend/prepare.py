@@ -134,8 +134,6 @@ def process_base64_mp4(file, model_input_type):
 def process_base64_to_csv(file, id: int):
     path = './input_file/zip/' + str(id)
     os.makedirs(path)
-    if not file.endswith(".zip"):
-        return jsonify({'status': 'the file is not a zip'})
     # 若非zip文件则返回，原则上不应报错
     f = zipfile.ZipFile(file)
     for fz in f.namelist():  # 遍历压缩包列表中的所有文件
@@ -147,7 +145,7 @@ def process_base64_to_csv(file, id: int):
         temp_address = path + '/' + txt_address
         # 对当前txt文件地址，调用text转json函数
         temp_json_dict = process_text_to_json(temp_address)
-        temp_df = pd.DataFrame(temp_json_dict)
+        temp_df = pd.DataFrame(temp_json_dict, index=[0])
         df = pd.concat([df, temp_df])
     return df
 

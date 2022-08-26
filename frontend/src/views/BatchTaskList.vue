@@ -47,7 +47,7 @@ onMounted(() => {
   const param = new FormData()
   param.append('user', store.state.user)
   param.append('password', store.state.password)
-  param.append('deployment', deployment)
+  param.append('deployment', deployment.value)
   
   request(path, param).then((res: any) => {
     if (res.data.status == 'success') {
