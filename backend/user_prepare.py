@@ -2,7 +2,6 @@ import zipfile
 import pandas as pd
 import json
 import os
-
 def process_text_to_json(fileaddress: str):
     f = open(fileaddress)
     string = f.read()

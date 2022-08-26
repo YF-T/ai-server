@@ -6,7 +6,7 @@
       <p>任务结果：</p>
       <CodeViewer :code="result" language="javascript" :key="result"/>
     </el-card>
-    <div class="button">
+    <div class="backpage">
       <button @click="reback"><span>返回</span></button>
     </div>
   </div>
@@ -71,17 +71,19 @@ const result = ref('')
   width: 50%;
 }
 
-.button{
+.backpage{
   display: flex;
   justify-content: center;
+  height: 80px;
 }
 
 button{
+  height: 50px;
   position: relative;
   top:8px;
   border: none;
   display: inline-block;
-  padding: 10px 30px;
+  padding: 0px 30px;
 
   margin: 0px 20px;
   text-transform: uppercase;
