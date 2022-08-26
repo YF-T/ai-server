@@ -858,18 +858,18 @@ def restart():
     if password != '20220826':
         return jsonify({'status':"invalid password"})
     try:
-        for dirs in ['./input_file', 'model', 'output', 'textfile']:
+        for dirs in ['./input_file', 'model', 'output']:
             shutil.rmtree(dirs)
     except:
         pass
-    for dirs in ['./input_file', 'model', 'output', 'textfile']:
+    for dirs in ['./input_file', 'model', 'output']:
         if not os.path.exists(dirs):
             os.makedirs(dirs)
     database.restart()
     return jsonify({'status':"success"})
 
 if __name__ == '__main__':
-    for dirs in ['./input_file', 'model', 'output', 'textfile']:
+    for dirs in ['./input_file', 'model', 'output']:
         if not os.path.exists(dirs):
             os.makedirs(dirs)
     database.init()

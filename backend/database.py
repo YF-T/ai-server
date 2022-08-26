@@ -510,8 +510,9 @@ def getdeployment(deployment : str):
     Returns:
      第一个值 - 'success' : 设置成功
                 'deployment not found' : 用户不存在
-     'invalid password' : 密码错误
-     'task not found' : 任务id不存在
+     第二个值 - 用户名
+     第三个值 - 密码
+     第四个值 - 模型名
      
     Raises:
      参数类型错误
