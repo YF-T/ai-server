@@ -508,7 +508,19 @@ def settaskfile(user : str, password : str, taskid : str, file : str):
 
 def getdeployment(deployment : str):
     '''
-    TODO
+    查询部署对应的用户名密码
+     
+    Parameters:
+     deployment - 部署
+     
+    Returns:
+     第一个值 - 'success' : 设置成功
+                'deployment not found' : 用户不存在
+     'invalid password' : 密码错误
+     'task not found' : 任务id不存在
+     
+    Raises:
+     参数类型错误
     '''
     assert isinstance(deployment, str)
     # 连接数据库
@@ -521,13 +533,13 @@ def getdeployment(deployment : str):
     if not bool(answer):
         return 'deployment not found', None, None, None
     user, modelname, status = answer
-    if status == 'pause':
-        return 'deployment pause', None, None, None
     c.execute('''SELECT password FROM users
                     WHERE user = ?''' , 
                     (user, ))
     password = c.fetchone()[0]
     conn.close()
+    if status == 'pause':
+        return 'deployment pause', user, password, modelname
     return 'success', user, password, modelname
 
 
@@ -892,25 +904,6 @@ def init():
                         time TEXT, modelroute TEXT, 
                         algorithm TEXT, engine TEXT, 
                         description TEXT);''')
-        c.executemany('INSERT INTO models VALUES (?,?,?,?,?,?,?,?,?)', 
-                        [('tyf', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', 
-                         'randomforest', 'pypmml', '测试模型'),
-                         ('crk', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', 
-                         'randomforest', 'pypmml', '测试模型'),
-                         ('zyt', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', 
-                         'randomforest', 'pypmml', '测试模型'),
-                         ('wzn', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', 
-                         'randomforest', 'pypmml', '测试模型'),
-                         ('llz', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', 
-                         'randomforest', 'pypmml', '测试模型'),
-                         ('lxt', -1, 'test', 'pmml', 
-                         '2020-08-03 16:00:00', 'randomForest.pmml', 
-                         'randomforest', 'pypmml', '测试模型')])
         # 创建task表
         c.execute('''CREATE TABLE delayresponsetasks
                         (user TEXT, id TEXT, 
@@ -949,8 +942,3 @@ def restart():
     if os.path.exists(database):
         os.remove(database)
     init()
-    savemodel('tyf','123456','test2','pmml',
-              '2022','test2.pmml','测试模型','pypmml','randomforest',
-              [('input1', 'int', '0,1,2,3', '1*8',None),
-               ('input2', 'int', None, None,'continuous')],
-              [('output', 'int', None, None,'continuous')])

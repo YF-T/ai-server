@@ -757,7 +757,7 @@ def get_result(deployment: str, taskid: str):
         file: 成功为pkl文件，失败为None
     '''
     status, user, password, modelname = database.getdeployment(deployment)
-    if status != 'success':
+    if status != 'success' and status != 'deployment pause':
         return jsonify({'status': status,
                         'output': None,
                         'file': None})
