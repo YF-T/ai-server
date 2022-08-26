@@ -254,7 +254,7 @@ export default defineComponent({
       }
       let index = this.fileName.lastIndexOf('.');
       let fileType = this.fileName.substring(index+1, this.fileName.length); //index是点的位置。点的位置加1再到结尾
-      if (fileType!='txt'&&fileType!="csv"&&fileType!="jpg"){
+      if (fileType!='txt'&&fileType!="csv"&&fileType!="jpg"&&fileType!="mp4"){
         return alert("不支持当前文件类型")
       }
       let param=new FormData();
