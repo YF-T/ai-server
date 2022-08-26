@@ -91,7 +91,6 @@ def resize_img(img, model_input):
         #读取总维数
         shape_list = shape.split("*")
         shape_list = np.array(shape_list).astype(dtype=int).tolist()
-        #print(type(shape_list))
         n = 1
         for i in shape_list:
             n = n * int(i)
@@ -133,10 +132,8 @@ def process_base64_mp4(file, model_input_type):
 
 # 处理压缩包(假设压缩包内均为.txt文档，且文档内为json指令格式，最终转成csv)
 def process_base64_to_csv(file, id: int):
-    path = './output/zip/' + str(id)
-    os.mkDir(path)
-    if not file.endswith(".zip"):
-        return jsonify({'status': 'the file is not a zip'})
+    path = './input_file/zip/' + str(id)
+    os.makedirs(path)
     # 若非zip文件则返回，原则上不应报错
     f = zipfile.ZipFile(file)
     for fz in f.namelist():  # 遍历压缩包列表中的所有文件
@@ -148,7 +145,7 @@ def process_base64_to_csv(file, id: int):
         temp_address = path + '/' + txt_address
         # 对当前txt文件地址，调用text转json函数
         temp_json_dict = process_text_to_json(temp_address)
-        temp_df = pd.DataFrame(temp_json_dict)
+        temp_df = pd.DataFrame(temp_json_dict, index=[0])
         df = pd.concat([df, temp_df])
     return df
 
@@ -183,18 +180,3 @@ def prepare(model_input_type, file, filetype, fileaddress: str, id: 0):
 
     else:
         return jsonify({'invalid type'})
-
-
-'''def img_to_base64(img_array):
-    # 传入图片为RGB格式numpy矩阵，传出的base64也是通过RGB的编码
-    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)  # RGB2BGR，用于cv2编码
-    encode_image = cv2.imencode(".jpg", img_array)[1]  # 用cv2压缩/编码，转为一维数组
-    byte_data = encode_image.tobytes()  # 转换为二进制
-    base64_str = base64.b64encode(byte_data).decode("ascii")  # 转换为base64
-    return base64_str'''
-
-'''def reshape_onnx_test(img, model_input):
-    res = cv2.resize(img, (28, 28), interpolation=cv2.INTER_CUBIC)
-    # 符合模型维数
-    res = res.reshape(1, 1, 28, 28)
-    return res'''

@@ -8,6 +8,7 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     CodeViewer: typeof import('./src/components/CodeViewer.vue')['default']
+    Face: typeof import('./src/components/face.vue')['default']
     Model_info_manage_addserver: typeof import('./src/components/model_info_manage_addserver.vue')['default']
     Model_info_manage_deploy: typeof import('./src/components/model_info_manage_deploy.vue')['default']
     Model_info_manage_overview: typeof import('./src/components/model_info_manage_overview.vue')['default']
